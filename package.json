@@ -39,6 +39,7 @@
     "webpack-dev-server": "^3.8.1"
   },
   "dependencies": {
+    "@recogito/annotorious": "^2.0.1-alpha",
     "@recogito/recogito-client-core": "^0.1.2",
     "axios": "^0.19.2",
     "react": "^16.13.1",

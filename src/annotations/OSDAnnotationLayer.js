@@ -1,5 +1,6 @@
 import EventEmitter from 'tiny-emitter';
 import { SVG_NAMESPACE } from '../SVGConst';
+import { parseRectFragment } from '@recogito/annotorious';
 
 import './OSDAnnotationLayer.scss';
 
@@ -22,38 +23,45 @@ export default class OSDAnnotationLayer extends EventEmitter {
     viewer.addHandler('resize', () => this.resize());
 
     this.viewer = viewer;
+    
+    this.selectedShape = null;
 
     this.resize();
   }
 
   addAnnotation = annotation => {
-    // TODO parse annotation
+    const { x, y, w, h } = parseRectFragment(annotation);
+
     const shape = document.createElementNS(SVG_NAMESPACE, 'rect');
-    shape.setAttribute('x',0.1);
-    shape.setAttribute('y',0.1);
-    shape.setAttribute('width',0.3);
-    shape.setAttribute('height',0.1);
+    shape.setAttribute('x', x);
+    shape.setAttribute('y', y);
+    shape.setAttribute('width', w);
+    shape.setAttribute('height', h);
     shape.setAttribute('class', 'a9s-annotation');
     shape.setAttribute('data-id', annotation.id);
     shape.annotation = annotation;
+
+    shape.addEventListener('click', () => {
+      const bounds = shape.getBoundingClientRect();
+      this.selectedShape = shape;
+      this.emit('select', { annotation, bounds }); 
+    });
   
     this.g.appendChild(shape);
   }
 
-  init = annotations =>
+  init = annotations => {
     annotations.forEach(this.addAnnotation);
+  }
   
   resize() {
     const p = this.viewer.viewport.pixelFromPoint(new OpenSeadragon.Point(0, 0), true);
-    const zoom = this.viewer.viewport.getZoom(true);
     const rotation = this.viewer.viewport.getRotation();
+    const zoom = this.viewer.viewport.getZoom(true);
+    this.g.setAttribute('transform', `translate(${p.x}, ${p.y}) scale(${zoom}) rotate(${rotation})`);
 
-    var scale = this.viewer.viewport._containerInnerSize.x * zoom;
-
-    this.g.setAttribute('transform',
-     `translate(${p.x},${p.y}) scale(${scale}) rotate(${rotation})`);
-
-    // this.emit('updateBounds', this.g.querySelector('rect').getBoundingClientRect());
+    if (this.selectedShape)
+      this.emit('updateBounds', this.selectedShape.getBoundingClientRect());
   }
 
 }

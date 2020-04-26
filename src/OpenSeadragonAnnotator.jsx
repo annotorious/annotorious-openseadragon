@@ -11,7 +11,13 @@ export default class OpenSeadragonAnnotator extends Component {
 
   componentDidMount() {
     this.annotationLayer = new OSDAnnotationLayer(this.props.viewer);
+    
     this.annotationLayer.on('updateBounds', b => this.setState({ selectionBounds: b }));
+
+    this.annotationLayer.on('select', evt => {
+      const { annotation, bounds } = evt;
+      this.setState({ selectedAnnotation: annotation, selectionBounds: bounds })
+    });
   }
 
   onCreateOrUpdateAnnotation = evt => {

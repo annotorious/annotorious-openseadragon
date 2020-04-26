@@ -1,25 +1,6 @@
 [
   { 
     "@context": "http://www.w3.org/ns/anno.jsonld",
-    "id": "#52de2e2a-c103-406c-bba4-68da94f2dee3",
-    "type": "Annotation",
-    "body": [{
-      "type": "TextualBody",
-      "value": "Annotation #1"
-    }, {
-      "type": "TextualBody",
-      "purpose": "tagging",
-      "value": "Annotation"
-    }],
-    "target": {
-      "selector": {
-        "type": "FragmentSelector",
-        "conformsTo": "http://www.w3.org/TR/media-frags/",
-        "value": "xywh=0.1,0.1,0.3,0.1"
-      }
-    }
-  },  { 
-    "@context": "http://www.w3.org/ns/anno.jsonld",
     "id": "#07475897-d2eb-4dce-aa12-ecb50771c734",
     "type": "Annotation",
     "body": [{
@@ -30,7 +11,7 @@
       "selector": {
         "type": "FragmentSelector",
         "conformsTo": "http://www.w3.org/TR/media-frags/",
-        "value": "xywh=0.4,0.2,0.2,0.2"
+        "value": "xywh=270,120,90,170"
       }
     }
   }
