@@ -1,6 +1,6 @@
 import EventEmitter from 'tiny-emitter';
 import { SVG_NAMESPACE } from '../SVGConst';
-import { drawRect } from '@recogito/annotorious';
+import { parseRectFragment } from '@recogito/annotorious';
 
 import './OSDAnnotationLayer.scss';
 
@@ -30,11 +30,17 @@ export default class OSDAnnotationLayer extends EventEmitter {
   }
 
   addAnnotation = annotation => {
-    const shape = drawRect(annotation);
+    const { x, y, w, h } = parseRectFragment(annotation);
+
+    const shape = document.createElementNS(SVG_NAMESPACE, 'rect');
+    shape.setAttribute('x', x);
+    shape.setAttribute('y', y);
+    shape.setAttribute('width', w);
+    shape.setAttribute('height', h);
+    shape.setAttribute('vector-effect', 'non-scaling-stroke');
     shape.setAttribute('class', 'a9s-annotation');
     shape.setAttribute('data-id', annotation.id);
     shape.annotation = annotation;
-
 
     new OpenSeadragon.MouseTracker({
       element: shape,
@@ -55,10 +61,18 @@ export default class OSDAnnotationLayer extends EventEmitter {
   }
   
   resize() {
+    // Current upper left corner
     const p = this.viewer.viewport.pixelFromPoint(new OpenSeadragon.Point(0, 0), true);
-    const rotation = this.viewer.viewport.getRotation();
+
+    // Compute scale factor
+    const { x, y } = this.viewer.viewport.getContainerSize();
+    const containerSize = Math.max(x, y);
     const zoom = this.viewer.viewport.getZoom(true);
-    this.g.setAttribute('transform', `translate(${p.x}, ${p.y}) scale(${zoom}) rotate(${rotation})`);
+    const scale = zoom * containerSize / this.viewer.world.getContentFactor();
+
+    const rotation = this.viewer.viewport.getRotation();
+
+    this.g.setAttribute('transform', `translate(${p.x}, ${p.y}) scale(${scale}) rotate(${rotation})`);
 
     if (this.selectedShape)
       this.emit('updateBounds', this.selectedShape.getBoundingClientRect());

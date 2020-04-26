@@ -29,7 +29,7 @@ export default class OpenSeadragonAnnotator extends Component {
   }
 
   onCancelAnnotation = evt => {
-
+    this.setState({ selectedAnnotation: null, selectionBounds: null });
   }
 
   setAnnotations = annotations =>

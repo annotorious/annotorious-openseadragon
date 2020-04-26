@@ -6,9 +6,10 @@
   height:100%;
 }
 
-/** DUMMY **/
 .a9s-annotation {
-  stroke-width:1px;
+  shape-rendering:crispEdges;
+  stroke-width:1.2px;
   stroke:#fff;
-  fill:rgba(255, 0, 0, 0.2);
+  fill:transparent;
+  outline:0.5px solid black;
 }
