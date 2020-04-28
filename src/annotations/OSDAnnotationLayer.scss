@@ -8,8 +8,33 @@
 
 .a9s-annotation {
   shape-rendering:crispEdges;
-  stroke-width:1.2px;
+  stroke-width:1px;
   stroke:#fff;
   fill:transparent;
-  outline:0.5px solid black;
+  // outline:1.5px solid black;
+
+  rect {
+    vector-effect:non-scaling-stroke;
+  }
+
+  rect {
+    fill:transparent;
+    stroke-width:1px;
+    cursor:pointer;
+  }
+
+  rect.inner {
+    stroke:#fff;
+  }
+
+  rect.inner:hover {
+    stroke:#fff000;
+  }
+
+  rect.outer {
+    stroke:#000;
+    stroke-width:3px;
+  }
+
 }
+

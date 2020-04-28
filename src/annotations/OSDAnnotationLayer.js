@@ -1,6 +1,6 @@
 import EventEmitter from 'tiny-emitter';
 import { SVG_NAMESPACE } from '../SVGConst';
-import { parseRectFragment } from '@recogito/annotorious';
+import { drawRect } from '@recogito/annotorious';
 
 import './OSDAnnotationLayer.scss';
 
@@ -30,14 +30,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
   }
 
   addAnnotation = annotation => {
-    const { x, y, w, h } = parseRectFragment(annotation);
-
-    const shape = document.createElementNS(SVG_NAMESPACE, 'rect');
-    shape.setAttribute('x', x);
-    shape.setAttribute('y', y);
-    shape.setAttribute('width', w);
-    shape.setAttribute('height', h);
-    shape.setAttribute('vector-effect', 'non-scaling-stroke');
+    const shape = drawRect(annotation);
     shape.setAttribute('class', 'a9s-annotation');
     shape.setAttribute('data-id', annotation.id);
     shape.annotation = annotation;
