@@ -4,9 +4,51 @@
     <meta charset="utf-8" />
     <title>Annotorious OpenSeadragon | Development</title>
     <link href="https://fonts.googleapis.com/css?family=Lato&display=swap" rel="stylesheet">
+    <style>
+      html, body {
+        margin:0;
+        padding:0;
+        background-color:#e2e2e2;
+        height:100%;
+        font-family:Lato;
+        line-height:160%;
+      }
+  
+      .column {
+        max-width:700px;
+        padding:20px;
+        margin:0 auto;
+        background-color:#fff;
+        height:100%;
+        box-sizing:border-box;
+      }
+
+      h1 {
+        font-size:19px;
+        font-weight:normal;
+        margin:0;
+        padding:0;
+      }
+
+      p.instructions {
+        padding:10px 0 30px 0;
+      }
+
+      .openseadragon-canvas {
+        outline:none;
+        background-color:#efefef !important;
+      }
+    </style>
   </head>
   <body>
-    <div id="openseadragon" style="width: 640px; height: 480px;"></div>
+    <div class="column">
+      <h1>Annotorious OpenSeadragon Tech Demo</h1>
+      <p class="instructions">
+        Click the annotation to edit. Hold <strong>SHIFT</strong> while clicking and 
+        dragging the mouse to create a new annotation. 
+      </p>
+      <div id="openseadragon" style="width: 640px; height: 480px;"></div>
+    </div>
     <script src="openseadragon/openseadragon.2.4.2.min.js"></script>
     <script>
       (function() {
