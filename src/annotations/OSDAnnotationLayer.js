@@ -1,6 +1,6 @@
 import EventEmitter from 'tiny-emitter';
 import { SVG_NAMESPACE } from '../SVGConst';
-import { drawRect } from '@recogito/annotorious';
+import { RubberbandRectSelector, drawRect } from '@recogito/annotorious';
 
 import './OSDAnnotationLayer.scss';
 
@@ -23,10 +23,62 @@ export default class OSDAnnotationLayer extends EventEmitter {
     viewer.addHandler('resize', () => this.resize());
 
     this.viewer = viewer;
-    
+
     this.selectedShape = null;
 
+    const selector = new RubberbandRectSelector(this.g);
+    selector.on('complete', this.selectShape);
+    selector.on('cancel', () => console.log('cancel'));
+
+    if (!this.readOnly)
+      this._initDrawingMouseTracker();
+
+    this.currentTool = selector;
+
     this.resize();
+  }
+
+  /** Initializes the OSD MouseTracker used for drawing **/
+  _initDrawingMouseTracker = () => {
+    let drawing = false;
+
+    this.mouseTracker = new OpenSeadragon.MouseTracker({
+      element: this.svg,
+
+      // Keypress starts drawing
+      pressHandler:  evt => {
+        drawing = true;
+        this.currentTool.startDrawing(evt.originalEvent);
+      },
+
+      // Move updates the tool (if drawing)
+      moveHandler: evt => {
+        if (drawing)
+          this.currentTool.onMouseMove(evt.originalEvent);
+      },
+
+      // Stops drawing
+      releaseHandler: evt => {
+        drawing = false;
+        this.currentTool.onMouseUp(evt.originalEvent);
+        this.mouseTracker.setTracking(false);
+      }
+    }).setTracking(false);
+
+    // Keep tracker disabled until Shift is held
+    document.addEventListener('keydown', evt => {
+      if (evt.which === 16) // Shift
+        this.mouseTracker.setTracking(true);
+    });
+
+    document.addEventListener('keyup', evt => {
+      if (evt.which === 16 && !drawing)
+        this.mouseTracker.setTracking(false);
+    });
+  }
+
+  startDrawing = evt => {
+    this.currentTool.startDrawing(evt);
   }
 
   addAnnotation = annotation => {
@@ -37,16 +89,19 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
     new OpenSeadragon.MouseTracker({
       element: shape,
-      clickHandler: () => {
-        const bounds = shape.getBoundingClientRect();
-        this.selectedShape = shape;
-        this.emit('select', { annotation, bounds }); 
-        return null;
-      }
-  }).setTracking(true);
+      clickHandler: () => this.selectShape(shape)
+    }).setTracking(true);
 
-  
     this.g.appendChild(shape);
+  }
+
+  selectShape = shape => {
+    const { annotation } = shape;
+    const bounds = shape.getBoundingClientRect();
+
+    this.selectedShape = shape;
+
+    this.emit('select', { annotation, bounds }); 
   }
 
   init = annotations => {
@@ -69,6 +124,18 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
     if (this.selectedShape)
       this.emit('updateBounds', this.selectedShape.getBoundingClientRect());
+  }
+
+
+  addOrUpdateAnnotation = (annotation, previous) => {
+    if (previous)
+      this.removeAnnotation(annotation);
+
+    this.addAnnotation(annotation);
+  }
+
+  deselect = () => {
+
   }
 
 }

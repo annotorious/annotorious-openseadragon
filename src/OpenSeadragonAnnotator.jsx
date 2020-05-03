@@ -9,6 +9,13 @@ export default class OpenSeadragonAnnotator extends Component {
     selectionBounds: null
   }
 
+  /** Shorthand **/
+  clearState = () => this.setState({
+    selectionBounds: null,
+    selectedAnnotation: null,
+    modifiedTarget: null
+  });
+
   componentDidMount() {
     this.annotationLayer = new OSDAnnotationLayer(this.props.viewer);
     
@@ -20,8 +27,10 @@ export default class OpenSeadragonAnnotator extends Component {
     });
   }
 
-  onCreateOrUpdateAnnotation = evt => {
-
+  onCreateOrUpdateAnnotation = method => (annotation, previous) => {
+    this.clearState();    
+    this.annotationLayer.deselect();
+    this.annotationLayer.addOrUpdateAnnotation(annotation, previous);
   }
 
   onDeleteAnnotation = evt => {
