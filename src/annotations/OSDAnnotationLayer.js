@@ -121,7 +121,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
     this.g.setAttribute('transform', `translate(${p.x}, ${p.y}) scale(${scale}) rotate(${rotation})`);
 
     if (this.selectedShape)
-      this.emit('updateBounds', this.selectedShape.getBoundingClientRect());
+      this.emit('moveSelection', this.selectedShape.getBoundingClientRect());
   }
 
 
