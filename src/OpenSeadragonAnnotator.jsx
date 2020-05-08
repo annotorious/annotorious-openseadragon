@@ -18,14 +18,31 @@ export default class OpenSeadragonAnnotator extends Component {
 
   componentDidMount() {
     this.annotationLayer = new OSDAnnotationLayer(this.props.viewer);
-    
-    this.annotationLayer.on('updateBounds', b => this.setState({ selectionBounds: b }));
-
-    this.annotationLayer.on('select', evt => {
-      const { annotation, bounds } = evt;
-      this.setState({ selectedAnnotation: annotation, selectionBounds: bounds })
-    });
+    this.annotationLayer.on('select', this.handleSelect);
+    this.annotationLayer.on('updateBounds', this.handleUpdateBounds);
   }
+
+  handleSelect = evt => {
+    const { annotation, bounds } = evt;
+    if (annotation) {
+      this.setState({ 
+        selectedAnnotation: annotation, 
+        selectionBounds: bounds 
+      });
+
+      if (!annotation.isSelection)
+        this.props.onAnnotationSelected(annotation.clone());
+    } else {
+      this.clearState();
+    }
+  }
+
+  handleUpdateBounds = (selectionBounds, modifiedTarget) =>
+    this.setState({ selectionBounds, modifiedTarget });
+
+  /**************************/  
+  /* Annotation CRUD events */
+  /**************************/  
 
   onCreateOrUpdateAnnotation = method => (annotation, previous) => {
     this.clearState();    
@@ -34,29 +51,48 @@ export default class OpenSeadragonAnnotator extends Component {
   }
 
   onDeleteAnnotation = evt => {
-
+    this.clearState();
+    this.annotationLayer.removeAnnotation(annotation);
+    this.props.onAnnotationDeleted(annotation);
   }
 
   onCancelAnnotation = evt => {
-    this.setState({ selectedAnnotation: null, selectionBounds: null });
+    this.clearState();
+    this.annotationLayer.deselect();
   }
 
+  /****************/               
+  /* External API */
+  /****************/
+
+  addAnnotation = annotation =>
+    this.annotationLayer.addOrUpdateAnnotation(annotation.clone());
+
+  removeAnnotation = annotation =>
+    this.annotationLayer.removeAnnotation(annotation.clone());
+
   setAnnotations = annotations =>
-    this.annotationLayer.init(annotations);
+    this.annotationLayer.init(annotations.map(a => a.clone()));
+
+  getAnnotations = () =>
+    this.annotationLayer.getAnnotations().map(a => a.clone());
 
   render() {
-    return (this.state.selectedAnnotation && <Editor
-        wrapperEl={this.props.wrapperEl}
-        bounds={this.state.selectionBounds}
-        annotation={this.state.selectedAnnotation}
-        onAnnotationCreated={this.onCreateOrUpdateAnnotation('onAnnotationCreated')}
-        onAnnotationUpdated={this.onCreateOrUpdateAnnotation('onAnnotationUpdated')}
-        onAnnotationDeleted={this.onDeleteAnnotation}
-        onCancel={this.onCancelAnnotation}>
+    return (
+      this.state.selectedAnnotation && (
+        <Editor
+          wrapperEl={this.props.wrapperEl}
+          bounds={this.state.selectionBounds}
+          annotation={this.state.selectedAnnotation}
+          onAnnotationCreated={this.onCreateOrUpdateAnnotation('onAnnotationCreated')}
+          onAnnotationUpdated={this.onCreateOrUpdateAnnotation('onAnnotationUpdated')}
+          onAnnotationDeleted={this.onDeleteAnnotation}
+          onCancel={this.onCancelAnnotation}>
 
-        <Editor.CommentWidget />
+          <Editor.CommentWidget />
 
-      </Editor>
+        </Editor>
+      )
     )
   }
 
