@@ -2,8 +2,6 @@ import EventEmitter from 'tiny-emitter';
 import { SVG_NAMESPACE } from '../SVGConst';
 import { RubberbandRectSelector, drawRect } from '@recogito/annotorious';
 
-import './OSDAnnotationLayer.scss';
-
 export default class OSDAnnotationLayer extends EventEmitter {
 
   constructor(viewer) {

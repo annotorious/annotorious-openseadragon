@@ -6,27 +6,22 @@ import { WebAnnotation } from '@recogito/recogito-client-core';
 
 import '@recogito/recogito-client-core/themes/default';
 
-/**
- * EXPERIMENTAL HACK!
- */
 export class AnnotoriousOSD {
 
-  constructor(osdEl, viewer) {
+  constructor(viewer) {
     this._app = React.createRef();
 
-    const wrapperEl = document.createElement('DIV');
-    wrapperEl.style.position = 'relative';
-    wrapperEl.style.display = 'inline-block';
-    osdEl.parentNode.insertBefore(wrapperEl, osdEl);
-    wrapperEl.appendChild(osdEl);
+    const viewerEl = viewer.element;
+    if (!viewerEl.style.position)
+      viewerEl.style.position = 'relative';
 
     this.appContainerEl = document.createElement('DIV');
-    wrapperEl.appendChild(this.appContainerEl);
+    viewerEl.appendChild(this.appContainerEl);
 
     ReactDOM.render(
       <OpenSeadragonAnnotator 
         ref={this._app}
-        wrapperEl={wrapperEl} 
+        wrapperEl={viewerEl} 
         viewer={viewer} />, this.appContainerEl);
   }
 
