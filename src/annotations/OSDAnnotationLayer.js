@@ -93,6 +93,11 @@ export default class OSDAnnotationLayer extends EventEmitter {
     this.g.appendChild(shape);
   }
 
+  findShape = annotationOrId => {
+    const id = annotationOrId.id ? annotationOrId.id : annotationOrId;
+    return this.g.querySelector(`.a9s-annotation[data-id="${id}"]`);
+  }
+
   selectShape = shape => {
     const { annotation } = shape;
     const bounds = shape.getBoundingClientRect();
@@ -124,6 +129,9 @@ export default class OSDAnnotationLayer extends EventEmitter {
       this.emit('moveSelection', this.selectedShape.getBoundingClientRect());
   }
 
+  deselect = () => {
+
+  }
 
   addOrUpdateAnnotation = (annotation, previous) => {
     if (previous)
@@ -132,8 +140,14 @@ export default class OSDAnnotationLayer extends EventEmitter {
     this.addAnnotation(annotation);
   }
 
-  deselect = () => {
+  removeAnnotation = annotation => {
+    if (this.selectedShape?.annotation === annotation)
+      this.deselect();
 
+    const shape = this.findShape(annotation);
+    if (shape)
+      shape.parentNode.removeChild(shape);
   }
+
 
 }
