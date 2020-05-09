@@ -1,4 +1,7 @@
-# Annotorious Openseadragon Plugin
+<p align="center">
+  <img width="345" src="https://raw.githubusercontent.com/recogito/annotorious-openseadragon/master/osd-annotorious-logo.png" />
+  <br/><br/>
+</p>
 
 A plugin for [OpenSeadragon](https://openseadragon.github.io/) that enables [Annotorious](https://github.com/recogito/annotorious)
 annotation on high-resolution zoomable images. Try the [online demo](https://recogito.github.io/annotorious-openseadragon/).
