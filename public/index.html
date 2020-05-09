@@ -39,19 +39,8 @@
         background-color:#efefef !important;
       }
     </style>
-  </head>
-  <body>
-    <div class="column">
-      <h1>Annotorious OpenSeadragon Tech Demo</h1>
-      <p class="instructions">
-        Click the annotation to edit. Hold <strong>SHIFT</strong> while clicking and 
-        dragging the mouse to create a new annotation. 
-      </p>
-      <div id="openseadragon" style="width: 640px; height: 480px;"></div>
-    </div>
-    <script src="openseadragon/openseadragon.2.4.2.min.js"></script>
     <script>
-      (function() {
+      window.onload = function() {
         var viewer = OpenSeadragon({
           id: "openseadragon",
           prefixUrl: "openseadragon/images/",
@@ -64,7 +53,7 @@
           }
         });
         
-        var anno = AnnotoriousOSD.init(viewer);
+        var anno = OpenSeadragon.Annotorious(viewer);
 
         anno.on('selectAnnotation', function(annotation) {
           console.log('selected', annotation);
@@ -83,8 +72,18 @@
         });
 
         anno.loadAnnotations('annotations.w3c.json');
-      })()
-
+      }
     </script>
+  </head>
+  <body>
+    <div class="column">
+      <h1>Annotorious OpenSeadragon Tech Demo</h1>
+      <p class="instructions">
+        Click the annotation to edit. Hold <strong>SHIFT</strong> while clicking and 
+        dragging the mouse to create a new annotation. 
+      </p>
+      <div id="openseadragon" style="width: 640px; height: 480px;"></div>
+    </div>
+    <script src="openseadragon/openseadragon.2.4.2.min.js"></script>
   </body>
 </html>

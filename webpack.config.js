@@ -11,10 +11,14 @@ const resolveAppPath = relativePath => path.resolve(APP_DIR, relativePath);
 module.exports = {
   entry: resolveAppPath('src'),
   output: {
-    filename: 'annotorious-openseadragon.min.js',
-    library: 'AnnotoriousOSD',
+    filename: 'openseadragon-annotorious.min.js',
+    library: ['OpenSeadragon', 'Annotorious'],
     libraryTarget: 'umd',
-    umdNamedDefine: true
+    libraryExport: 'default',
+    pathinfo: true
+  },
+  externals: {
+    OpenSeadragon: 'OpenSeadragon'
   },
   performance: {
     hints: false
@@ -64,7 +68,6 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin ({
-      inject: 'head',
       template: resolveAppPath('public/index.html')
     })
   ]

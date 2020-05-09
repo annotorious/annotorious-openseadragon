@@ -7,7 +7,7 @@ import { WebAnnotation } from '@recogito/recogito-client-core';
 
 import '@recogito/recogito-client-core/themes/default';
 
-export class AnnotoriousOSD {
+class OSDAnnotorious {
 
   constructor(viewer) {
     this._app = React.createRef();
@@ -86,4 +86,5 @@ export class AnnotoriousOSD {
 
 }
 
-export const init = (viewer) => new AnnotoriousOSD(viewer);
+export default (viewer) =>
+  new OSDAnnotorious(viewer); 
