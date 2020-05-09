@@ -22,25 +22,23 @@ and include it in your web page __after__ the OpenSeadragon script.
 <script>
   window.onload = function() {
     var viewer = OpenSeadragon({
-      id: "openseadragon",
+      id: "openseadragon1",
       prefixUrl: "openseadragon/images/",
       tileSources: {
         type: "image",
         url: "1280px-Hallstatt.jpg"
-      },
-      gestureSettingsTouch: {
-        pinchRotate: true
       }
     });
-    
+
+    // Initialize the Annotorious plugin
     var anno = OpenSeadragon.Annotorious(viewer);
 
-    // Load annotations (W3C WebAnnotation format)
+    // Load annotations in W3C WebAnnotation format
     anno.loadAnnotations('annotations.w3c.json');
 
     // Attach handlers to listen to events
     anno.on('createAnnotation', function(a) {
-      console.log('created', a);
+      // Do something
     });
   }
 </script>
