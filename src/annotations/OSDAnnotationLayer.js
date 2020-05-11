@@ -130,7 +130,10 @@ export default class OSDAnnotationLayer extends EventEmitter {
   }
 
   deselect = () => {
-
+    if (this.selectedShape) {
+      this.selectedShape.parentNode.removeChild(this.selectedShape);
+      this.selectedShape = null;
+    }
   }
 
   addOrUpdateAnnotation = (annotation, previous) => {
