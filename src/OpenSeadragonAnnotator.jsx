@@ -52,7 +52,7 @@ export default class OpenSeadragonAnnotator extends Component {
     this.props[method](annotation, previous?.clone());
   }
 
-  onDeleteAnnotation = evt => {
+  onDeleteAnnotation = annotation => {
     this.clearState();
     this.annotationLayer.removeAnnotation(annotation);
     this.props.onAnnotationDeleted(annotation);
