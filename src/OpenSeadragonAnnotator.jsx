@@ -6,13 +6,13 @@ export default class OpenSeadragonAnnotator extends Component {
 
   state = {
     selectedAnnotation: null,
-    selectionBounds: null
+    selectedDOMElement: null
   }
 
   /** Shorthand **/
   clearState = () => this.setState({
-    selectionBounds: null,
-    selectedAnnotation: null
+    selectedAnnotation: null,
+    selectedDOMElement: null
   });
 
   componentDidMount() {
@@ -22,11 +22,11 @@ export default class OpenSeadragonAnnotator extends Component {
   }
 
   handleSelect = evt => {
-    const { annotation, bounds } = evt;
+    const { annotation, element } = evt;
     if (annotation) {
       this.setState({ 
         selectedAnnotation: annotation, 
-        selectionBounds: bounds 
+        selectedDOMElement: element 
       });
 
       if (!annotation.isSelection)
@@ -36,8 +36,8 @@ export default class OpenSeadragonAnnotator extends Component {
     }
   }
 
-  handleMoveSelection = selectionBounds =>
-    this.setState({ selectionBounds });
+  handleMoveSelection = selectedDOMElement =>
+    this.setState({ selectedDOMElement });
 
   /**************************/  
   /* Annotation CRUD events */
@@ -58,7 +58,7 @@ export default class OpenSeadragonAnnotator extends Component {
     this.props.onAnnotationDeleted(annotation);
   }
 
-  onCancelAnnotation = evt => {
+  onCancelAnnotation = () => {
     this.clearState();
     this.annotationLayer.deselect();
   }
@@ -84,8 +84,8 @@ export default class OpenSeadragonAnnotator extends Component {
       this.state.selectedAnnotation && (
         <Editor
           wrapperEl={this.props.wrapperEl}
-          bounds={this.state.selectionBounds}
           annotation={this.state.selectedAnnotation}
+          selectedElement={this.state.selectedDOMElement}
           onAnnotationCreated={this.onCreateOrUpdateAnnotation('onAnnotationCreated')}
           onAnnotationUpdated={this.onCreateOrUpdateAnnotation('onAnnotationUpdated')}
           onAnnotationDeleted={this.onDeleteAnnotation}

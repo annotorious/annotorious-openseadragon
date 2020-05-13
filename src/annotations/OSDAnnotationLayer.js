@@ -100,11 +100,10 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
   selectShape = shape => {
     const { annotation } = shape;
-    const bounds = shape.getBoundingClientRect();
 
     this.selectedShape = shape;
 
-    this.emit('select', { annotation, bounds }); 
+    this.emit('select', { annotation, element: shape }); 
   }
 
   init = annotations => {
@@ -126,7 +125,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
     this.g.setAttribute('transform', `translate(${p.x}, ${p.y}) scale(${scale}) rotate(${rotation})`);
 
     if (this.selectedShape)
-      this.emit('moveSelection', this.selectedShape.getBoundingClientRect());
+      this.emit('moveSelection', this.selectedShape);
   }
 
   deselect = () => {
