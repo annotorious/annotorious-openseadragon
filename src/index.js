@@ -78,6 +78,9 @@ class OSDAnnotorious {
     return annotations.map(a => a._annotation);
   }
 
+  destroy = () =>
+    ReactDOM.unmountComponentAtNode(this.appContainerEl);
+
   on = (event, handler) =>
     this._emitter.on(event, handler);
 

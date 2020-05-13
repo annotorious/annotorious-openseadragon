@@ -151,5 +151,10 @@ export default class OSDAnnotationLayer extends EventEmitter {
       shape.parentNode.removeChild(shape);
   }
 
+  destroy = () => {
+    this.currentTool = null;
+    this.selectedShape = null;
+    this.svg.parentNode.removeChild(this.svg);
+  }
 
 }

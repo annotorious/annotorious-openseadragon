@@ -21,6 +21,10 @@ export default class OpenSeadragonAnnotator extends Component {
     this.annotationLayer.on('moveSelection', this.handleMoveSelection);
   }
 
+  componentWillUnmount() {
+    this.annotationLayer.destroy();
+  }
+
   handleSelect = evt => {
     const { annotation, element } = evt;
     if (annotation) {
