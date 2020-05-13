@@ -129,7 +129,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
   }
 
   deselect = () => {
-    if (this.selectedShape) {
+    if (this.selectedShape?.annotation.isSelection) {
       this.selectedShape.parentNode.removeChild(this.selectedShape);
       this.selectedShape = null;
     }
