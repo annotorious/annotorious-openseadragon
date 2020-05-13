@@ -16,7 +16,7 @@ export default class OpenSeadragonAnnotator extends Component {
   });
 
   componentDidMount() {
-    this.annotationLayer = new OSDAnnotationLayer(this.props.viewer);
+    this.annotationLayer = new OSDAnnotationLayer(this.props);
     this.annotationLayer.on('select', this.handleSelect);
     this.annotationLayer.on('moveSelection', this.handleMoveSelection);
   }
@@ -90,6 +90,7 @@ export default class OpenSeadragonAnnotator extends Component {
           wrapperEl={this.props.wrapperEl}
           annotation={this.state.selectedAnnotation}
           selectedElement={this.state.selectedDOMElement}
+          readOnly={this.props.readOnly}
           onAnnotationCreated={this.onCreateOrUpdateAnnotation('onAnnotationCreated')}
           onAnnotationUpdated={this.onCreateOrUpdateAnnotation('onAnnotationUpdated')}
           onAnnotationDeleted={this.onDeleteAnnotation}

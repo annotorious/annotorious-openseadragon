@@ -4,8 +4,12 @@ import { RubberbandRectSelector, drawRect } from '@recogito/annotorious';
 
 export default class OSDAnnotationLayer extends EventEmitter {
 
-  constructor(viewer) {
+  constructor(props) {
     super();
+
+    this.viewer = props.viewer;
+
+    this.readOnly = props.readOnly;
 
     this.svg = document.createElementNS(SVG_NAMESPACE, 'svg');
     this.svg.classList.add('a9s-annotationlayer', 'a9s-osd-annotationlayer');
@@ -13,25 +17,24 @@ export default class OSDAnnotationLayer extends EventEmitter {
     this.g = document.createElementNS(SVG_NAMESPACE, 'g');
     this.svg.appendChild(this.g);
 
-    viewer.canvas.appendChild(this.svg);
+    this.viewer.canvas.appendChild(this.svg);
 
-    viewer.addHandler('animation', () => this.resize());
-    viewer.addHandler('open', () => this.resize());
-    viewer.addHandler('rotate', () => this.resize());
-    viewer.addHandler('resize', () => this.resize());
-
-    this.viewer = viewer;
+    this.viewer.addHandler('animation', () => this.resize());
+    this.viewer.addHandler('open', () => this.resize());
+    this.viewer.addHandler('rotate', () => this.resize());
+    this.viewer.addHandler('resize', () => this.resize());
 
     this.selectedShape = null;
 
-    const selector = new RubberbandRectSelector(this.g);
-    selector.on('complete', this.selectShape);
-    selector.on('cancel', () => console.log('cancel'));
+    if (!this.readOnly) {
+      const selector = new RubberbandRectSelector(this.g);
+      selector.on('complete', this.selectShape);
+      selector.on('cancel', () => console.log('cancel'));
 
-    if (!this.readOnly)
       this._initDrawingMouseTracker();
 
-    this.currentTool = selector;
+      this.currentTool = selector;
+    }
 
     this.resize();
   }
@@ -75,9 +78,11 @@ export default class OSDAnnotationLayer extends EventEmitter {
     });
   }
 
+  /*
   startDrawing = evt => {
     this.currentTool.startDrawing(evt);
   }
+  */
 
   addAnnotation = annotation => {
     const shape = drawRect(annotation);

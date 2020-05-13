@@ -9,7 +9,9 @@ import '@recogito/recogito-client-core/themes/default';
 
 class OSDAnnotorious {
 
-  constructor(viewer) {
+  constructor(viewer, conf) {
+    const config = conf || {};
+
     this._app = React.createRef();
     
     this._emitter = new Emitter();
@@ -24,8 +26,9 @@ class OSDAnnotorious {
     ReactDOM.render(
       <OpenSeadragonAnnotator 
         ref={this._app}
-        wrapperEl={viewerEl} 
         viewer={viewer} 
+        wrapperEl={viewerEl}
+        readOnly={config.readOnly} 
         onAnnotationSelected={this.handleAnnotationSelected}
         onAnnotationCreated={this.handleAnnotationCreated} 
         onAnnotationUpdated={this.handleAnnotationUpdated} 
@@ -89,5 +92,5 @@ class OSDAnnotorious {
 
 }
 
-export default (viewer) =>
-  new OSDAnnotorious(viewer); 
+export default (viewer, config) =>
+  new OSDAnnotorious(viewer, config); 
