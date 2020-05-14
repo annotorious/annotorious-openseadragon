@@ -104,6 +104,10 @@ export default class OSDAnnotationLayer extends EventEmitter {
   }
 
   selectShape = shape => {
+    // If another shape is currently selected, deselect first
+    if (this.selectedShape && this.selectedShape.annotation !== shape.annotation)
+      this.deselect();
+
     const { annotation } = shape;
 
     this.selectedShape = shape;
