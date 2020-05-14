@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="345" src="https://raw.githubusercontent.com/recogito/annotorious-openseadragon/master/annotorious-osd-logo.png" />
+  <img width="345" src="https://raw.githubusercontent.com/recogito/annotorious-openseadragon/master/annotorious-osd-stylized.png" />
   <br/><br/>
 </p>
 
