@@ -84,19 +84,13 @@ export default class OSDAnnotationLayer extends EventEmitter {
     shape.annotation = annotation;
 
     shape.addEventListener('mouseenter', evt => {
-      // if (this.currentHover !== g)
       if (!this.currentTool.isDrawing)
         this.emit('mouseEnterAnnotation', annotation, evt);
-        
-      // this.currentHover = g;
     });
 
     shape.addEventListener('mouseleave', evt => {
-      // if (this.currentHover === g) 
       if (!this.currentTool.isDrawing)
         this.emit('mouseLeaveAnnotation', annotation, evt);
-
-      // this.currentHover = null;
     });
 
     new OpenSeadragon.MouseTracker({
