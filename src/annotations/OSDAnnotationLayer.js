@@ -29,7 +29,6 @@ export default class OSDAnnotationLayer extends EventEmitter {
     if (!this.readOnly) {
       const selector = new RubberbandRectSelector(this.g);
       selector.on('complete', this.selectShape);
-      selector.on('cancel', () => console.log('cancel'));
 
       this._initDrawingMouseTracker();
 
@@ -78,17 +77,27 @@ export default class OSDAnnotationLayer extends EventEmitter {
     });
   }
 
-  /*
-  startDrawing = evt => {
-    this.currentTool.startDrawing(evt);
-  }
-  */
-
   addAnnotation = annotation => {
     const shape = drawRect(annotation);
     shape.setAttribute('class', 'a9s-annotation');
     shape.setAttribute('data-id', annotation.id);
     shape.annotation = annotation;
+
+    shape.addEventListener('mouseenter', evt => {
+      // if (this.currentHover !== g)
+      if (!this.currentTool.isDrawing)
+        this.emit('mouseEnterAnnotation', annotation, evt);
+        
+      // this.currentHover = g;
+    });
+
+    shape.addEventListener('mouseleave', evt => {
+      // if (this.currentHover === g) 
+      if (!this.currentTool.isDrawing)
+        this.emit('mouseLeaveAnnotation', annotation, evt);
+
+      // this.currentHover = null;
+    });
 
     new OpenSeadragon.MouseTracker({
       element: shape,
@@ -138,10 +147,10 @@ export default class OSDAnnotationLayer extends EventEmitter {
   }
 
   deselect = () => {
-    if (this.selectedShape?.annotation.isSelection) {
-      this.selectedShape.parentNode.removeChild(this.selectedShape);
-      this.selectedShape = null;
-    }
+    if (this.selectedShape?.annotation.isSelection)
+      this.currentTool.stop();
+
+    this.selectedShape = null;
   }
 
   addOrUpdateAnnotation = (annotation, previous) => {
