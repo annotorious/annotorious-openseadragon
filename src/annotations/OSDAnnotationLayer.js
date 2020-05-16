@@ -1,6 +1,6 @@
 import EventEmitter from 'tiny-emitter';
 import { SVG_NAMESPACE } from '../SVGConst';
-import { RubberbandRectSelector, drawRect } from '@recogito/annotorious';
+import { RubberbandRectSelector, drawRect, parseRectFragment } from '@recogito/annotorious';
 
 export default class OSDAnnotationLayer extends EventEmitter {
 
@@ -177,6 +177,29 @@ export default class OSDAnnotationLayer extends EventEmitter {
       this.deselect();
 
     return selected?.annotation;
+  }
+
+  panTo = (annotationOrId, immediately) => {
+    const shape = this.findShape(annotationOrId);
+    if (shape) {
+      const { top, left, width, height } = shape.getBoundingClientRect();
+
+      const x = left + width / 2 + window.scrollX;
+      const y = top + height / 2 + window.scrollY;
+      const center = this.viewer.viewport.windowToViewportCoordinates(new OpenSeadragon.Point(x, y));
+
+      this.viewer.viewport.panTo(center, immediately);
+    }    
+  }
+
+  fitBounds = (annotationOrId, immediately) => {
+    const shape = this.findShape(annotationOrId);
+    if (shape) {
+      const { x, y, w, h } = parseRectFragment(shape.annotation);      
+      const rect = this.viewer.viewport.imageToViewportRectangle(x, y, w, h);
+      
+      this.viewer.viewport.fitBounds(rect, immediately);
+    }    
   }
 
   destroy = () => {

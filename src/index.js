@@ -81,13 +81,20 @@ class OSDAnnotorious {
     return annotations.map(a => a._annotation);
   }
 
-  selectAnnotation = annotationOrId => {
-    const arg = (annotationOrId?.type === 'Annotation') ? 
-      new WebAnnotation(annotationOrId) : annotationOrId;
+  // Shorthand to for wrapping the annotation
+  _wrap = annotationOrId =>
+    annotationOrId?.type === 'Annotation' ? new WebAnnotation(annotationOrId) : annotationOrId;
 
-    const selected = this._app.current.selectAnnotation(arg);
+  selectAnnotation = annotationOrId => {
+    const selected = this._app.current.selectAnnotation(this._wrap(annotationOrId));
     return selected?.underlying;
   }
+
+  panTo = (annotationOrId, immediately) =>
+    this._app.current.panTo(this._wrap(annotationOrId), immediately);
+
+  fitBounds = (annotationOrId, immediately) =>
+    this._app.current.fitBounds(this._wrap(annotationOrId), immediately);
 
   destroy = () =>
     ReactDOM.unmountComponentAtNode(this.appContainerEl);

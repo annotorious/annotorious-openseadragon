@@ -94,6 +94,12 @@ export default class OpenSeadragonAnnotator extends Component {
       this.clearState(); // Deselect
   }
 
+  panTo = (annotationOrId, immediately) =>
+    this.annotationLayer.panTo(annotationOrId, immediately);
+
+  fitBounds = (annotationOrId, immediately) =>
+    this.annotationLayer.fitBounds(annotationOrId, immediately);
+
   render() {
     return (
       this.state.selectedAnnotation && (
