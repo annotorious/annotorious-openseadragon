@@ -88,10 +88,10 @@ export default class OpenSeadragonAnnotator extends Component {
   selectAnnotation = arg => {
     const annotation = this.annotationLayer.selectAnnotation(arg);
     
-    if (!annotation)
+    if (annotation) 
+      return annotation.clone();
+    else 
       this.clearState(); // Deselect
-
-    return annotation;
   }
 
   render() {
