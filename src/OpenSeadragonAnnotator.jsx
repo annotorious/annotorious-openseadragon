@@ -28,14 +28,14 @@ export default class OpenSeadragonAnnotator extends Component {
   }
 
   handleSelect = evt => {
-    const { annotation, element } = evt;
+    const { annotation, element, skipEvent } = evt;
     if (annotation) {
       this.setState({ 
         selectedAnnotation: annotation, 
         selectedDOMElement: element 
       });
 
-      if (!annotation.isSelection)
+      if (!annotation.isSelection && !skipEvent)
         this.props.onAnnotationSelected(annotation.clone());
     } else {
       this.clearState();
@@ -84,6 +84,15 @@ export default class OpenSeadragonAnnotator extends Component {
 
   getAnnotations = () =>
     this.annotationLayer.getAnnotations().map(a => a.clone());
+
+  selectAnnotation = arg => {
+    const annotation = this.annotationLayer.selectAnnotation(arg);
+    
+    if (!annotation)
+      this.clearState(); // Deselect
+
+    return annotation;
+  }
 
   render() {
     return (
