@@ -71,6 +71,14 @@
           console.log('deleted', annotation);
         });
 
+        anno.on('mouseEnterAnnotation', function(annotation) {
+          console.log('mouseEnter', annotation);
+        });
+
+        anno.on('mouseLeaveAnnotation', function(annotation) {
+          console.log('mouseLeave', annotation);
+        });
+
         anno.loadAnnotations('annotations.w3c.json');
       }
     </script>
