@@ -3,7 +3,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import Emitter from 'tiny-emitter';
 import OpenSeadragonAnnotator from './OpenSeadragonAnnotator';
-import { WebAnnotation } from '@recogito/recogito-client-core';
+import { WebAnnotation, setLocale } from '@recogito/recogito-client-core';
 
 import '@recogito/recogito-client-core/themes/default';
 
@@ -19,6 +19,8 @@ class OSDAnnotorious {
     const viewerEl = viewer.element;
     if (!viewerEl.style.position)
       viewerEl.style.position = 'relative';
+
+    setLocale(config.locale);
 
     this.appContainerEl = document.createElement('DIV');
     viewerEl.appendChild(this.appContainerEl);
