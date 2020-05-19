@@ -3,7 +3,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import Emitter from 'tiny-emitter';
 import OpenSeadragonAnnotator from './OpenSeadragonAnnotator';
-import { WebAnnotation, setLocale } from '@recogito/recogito-client-core';
+import { Environment, WebAnnotation, setLocale } from '@recogito/recogito-client-core';
 
 import '@recogito/recogito-client-core/themes/default';
 
@@ -97,6 +97,18 @@ class OSDAnnotorious {
 
   fitBounds = (annotationOrId, immediately) =>
     this._app.current.fitBounds(this._wrap(annotationOrId), immediately);
+
+  /** Sets user auth information **/
+  setAuthInfo = authinfo =>
+    Environment.user = authinfo;
+
+  /** Clears the user auth information **/
+  clearAuthInfo = () =>
+    Environment.user = null;
+
+  /** Sets the current 'server time', to avoid problems with locally-generated timestamps **/
+  setServerTime = timestamp => 
+    Environment.setServerTime(timestamp);
 
   destroy = () =>
     ReactDOM.unmountComponentAtNode(this.appContainerEl);
