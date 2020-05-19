@@ -53,7 +53,9 @@
           }
         });
         
-        var anno = OpenSeadragon.Annotorious(viewer);
+        var anno = OpenSeadragon.Annotorious(viewer, {
+          locale: 'auto'
+        });
 
         anno.on('selectAnnotation', function(annotation) {
           console.log('selected', annotation);
