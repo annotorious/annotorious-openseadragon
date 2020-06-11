@@ -4,7 +4,8 @@
 </p>
 
 A plugin for [OpenSeadragon](https://openseadragon.github.io/) that integrates [Annotorious](https://github.com/recogito/annotorious)
-to enable creation and display of annotations on high-resolution zoomable images. Try the [online demo](https://recogito.github.io/annotorious-openseadragon/).
+to enable creation and display of annotations on high-resolution zoomable images. See the 
+[project website](https://recogito.github.io/site/annotorious/) for details and live demos.
 
 ## Installing
 
