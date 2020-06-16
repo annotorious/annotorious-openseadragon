@@ -1,6 +1,6 @@
 {
   "name": "@recogito/annotorious-openseadragon",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "Annotorious image annotation for OpenSeadragon",
   "main": "dist/openseadragon-annotorious.min.js",
   "scripts": {
@@ -40,8 +40,8 @@
     "webpack-dev-server": "^3.11.0"
   },
   "dependencies": {
-    "@recogito/annotorious": "^2.0.2-beta",
-    "@recogito/recogito-client-core": "^0.1.4",
+    "@recogito/annotorious": "^2.0.3",
+    "@recogito/recogito-client-core": "^0.1.5",
     "axios": "^0.19.2",
     "openseadragon": "^2.4.2",
     "preact": "^10.4.1",

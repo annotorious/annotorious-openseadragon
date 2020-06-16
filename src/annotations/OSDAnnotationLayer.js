@@ -1,5 +1,5 @@
 import EventEmitter from 'tiny-emitter';
-import OpenSeadragon from 'openseadragon';
+import { MouseTracker, Point } from 'openseadragon';
 import { SVG_NAMESPACE } from '../SVGConst';
 import { RubberbandRectSelector, drawRect, parseRectFragment } from '@recogito/annotorious';
 
@@ -43,7 +43,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
   _initDrawingMouseTracker = () => {
     let drawing = false;
 
-    this.mouseTracker = new OpenSeadragon.MouseTracker({
+    this.mouseTracker = new MouseTracker({
       element: this.svg,
 
       // Keypress starts drawing
@@ -94,7 +94,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
         this.emit('mouseLeaveAnnotation', annotation, evt);
     });
 
-    new OpenSeadragon.MouseTracker({
+    new MouseTracker({
       element: shape,
       clickHandler: () => this.selectShape(shape)
     }).setTracking(true);
@@ -125,7 +125,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
   
   resize() {
     // Current upper left corner
-    const p = this.viewer.viewport.pixelFromPoint(new OpenSeadragon.Point(0, 0), true);
+    const p = this.viewer.viewport.pixelFromPoint(new Point(0, 0), true);
 
     // Compute scale factor
     const { x, y } = this.viewer.viewport.getContainerSize();
@@ -187,7 +187,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
       const x = left + width / 2 + window.scrollX;
       const y = top + height / 2 + window.scrollY;
-      const center = this.viewer.viewport.windowToViewportCoordinates(new OpenSeadragon.Point(x, y));
+      const center = this.viewer.viewport.windowToViewportCoordinates(new Point(x, y));
 
       this.viewer.viewport.panTo(center, immediately);
     }    
