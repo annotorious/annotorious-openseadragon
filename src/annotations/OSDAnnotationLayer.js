@@ -1,4 +1,5 @@
 import EventEmitter from 'tiny-emitter';
+import OpenSeadragon from 'openseadragon';
 import { SVG_NAMESPACE } from '../SVGConst';
 import { RubberbandRectSelector, drawRect, parseRectFragment } from '@recogito/annotorious';
 
