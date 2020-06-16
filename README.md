@@ -5,7 +5,7 @@
 
 A plugin for [OpenSeadragon](https://openseadragon.github.io/) that integrates [Annotorious](https://github.com/recogito/annotorious)
 to enable creation and display of annotations on high-resolution zoomable images. See the 
-[project website](https://recogito.github.io/site/annotorious/) for details and live demos.
+[project website](https://recogito.github.io/annotorious/) for details and live demos.
 
 ## Installing
 
@@ -45,7 +45,7 @@ and include it in your web page __after__ the OpenSeadragon script.
 </script>
 ```
 
-Full documentation is [on the project website](https://recogito.github.io/site/annotorious/). Questions? Feedack? Feature requests? Join the [Annotorious chat on Gitter](https://gitter.im/recogito/annotorious).
+Full documentation is [on the project website](https://recogito.github.io/annotorious/). Questions? Feedack? Feature requests? Join the [Annotorious chat on Gitter](https://gitter.im/recogito/annotorious).
 
 [![Join the chat at https://gitter.im/recogito/annotorious](https://badges.gitter.im/recogito/annotorious.svg)](https://gitter.im/recogito/annotorious?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
