@@ -61,6 +61,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
       // Stops drawing
       releaseHandler: evt => {
         drawing = false;
+        console.log(evt.originalEvent);
         this.currentTool.onMouseUp(evt.originalEvent);
         this.mouseTracker.setTracking(false);
       }
