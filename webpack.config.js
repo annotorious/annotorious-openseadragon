@@ -23,8 +23,9 @@ module.exports = {
   performance: {
     hints: false
   },
+  devtool: 'source-map',
   optimization: {
-    minimizer: [ new UglifyJsPlugin() ],
+    minimizer: [ new UglifyJsPlugin({ sourceMap: true }) ],
   },
   resolve: {
     extensions: ['.js', '.jsx'],

@@ -4,7 +4,7 @@
   "description": "Annotorious image annotation for OpenSeadragon",
   "main": "dist/openseadragon-annotorious.min.js",
   "scripts": {
-    "start": "webpack-dev-server --open --mode=development",
+    "start": "webpack-dev-server --open --mode=development -d",
     "build": "webpack --mode=production"
   },
   "repository": {
