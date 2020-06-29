@@ -74,7 +74,8 @@ class OSDAnnotorious {
   });
 
   setAnnotations = annotations => {
-    const webannotations = annotations.map(a => new WebAnnotation(a));
+    const safe = annotations || []; // Allow null for clearning all current annotations
+    const webannotations = safe.map(a => new WebAnnotation(a));
     this._app.current.setAnnotations(webannotations);
   }
 

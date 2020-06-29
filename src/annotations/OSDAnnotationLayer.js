@@ -61,7 +61,6 @@ export default class OSDAnnotationLayer extends EventEmitter {
       // Stops drawing
       releaseHandler: evt => {
         drawing = false;
-        console.log(evt.originalEvent);
         this.currentTool.onMouseUp(evt.originalEvent);
         this.mouseTracker.setTracking(false);
       }
@@ -121,6 +120,8 @@ export default class OSDAnnotationLayer extends EventEmitter {
   }
 
   init = annotations => {
+    const shapes = Array.from(this.g.querySelectorAll('.a9s-annotation'));
+    shapes.forEach(s => this.g.removeChild(s));
     annotations.forEach(this.addAnnotation);
   }
   
