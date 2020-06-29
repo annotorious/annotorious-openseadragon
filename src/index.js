@@ -81,7 +81,7 @@ class OSDAnnotorious {
 
   getAnnotations = () => {
     const annotations = this._app.current.getAnnotations();
-    return annotations.map(a => a._annotation);
+    return annotations.map(a => a.underlying);
   }
 
   // Shorthand to for wrapping the annotation

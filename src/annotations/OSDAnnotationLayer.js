@@ -205,6 +205,11 @@ export default class OSDAnnotationLayer extends EventEmitter {
     }    
   }
 
+  getAnnotations = () => {
+    const shapes = Array.from(this.g.querySelectorAll('.a9s-annotation'));
+    return shapes.map(s => s.annotation);
+  }
+
   destroy = () => {
     this.currentTool = null;
     this.selectedShape = null;
