@@ -79,6 +79,9 @@ class OSDAnnotorious {
     this._app.current.setAnnotations(webannotations);
   }
 
+  setDrawingTool = shape =>
+    this._app.current.setDrawingTool(shape);
+
   getAnnotations = () => {
     const annotations = this._app.current.getAnnotations();
     return annotations.map(a => a.underlying);

@@ -85,6 +85,9 @@ export default class OpenSeadragonAnnotator extends Component {
   getAnnotations = () =>
     this.annotationLayer.getAnnotations().map(a => a.clone());
 
+  setDrawingTool = shape =>
+    this.annotationLayer.setDrawingTool(shape);
+
   selectAnnotation = arg => {
     const annotation = this.annotationLayer.selectAnnotation(arg);
     

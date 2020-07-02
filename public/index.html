@@ -82,6 +82,17 @@
         });
 
         anno.loadAnnotations('annotations.w3c.json');
+
+        var toolToggle = document.getElementById('current-tool');
+        toolToggle.addEventListener('click', function() {
+          if (toolToggle.innerHTML == 'RECTANGLE') {
+            toolToggle.innerHTML = 'POLYGON';
+            anno.setDrawingTool('polygon');
+          } else {
+            toolToggle.innerHTML = 'RECTANGLE';
+            anno.setDrawingTool('rect');
+          }
+        });
       }
     </script>
   </head>
@@ -91,6 +102,9 @@
       <p class="instructions">
         Click the annotation to edit. Hold <strong>SHIFT</strong> while clicking and 
         dragging the mouse to create a new annotation. 
+      </p>
+      <p>
+        <button id="current-tool">RECTANGLE</button>
       </p>
       <div id="openseadragon" style="width: 640px; height: 480px;"></div>
     </div>

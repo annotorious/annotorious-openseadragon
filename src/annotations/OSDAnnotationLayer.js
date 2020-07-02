@@ -1,7 +1,7 @@
 import EventEmitter from 'tiny-emitter';
 import OpenSeadragon from 'openseadragon';
 import { SVG_NAMESPACE } from '../SVGConst';
-import { DrawingTools, drawRect, parseRectFragment } from '@recogito/annotorious';
+import { DrawingTools, drawShape, parseRectFragment } from '@recogito/annotorious';
 
 export default class OSDAnnotationLayer extends EventEmitter {
 
@@ -29,15 +29,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
     if (!this.readOnly) {
       this.tools = new DrawingTools(this.g);
-      this.tools.on('complete', this.selectShape);
       this._initDrawingMouseTracker();
-
-      /*
-      const selector = new RubberbandRectTool(this.g);
-      selector.on('complete', this.selectShape);
-      this._initDrawingMouseTracker();
-      this.currentTool = selector;
-      */
     }
 
     this.resize();
@@ -45,28 +37,28 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
   /** Initializes the OSD MouseTracker used for drawing **/
   _initDrawingMouseTracker = () => {
-    let drawing = false;
+    this.tools.on('complete', shape => { 
+      this.mouseTracker.setTracking(false);
+      this.selectShape(shape);
+    });
 
     this.mouseTracker = new OpenSeadragon.MouseTracker({
       element: this.svg,
 
       // Keypress starts drawing
       pressHandler:  evt => {
-        drawing = true;
         this.tools.current.startDrawing(evt.originalEvent);
       },
 
       // Move updates the tool (if drawing)
       moveHandler: evt => {
-        if (drawing)
+        if (this.tools.current.isDrawing)
           this.tools.current.onMouseMove(evt.originalEvent);
       },
 
       // Stops drawing
       releaseHandler: evt => {
-        drawing = false;
         this.tools.current.onMouseUp(evt.originalEvent);
-        this.mouseTracker.setTracking(false);
       }
     }).setTracking(false);
 
@@ -77,13 +69,13 @@ export default class OSDAnnotationLayer extends EventEmitter {
     });
 
     document.addEventListener('keyup', evt => {
-      if (evt.which === 16 && !drawing)
+      if (evt.which === 16 && !this.tools.current.isDrawing)
         this.mouseTracker.setTracking(false);
     });
   }
 
   addAnnotation = annotation => {
-    const shape = drawRect(annotation);
+    const shape = drawShape(annotation);
     shape.setAttribute('class', 'a9s-annotation');
     shape.setAttribute('data-id', annotation.id);
     shape.annotation = annotation;
@@ -208,6 +200,9 @@ export default class OSDAnnotationLayer extends EventEmitter {
       this.viewer.viewport.fitBounds(rect, immediately);
     }    
   }
+
+  setDrawingTool = shape =>
+    this.tools.setCurrent(shape);
 
   getAnnotations = () => {
     const shapes = Array.from(this.g.querySelectorAll('.a9s-annotation'));
