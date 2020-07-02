@@ -1,7 +1,7 @@
 import EventEmitter from 'tiny-emitter';
 import OpenSeadragon from 'openseadragon';
 import { SVG_NAMESPACE } from '../SVGConst';
-import { RubberbandRectTool, drawRect, parseRectFragment } from '@recogito/annotorious';
+import { DrawingTools, drawRect, parseRectFragment } from '@recogito/annotorious';
 
 export default class OSDAnnotationLayer extends EventEmitter {
 
@@ -28,12 +28,16 @@ export default class OSDAnnotationLayer extends EventEmitter {
     this.selectedShape = null;
 
     if (!this.readOnly) {
-      const selector = new RubberbandRectTool(this.g);
-      selector.on('complete', this.selectShape);
-
+      this.tools = new DrawingTools(this.g);
+      this.tools.on('complete', this.selectShape);
       this._initDrawingMouseTracker();
 
+      /*
+      const selector = new RubberbandRectTool(this.g);
+      selector.on('complete', this.selectShape);
+      this._initDrawingMouseTracker();
       this.currentTool = selector;
+      */
     }
 
     this.resize();
@@ -49,19 +53,19 @@ export default class OSDAnnotationLayer extends EventEmitter {
       // Keypress starts drawing
       pressHandler:  evt => {
         drawing = true;
-        this.currentTool.startDrawing(evt.originalEvent);
+        this.tools.current.startDrawing(evt.originalEvent);
       },
 
       // Move updates the tool (if drawing)
       moveHandler: evt => {
         if (drawing)
-          this.currentTool.onMouseMove(evt.originalEvent);
+          this.tools.current.onMouseMove(evt.originalEvent);
       },
 
       // Stops drawing
       releaseHandler: evt => {
         drawing = false;
-        this.currentTool.onMouseUp(evt.originalEvent);
+        this.tools.current.onMouseUp(evt.originalEvent);
         this.mouseTracker.setTracking(false);
       }
     }).setTracking(false);
@@ -85,12 +89,12 @@ export default class OSDAnnotationLayer extends EventEmitter {
     shape.annotation = annotation;
 
     shape.addEventListener('mouseenter', evt => {
-      if (!this.currentTool.isDrawing)
+      if (!this.tools.current.isDrawing)
         this.emit('mouseEnterAnnotation', annotation, evt);
     });
 
     shape.addEventListener('mouseleave', evt => {
-      if (!this.currentTool.isDrawing)
+      if (!this.tools.current.isDrawing)
         this.emit('mouseLeaveAnnotation', annotation, evt);
     });
 
@@ -145,7 +149,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
   deselect = () => {
     if (this.selectedShape?.annotation.isSelection)
-      this.currentTool.stop();
+      this.tools.current.stop();
 
     this.selectedShape = null;
   }
@@ -211,7 +215,6 @@ export default class OSDAnnotationLayer extends EventEmitter {
   }
 
   destroy = () => {
-    this.currentTool = null;
     this.selectedShape = null;
     this.svg.parentNode.removeChild(this.svg);
   }
