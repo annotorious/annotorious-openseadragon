@@ -1,7 +1,7 @@
 import EventEmitter from 'tiny-emitter';
 import OpenSeadragon from 'openseadragon';
 import { SVG_NAMESPACE } from '../SVGConst';
-import { RubberbandRectSelector, drawRect, parseRectFragment } from '@recogito/annotorious';
+import { RubberbandRectTool, drawRect, parseRectFragment } from '@recogito/annotorious';
 
 export default class OSDAnnotationLayer extends EventEmitter {
 
@@ -28,7 +28,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
     this.selectedShape = null;
 
     if (!this.readOnly) {
-      const selector = new RubberbandRectSelector(this.g);
+      const selector = new RubberbandRectTool(this.g);
       selector.on('complete', this.selectShape);
 
       this._initDrawingMouseTracker();
