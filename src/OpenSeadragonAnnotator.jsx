@@ -117,6 +117,7 @@ export default class OpenSeadragonAnnotator extends Component {
           onCancel={this.onCancelAnnotation}>
 
           <Editor.CommentWidget />
+          <TagWidget vocabulary={config.tagVocabulary} />
 
         </Editor>
       )
