@@ -204,6 +204,9 @@ export default class OSDAnnotationLayer extends EventEmitter {
   setDrawingTool = shape =>
     this.tools.setCurrent(shape);
 
+  setDrawingEnabled = enable =>
+    this.mouseTracker.setTracking(enable);
+
   getAnnotations = () => {
     const shapes = Array.from(this.g.querySelectorAll('.a9s-annotation'));
     return shapes.map(s => s.annotation);
