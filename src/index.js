@@ -83,6 +83,9 @@ class OSDAnnotorious {
   setDrawingTool = shape =>
     this._app.current.setDrawingTool(shape);
 
+  setDrawingEnabled = enable =>
+    this._app.current.setDrawingEnabled(enable);
+
   getAnnotations = () => {
     const annotations = this._app.current.getAnnotations();
     return annotations.map(a => a.underlying);

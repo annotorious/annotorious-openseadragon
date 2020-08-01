@@ -93,6 +93,11 @@
             anno.setDrawingTool('rect');
           }
         });
+
+        var toolToggle = document.getElementById('enable-draw');
+        toolToggle.addEventListener('click', function() {
+          anno.setDrawingEnabled(true);
+        });
       }
     </script>
   </head>
@@ -105,6 +110,7 @@
       </p>
       <p>
         <button id="current-tool">RECTANGLE</button>
+        <button id="enable-draw">ENABLE DRAW</button>
       </p>
       <div id="openseadragon" style="width: 640px; height: 480px;"></div>
     </div>
