@@ -57,12 +57,35 @@
           locale: 'auto'
         });
 
+        var toolToggle = document.getElementById('current-tool');
+        toolToggle.addEventListener('click', function() {
+          if (toolToggle.innerHTML == 'TOOL: RECTANGLE') {
+            toolToggle.innerHTML = 'TOOL: POLYGON';
+            anno.setDrawingTool('polygon');
+          } else {
+            toolToggle.innerHTML = 'TOOL: RECTANGLE';
+            anno.setDrawingTool('rect');
+          }
+        });
+
+        var modeBtn = document.getElementById('mode');
+        modeBtn.addEventListener('click', function() {
+          if (modeBtn.innerHTML == 'MODE: VIEW') {
+            modeBtn.innerHTML = 'MODE: ANNOTATE';
+            anno.setDrawingEnabled(true);
+          } else {
+            modeBtn.innerHTML = 'MODE: VIEW';
+            anno.setDrawingEnabled(false);
+          }
+        });
+
         anno.on('selectAnnotation', function(annotation) {
           console.log('selected', annotation);
         });
 
         anno.on('createAnnotation', function(a) {
           console.log('created', a);
+          modeBtn.innerHTML = 'MODE: VIEW';
         });
 
         anno.on('updateAnnotation', function(annotation, previous) {
@@ -82,22 +105,6 @@
         });
 
         anno.loadAnnotations('annotations.w3c.json');
-
-        var toolToggle = document.getElementById('current-tool');
-        toolToggle.addEventListener('click', function() {
-          if (toolToggle.innerHTML == 'RECTANGLE') {
-            toolToggle.innerHTML = 'POLYGON';
-            anno.setDrawingTool('polygon');
-          } else {
-            toolToggle.innerHTML = 'RECTANGLE';
-            anno.setDrawingTool('rect');
-          }
-        });
-
-        var toolToggle = document.getElementById('enable-draw');
-        toolToggle.addEventListener('click', function() {
-          anno.setDrawingEnabled(true);
-        });
       }
     </script>
   </head>
@@ -109,8 +116,8 @@
         dragging the mouse to create a new annotation. 
       </p>
       <p>
-        <button id="current-tool">RECTANGLE</button>
-        <button id="enable-draw">ENABLE DRAW</button>
+        <button id="current-tool">TOOL: RECTANGLE</button>
+        <button id="mode">MODE: VIEW</button>
       </p>
       <div id="openseadragon" style="width: 640px; height: 480px;"></div>
     </div>
