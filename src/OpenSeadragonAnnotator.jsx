@@ -75,21 +75,18 @@ export default class OpenSeadragonAnnotator extends Component {
 
   addAnnotation = annotation =>
     this.annotationLayer.addOrUpdateAnnotation(annotation.clone());
-
-  removeAnnotation = annotation =>
-    this.annotationLayer.removeAnnotation(annotation.clone());
-
-  setAnnotations = annotations =>
-    this.annotationLayer.init(annotations.map(a => a.clone()));
-
+  
+  fitBounds = (annotationOrId, immediately) =>
+    this.annotationLayer.fitBounds(annotationOrId, immediately);
+  
   getAnnotations = () =>
     this.annotationLayer.getAnnotations().map(a => a.clone());
 
-  setDrawingTool = shape =>
-    this.annotationLayer.setDrawingTool(shape);
+  panTo = (annotationOrId, immediately) =>
+    this.annotationLayer.panTo(annotationOrId, immediately);
 
-  setDrawingEnabled = enable =>
-    this.annotationLayer.setDrawingEnabled(enable);
+  removeAnnotation = annotation =>
+    this.annotationLayer.removeAnnotation(annotation.clone());
 
   selectAnnotation = arg => {
     const annotation = this.annotationLayer.selectAnnotation(arg);
@@ -99,12 +96,15 @@ export default class OpenSeadragonAnnotator extends Component {
     else 
       this.clearState(); // Deselect
   }
+  
+  setAnnotations = annotations =>
+    this.annotationLayer.init(annotations.map(a => a.clone()));
 
-  panTo = (annotationOrId, immediately) =>
-    this.annotationLayer.panTo(annotationOrId, immediately);
-
-  fitBounds = (annotationOrId, immediately) =>
-    this.annotationLayer.fitBounds(annotationOrId, immediately);
+  setDrawingEnabled = enable =>
+    this.annotationLayer.setDrawingEnabled(enable);
+  
+  setDrawingTool = shape =>
+    this.annotationLayer.setDrawingTool(shape);
 
   render() {
     return (
