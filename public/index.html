@@ -88,6 +88,10 @@
           modeBtn.innerHTML = 'MODE: VIEW';
         });
 
+        anno.on('cancelSelection', function(a) {
+          modeBtn.innerHTML = 'MODE: VIEW';
+        });
+
         anno.on('updateAnnotation', function(annotation, previous) {
           console.log('updated', previous, 'with', annotation);
         });

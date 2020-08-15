@@ -64,9 +64,12 @@ export default class OpenSeadragonAnnotator extends Component {
     this.props.onAnnotationDeleted(annotation);
   }
 
-  onCancelAnnotation = () => {
+  onCancelAnnotation = annotation => {
     this.clearState();
     this.annotationLayer.deselect();
+
+    if (annotation.isSelection)
+      this.props.onSelectionCanceled(annotation);
   }
 
   /****************/               
