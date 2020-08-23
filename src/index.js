@@ -47,17 +47,14 @@ class OSDAnnotorious {
   /*  External events */
   /********************/  
 
+  handleSelectionCanceled = annotation =>
+    this._emitter.emit('cancelSelection', annotation._stub);
+
   handleAnnotationCreated = annotation =>
     this._emitter.emit('createAnnotation', annotation.underlying);
 
   handleAnnotationDeleted = annotation =>
     this._emitter.emit('deleteAnnotation', annotation.underlying);
-
-  handleAnnotationSelected = annotation => 
-    this._emitter.emit('selectAnnotation', annotation.underlying);
-
-  handleAnnotationUpdated = (annotation, previous) =>
-    this._emitter.emit('updateAnnotation', annotation.underlying, previous.underlying);
 
   handleMouseEnterAnnotation = (annotation, evt) =>
     this._emitter.emit('mouseEnterAnnotation', annotation.underlying, evt);
@@ -65,8 +62,11 @@ class OSDAnnotorious {
   handleMouseLeaveAnnotation = (annotation, evt) =>
     this._emitter.emit('mouseLeaveAnnotation', annotation.underlying, evt);
 
-  handleSelectionCanceled = annotation =>
-    this._emitter.emit('cancelSelection', annotation._stub);
+  handleAnnotationSelected = annotation => 
+    this._emitter.emit('selectAnnotation', annotation.underlying);
+
+  handleAnnotationUpdated = (annotation, previous) =>
+    this._emitter.emit('updateAnnotation', annotation.underlying, previous.underlying);
 
   /********************/               
   /*  External API    */
