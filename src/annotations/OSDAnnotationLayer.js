@@ -13,7 +13,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
     this.readOnly = props.readOnly;
 
     this.svg = document.createElementNS(SVG_NAMESPACE, 'svg');
-    this.svg.classList.add('a9s-annotationlayer', 'a9s-osd-annotationlayer');
+    this.svg.setAttribute('class', 'a9s-annotationlayer', 'a9s-osd-annotationlayer');
 
     this.g = document.createElementNS(SVG_NAMESPACE, 'g');
     this.svg.appendChild(this.g);
@@ -58,6 +58,11 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
       // Stops drawing
       releaseHandler: evt => {
+        const viewportPoint = this.viewer.viewport.pointFromPixel(evt.position);
+        const imagePoint = this.viewer.viewport.viewportToImageCoordinates(viewportPoint);
+
+        console.log('mouseup', imagePoint);
+        
         this.tools.current.onMouseUp(evt.originalEvent);
       }
     }).setTracking(false);
