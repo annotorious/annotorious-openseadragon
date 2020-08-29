@@ -3,7 +3,10 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import Emitter from 'tiny-emitter';
 import OpenSeadragonAnnotator from './OpenSeadragonAnnotator';
-import { Environment, WebAnnotation, setLocale } from '@recogito/recogito-client-core';
+import { Environment, WebAnnotation, addPolyfills, setLocale } from '@recogito/recogito-client-core';
+
+import "@babel/polyfill";
+addPolyfills(); // Extra polyfills that babel doesn't include
 
 import '@recogito/recogito-client-core/themes/default';
 

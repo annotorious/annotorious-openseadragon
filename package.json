@@ -40,6 +40,7 @@
     "webpack-dev-server": "^3.11.0"
   },
   "dependencies": {
+    "@babel/polyfill": "^7.10.4",
     "@recogito/annotorious": "^2.0.6",
     "@recogito/recogito-client-core": "^0.1.8",
     "axios": "^0.19.2",
