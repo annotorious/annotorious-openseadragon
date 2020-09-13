@@ -35,8 +35,7 @@ class OSDAnnotorious {
         ref={this._app}
         viewer={viewer} 
         wrapperEl={viewerEl}
-        readOnly={config.readOnly} 
-        tagVocabulary={config.tagVocabulary}
+        config={config} 
         onAnnotationSelected={this.handleAnnotationSelected}
         onAnnotationCreated={this.handleAnnotationCreated} 
         onAnnotationUpdated={this.handleAnnotationUpdated} 

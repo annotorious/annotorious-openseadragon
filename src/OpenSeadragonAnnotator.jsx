@@ -116,16 +116,12 @@ export default class OpenSeadragonAnnotator extends Component {
           wrapperEl={this.props.wrapperEl}
           annotation={this.state.selectedAnnotation}
           selectedElement={this.state.selectedDOMElement}
-          readOnly={this.props.readOnly}
+          readOnly={this.props.config.readOnly}
+          config={this.props.config}
           onAnnotationCreated={this.onCreateOrUpdateAnnotation('onAnnotationCreated')}
           onAnnotationUpdated={this.onCreateOrUpdateAnnotation('onAnnotationUpdated')}
           onAnnotationDeleted={this.onDeleteAnnotation}
-          onCancel={this.onCancelAnnotation}>
-
-          <Editor.CommentWidget />
-          <Editor.TagWidget vocabulary={this.props.tagVocabulary} />
-
-        </Editor>
+          onCancel={this.onCancelAnnotation} />
       )
     )
   }
