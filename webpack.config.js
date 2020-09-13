@@ -3,6 +3,7 @@ const fs = require('fs');
 
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 const APP_DIR = fs.realpathSync(process.cwd());
 
@@ -60,8 +61,8 @@ module.exports = {
           }
         }
       },
-      { test: /\.css$/,  use: [ 'style-loader', 'css-loader'] },
-      { test: /\.scss$/, use: [ 'style-loader', 'css-loader', 'sass-loader' ] }
+      { test: /\.css$/,  use: [ MiniCssExtractPlugin.loader, 'css-loader'] },
+      { test: /\.scss$/, use: [ MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader' ] }
     ]
   },
   devServer: {
@@ -75,6 +76,9 @@ module.exports = {
   plugins: [
     new HtmlWebpackPlugin ({
       template: resolveAppPath('public/index.html')
+    }),
+    new MiniCssExtractPlugin({
+      filename: 'annotorious.min.css',
     })
   ]
 }
