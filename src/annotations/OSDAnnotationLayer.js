@@ -59,10 +59,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
       // Stops drawing
       releaseHandler: evt => {
         const viewportPoint = this.viewer.viewport.pointFromPixel(evt.position);
-        const imagePoint = this.viewer.viewport.viewportToImageCoordinates(viewportPoint);
-
-        console.log('mouseup', imagePoint);
-        
+        const imagePoint = this.viewer.viewport.viewportToImageCoordinates(viewportPoint);        
         this.tools.current.onMouseUp(evt.originalEvent);
       }
     }).setTracking(false);
@@ -220,6 +217,24 @@ export default class OSDAnnotationLayer extends EventEmitter {
   destroy = () => {
     this.selectedShape = null;
     this.svg.parentNode.removeChild(this.svg);
+  }
+
+  /** 
+   * Forces a new ID on the annotation with the given ID. 
+   * @returns the updated annotation for convenience
+   */
+  overrideId = (originalId, forcedId) => {
+    // Update SVG shape data attribute
+    const shape = this.findShape(originalId);
+    shape.setAttribute('data-id', forcedId);
+
+    // Update annotation
+    const { annotation } = shape;
+
+    const updated = annotation.clone({ id : forcedId });
+    shape.annotation = updated;
+
+    return updated;
   }
 
 }

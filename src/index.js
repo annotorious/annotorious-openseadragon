@@ -52,8 +52,8 @@ class OSDAnnotorious {
   handleSelectionCanceled = annotation =>
     this._emitter.emit('cancelSelection', annotation._stub);
 
-  handleAnnotationCreated = annotation =>
-    this._emitter.emit('createAnnotation', annotation.underlying);
+  handleAnnotationCreated = (annotation, overrideId) =>
+    this._emitter.emit('createAnnotation', annotation.underlying, overrideId);
 
   handleAnnotationDeleted = annotation =>
     this._emitter.emit('deleteAnnotation', annotation.underlying);
