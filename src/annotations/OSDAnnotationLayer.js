@@ -57,9 +57,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
       },
 
       // Stops drawing
-      releaseHandler: evt => {
-        const viewportPoint = this.viewer.viewport.pointFromPixel(evt.position);
-        const imagePoint = this.viewer.viewport.viewportToImageCoordinates(viewportPoint);        
+      releaseHandler: evt => {     
         this.tools.current.onMouseUp(evt.originalEvent);
       }
     }).setTracking(false);
