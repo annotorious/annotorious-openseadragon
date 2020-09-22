@@ -141,6 +141,7 @@ export default class OpenSeadragonAnnotator extends Component {
           selectedElement={this.state.selectedDOMElement}
           readOnly={this.props.config.readOnly}
           config={this.props.config}
+          env={this.props.env}
           onAnnotationCreated={this.onCreateOrUpdateAnnotation('onAnnotationCreated')}
           onAnnotationUpdated={this.onCreateOrUpdateAnnotation('onAnnotationUpdated')}
           onAnnotationDeleted={this.onDeleteAnnotation}

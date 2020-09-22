@@ -61,6 +61,11 @@
           locale: 'auto'
         });
 
+        anno.setAuthInfo({
+          id: 'http://www.example.com/rainer',
+          displayName: 'rainer'
+        });
+
         var toolToggle = document.getElementById('current-tool');
         toolToggle.addEventListener('click', function() {
           if (toolToggle.innerHTML == 'TOOL: RECTANGLE') {
