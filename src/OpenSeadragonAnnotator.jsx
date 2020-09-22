@@ -78,7 +78,7 @@ export default class OpenSeadragonAnnotator extends Component {
     if (previous)
       this.props[method](annotation, previous.clone());
     else
-      this.props[method](annotation, this.overrideAnnotationId(a));
+      this.props[method](annotation, this.overrideAnnotationId(annotation));
   }
 
   onDeleteAnnotation = annotation => {

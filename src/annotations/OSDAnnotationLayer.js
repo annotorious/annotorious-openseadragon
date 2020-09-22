@@ -1,7 +1,7 @@
 import EventEmitter from 'tiny-emitter';
 import OpenSeadragon from 'openseadragon';
 import { SVG_NAMESPACE } from '../SVGConst';
-import { DrawingTools, drawShape, parseRectFragment } from '@recogito/annotorious';
+import { DrawingTools, drawShape, parseRectFragment } from '@recogito/annotorious/src';
 
 export default class OSDAnnotationLayer extends EventEmitter {
 
@@ -21,14 +21,25 @@ export default class OSDAnnotationLayer extends EventEmitter {
     this.viewer.canvas.appendChild(this.svg);
 
     this.viewer.addHandler('animation', () => this.resize());
-    this.viewer.addHandler('open', () => this.resize());
     this.viewer.addHandler('rotate', () => this.resize());
     this.viewer.addHandler('resize', () => this.resize());
+
+    this.viewer.addHandler('open', () => { 
+      // Store image natural width + height in env, so that the mask has access
+      const { x, y } = this.viewer.world.getItemAt(0).source.dimensions;
+      
+      props.env.image = {
+        naturalWidth: x,
+        naturalHeight: y
+      };
+
+      this.resize();
+    });
 
     this.selectedShape = null;
 
     if (!this.readOnly) {
-      this.tools = new DrawingTools(this.g);
+      this.tools = new DrawingTools(this.g, props.config, props.env);
       this._initDrawingMouseTracker();
     }
 
