@@ -25,10 +25,11 @@ export default class OSDAnnotationLayer extends EventEmitter {
     this.viewer.addHandler('resize', () => this.resize());
 
     this.viewer.addHandler('open', () => { 
-      // Store image natural width + height in env, so that the mask has access
+      // Store image properties to environment
       const { x, y } = this.viewer.world.getItemAt(0).source.dimensions;
       
       props.env.image = {
+        src: this.viewer.world.getItemAt(0).source['@id'],
         naturalWidth: x,
         naturalHeight: y
       };
