@@ -1,7 +1,7 @@
 import EventEmitter from 'tiny-emitter';
 import OpenSeadragon from 'openseadragon';
 import { SVG_NAMESPACE } from '../SVGConst';
-import { DrawingTools, drawShape, parseRectFragment } from '@recogito/annotorious/src';
+import { DrawingTools, drawShape, format, parseRectFragment } from '@recogito/annotorious/src';
 
 export default class OSDAnnotationLayer extends EventEmitter {
 
@@ -11,6 +11,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
     this.viewer = props.viewer;
 
     this.readOnly = props.readOnly;
+    this.formatter = props.config?.formatter;
 
     this.svg = document.createElementNS(SVG_NAMESPACE, 'svg');
     this.svg.setAttribute('class', 'a9s-annotationlayer', 'a9s-osd-annotationlayer');
@@ -89,6 +90,8 @@ export default class OSDAnnotationLayer extends EventEmitter {
   addAnnotation = annotation => {
     const shape = drawShape(annotation);
     shape.setAttribute('class', 'a9s-annotation');
+    format(shape, annotation, this.formatter);
+
     shape.setAttribute('data-id', annotation.id);
     shape.annotation = annotation;
 
