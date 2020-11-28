@@ -41,6 +41,7 @@ class OSDAnnotorious {
         wrapperEl={viewerEl}
         config={config} 
         env={this._env}
+        onSelectionCreated={this.handleSelectionCreated}
         onAnnotationSelected={this.handleAnnotationSelected}
         onAnnotationCreated={this.handleAnnotationCreated} 
         onAnnotationUpdated={this.handleAnnotationUpdated} 
@@ -53,6 +54,9 @@ class OSDAnnotorious {
   /********************/               
   /*  External events */
   /********************/  
+
+  handleSelectionCreated = selection =>
+    this._emitter.emit('createSelection', selection._stub);
 
   handleSelectionCanceled = annotation =>
     this._emitter.emit('cancelSelection', annotation._stub);

@@ -88,6 +88,10 @@
           }
         });
 
+        anno.on('createSelection', function(selection) {
+          console.log('selection', selection);
+        });
+
         anno.on('selectAnnotation', function(annotation) {
           console.log('selected', annotation);
         });

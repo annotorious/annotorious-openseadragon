@@ -17,15 +17,23 @@ export default class OpenSeadragonAnnotator extends Component {
 
   componentDidMount() {
     this.annotationLayer = new OSDAnnotationLayer(this.props);
+
+    this.annotationLayer.on('createSelection', this.handleCreateSelection);
+
+    this.annotationLayer.on('select', this.handleSelect);
+
+    this.annotationLayer.on('moveSelection', this.handleMoveSelection);
+
     this.annotationLayer.on('mouseEnterAnnotation', this.props.onMouseEnterAnnotation);
     this.annotationLayer.on('mouseLeaveAnnotation', this.props.onMouseLeaveAnnotation);
-    this.annotationLayer.on('select', this.handleSelect);
-    this.annotationLayer.on('moveSelection', this.handleMoveSelection);
   }
 
   componentWillUnmount() {
     this.annotationLayer.destroy();
   }
+
+  handleCreateSelection = selection => 
+    this.props.onSelectionCreated(selection.clone());
 
   handleSelect = evt => {
     const { annotation, element, skipEvent } = evt;

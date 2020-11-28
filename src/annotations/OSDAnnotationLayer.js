@@ -51,6 +51,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
   /** Initializes the OSD MouseTracker used for drawing **/
   _initDrawingMouseTracker = () => {
     this.tools.on('complete', shape => { 
+      this.emit('createSelection', shape.annotation);
       this.mouseTracker.setTracking(false);
       this.selectShape(shape);
     });
