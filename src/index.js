@@ -5,6 +5,7 @@ import Emitter from 'tiny-emitter';
 import OpenSeadragonAnnotator from './OpenSeadragonAnnotator';
 import { 
   WebAnnotation, 
+  Selection,
   createEnvironment,
   setLocale 
 } from '@recogito/recogito-client-core';
@@ -144,6 +145,19 @@ class OSDAnnotorious {
 
   setServerTime = timestamp => 
     this._env.setServerTime(timestamp);
+
+  updateSelected = annotation => {
+    let updated = null;
+
+    if (annotation.type === 'Annotation') {
+      updated = new WebAnnotation(annotation);
+    } else if (annotation.type === 'Selection') {
+      updated = new Selection(annotation.target, annotation.body);
+    }
+    
+    if (updated)
+      this._app.current.updateSelected(updated);
+  }
 
 }
 

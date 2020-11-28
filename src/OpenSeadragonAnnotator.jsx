@@ -140,6 +140,13 @@ export default class OpenSeadragonAnnotator extends Component {
   setDrawingTool = shape =>
     this.annotationLayer.setDrawingTool(shape);
 
+  updateSelected = annotation => {
+    if (this.state.selectedAnnotation)
+      this.setState({ selectedAnnotation: annotation });
+    else
+      console.warn('No selection - cannot update');
+  }
+
   render() {
     return (
       this.state.selectedAnnotation && (
