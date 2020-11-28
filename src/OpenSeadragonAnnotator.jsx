@@ -32,7 +32,7 @@ export default class OpenSeadragonAnnotator extends Component {
     this.annotationLayer.destroy();
   }
 
-  handleCreateSelection = selection => 
+  handleCreateSelection = selection =>
     this.props.onSelectionCreated(selection.clone());
 
   handleSelect = evt => {

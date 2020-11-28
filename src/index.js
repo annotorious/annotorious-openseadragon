@@ -57,10 +57,10 @@ class OSDAnnotorious {
   /********************/  
 
   handleSelectionCreated = selection =>
-    this._emitter.emit('createSelection', selection._stub);
+    this._emitter.emit('createSelection', selection.underlying);
 
   handleSelectionCanceled = annotation =>
-    this._emitter.emit('cancelSelection', annotation._stub);
+    this._emitter.emit('cancelSelection', annotation.underlying);
 
   handleAnnotationCreated = (annotation, overrideId) =>
     this._emitter.emit('createAnnotation', annotation.underlying, overrideId);
