@@ -55,4 +55,10 @@ Full documentation is [on the project website](https://recogito.github.io/annoto
 you wish. But keep the attribution/license file, and if this code
 breaks something, don't complain to us :-)
 
+## Who's Using Annotorious OpenSeadragon
+
+<img width="362" src="https://raw.githubusercontent.com/recogito/annotorious-openseadragon/master/logos/metro.png" />
+
+[__Archipelago__](https://github.com/esmero/archipelago-deployment) Open Source Digital Object Repository Software
+
 
