@@ -57,8 +57,7 @@ breaks something, don't complain to us :-)
 
 ## Who's Using Annotorious OpenSeadragon
 
-<img width="62" src="https://raw.githubusercontent.com/recogito/annotorious-openseadragon/master/logos/metro.png" />
-
 [__Archipelago__](https://github.com/esmero/archipelago-deployment) Open Source Digital Object Repository Software
 
+<img width="62" src="https://raw.githubusercontent.com/recogito/annotorious-openseadragon/master/logos/metro.png" /> 
 
