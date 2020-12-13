@@ -22,6 +22,8 @@ export default class OpenSeadragonAnnotator extends Component {
 
     this.annotationLayer.on('select', this.handleSelect);
 
+    this.annotationLayer.on('updateTarget', this.handleUpdateTarget);
+
     this.annotationLayer.on('moveSelection', this.handleMoveSelection);
 
     this.annotationLayer.on('mouseEnterAnnotation', this.props.onMouseEnterAnnotation);
@@ -48,6 +50,11 @@ export default class OpenSeadragonAnnotator extends Component {
     } else {
       this.clearState();
     }
+  }
+
+  handleUpdateTarget = (selectedDOMElement, modifiedTarget) => {
+    // TODO
+    this.setState({ selectedDOMElement });
   }
 
   handleMoveSelection = selectedDOMElement =>

@@ -120,15 +120,50 @@ export default class OSDAnnotationLayer extends EventEmitter {
   }
 
   selectShape = (shape, skipEvent) => {
+    // Don't re-select
+    if (this.selectedShape?.annotation === shape?.annotation)
+      return;
+
     // If another shape is currently selected, deselect first
     if (this.selectedShape && this.selectedShape.annotation !== shape.annotation)
       this.deselect();
 
     const { annotation } = shape;
 
-    this.selectedShape = shape;
+    const readOnly = this.readOnly || annotation.readOnly;
 
-    this.emit('select', { annotation, element: shape, skipEvent }); 
+    if (!(readOnly || this.headless)) {
+      const toolForShape = this.tools.forShape(shape);
+      
+      if (toolForShape?.supportsModify) {
+        // Replace the shape with an editable version
+        shape.parentNode.removeChild(shape);  
+
+        this.selectedShape = toolForShape.createEditableShape(annotation);
+
+        // Yikes... hack to make the tool act like SVG annotation shapes - needs redesign
+        this.selectedShape.element.annotation = annotation;         
+        //this.attachHoverListener(this.selectedShape.element, annotation);
+        
+        // Hack: disable normal OSD nav
+        // TODO en-/disable based on hover status
+        this.mouseTracker = new OpenSeadragon.MouseTracker({
+          element: this.svg
+        }).setTracking(true);
+    
+        this.selectedShape.on('update', fragment => {
+          this.emit('updateTarget', this.selectedShape.element, fragment);
+        });
+
+        this.emit('select', { annotation, element: this.selectedShape.element, skipEvent });
+      } else {
+        this.selectedShape = shape;
+        this.emit('select', { annotation, element: shape, skipEvent });     
+      }
+    } else {
+      this.selectedShape = shape;
+      this.emit('select', { annotation, element: shape, skipEvent });   
+    }
   }
 
   init = annotations => {
@@ -151,8 +186,12 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
     this.g.setAttribute('transform', `translate(${p.x}, ${p.y}) scale(${scale}) rotate(${rotation})`);
 
-    if (this.selectedShape)
-      this.emit('moveSelection', this.selectedShape);
+    if (this.selectedShape) {
+      // TODO HACK!!
+      const shape = this.selectedShape.element || this.selectedShape;
+      this.emit('moveSelection', shape);
+      // this.emit('moveSelection', this.selectedShape);
+    }
   }
 
   deselect = () => {
