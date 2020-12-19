@@ -6,13 +6,15 @@ export default class OpenSeadragonAnnotator extends Component {
 
   state = {
     selectedAnnotation: null,
-    selectedDOMElement: null
+    selectedDOMElement: null,
+    modifiedTarget: null
   }
 
   /** Shorthand **/
   clearState = () => this.setState({
     selectedAnnotation: null,
-    selectedDOMElement: null
+    selectedDOMElement: null,
+    modifiedTarget: null
   });
 
   componentDidMount() {
@@ -53,8 +55,10 @@ export default class OpenSeadragonAnnotator extends Component {
   }
 
   handleUpdateTarget = (selectedDOMElement, modifiedTarget) => {
-    // TODO
-    this.setState({ selectedDOMElement });
+    this.setState({ selectedDOMElement, modifiedTarget });
+
+    const clone = JSON.parse(JSON.stringify(modifiedTarget));
+    this.props.onSelectionTargetChanged(clone);
   }
 
   handleMoveSelection = selectedDOMElement =>
@@ -71,7 +75,8 @@ export default class OpenSeadragonAnnotator extends Component {
     if (this.state.selectedAnnotation) {
       this.setState({
         selectedAnnotation: null,
-        selectedDOMElement: null
+        selectedDOMElement: null,
+        modifiedTarget: null
       }, () => {
         this.annotationLayer.overrideId(id, forcedId);
       });
@@ -85,15 +90,19 @@ export default class OpenSeadragonAnnotator extends Component {
   /**************************/  
 
   onCreateOrUpdateAnnotation = method => (annotation, previous) => {
+    // Merge updated target if necessary
+    const a = (this.state.modifiedTarget) ?
+      annotation.clone({ target: this.state.modifiedTarget }) : annotation.clone();
+
     this.clearState();    
     this.annotationLayer.deselect();
-    this.annotationLayer.addOrUpdateAnnotation(annotation, previous);
+    this.annotationLayer.addOrUpdateAnnotation(a, previous);
 
     // Call CREATE or UPDATE handler
     if (previous)
-      this.props[method](annotation, previous.clone());
+      this.props[method](a, previous.clone());
     else
-      this.props[method](annotation, this.overrideAnnotationId(annotation));
+      this.props[method](a, this.overrideAnnotationId(annotation));
   }
 
   onDeleteAnnotation = annotation => {

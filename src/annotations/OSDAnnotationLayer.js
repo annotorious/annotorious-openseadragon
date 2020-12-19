@@ -199,16 +199,33 @@ export default class OSDAnnotationLayer extends EventEmitter {
   }
 
   deselect = () => {
-    if (this.selectedShape?.annotation.isSelection)
-      this.tools.current.stop();
+    if (this.selectedShape) {
+      const { annotation } = this.selectedShape;
 
-    this.selectedShape = null;
+      if (annotation.isSelection)
+        this.tools.current.stop();
+
+      if (this.selectedShape.destroy) {
+        // Modifiable shape: destroy and re-add the annotation
+        this.selectedShape.destroy();
+        this.mouseTracker.destroy();
+
+        if (!annotation.isSelection)
+          this.addAnnotation(annotation);
+      }
+      
+      this.selectedShape = null;
+    }
   }
 
   addOrUpdateAnnotation = (annotation, previous) => {
+    if (this.selectedShape?.annotation === annotation || this.selectShape?.annotation == previous)
+      this.deselect();
+  
     if (previous)
       this.removeAnnotation(annotation);
 
+    this.removeAnnotation(annotation);
     this.addAnnotation(annotation);
   }
 
