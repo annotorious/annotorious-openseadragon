@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Editor } from '@recogito/recogito-client-core';
-import OSDAnnotationLayer from './annotations/OSDAnnotationLayer';
+import OSDAnnotationLayer from './OSDAnnotationLayer';
 
 export default class OpenSeadragonAnnotator extends Component {
 

@@ -1,6 +1,6 @@
 import EventEmitter from 'tiny-emitter';
 import OpenSeadragon from 'openseadragon';
-import { SVG_NAMESPACE } from '../SVGConst';
+import { SVG_NAMESPACE } from './SVGConst';
 import { DrawingTools, drawShape, format, parseRectFragment } from '@recogito/annotorious/src';
 
 export default class OSDAnnotationLayer extends EventEmitter {
