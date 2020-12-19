@@ -140,6 +140,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
         shape.parentNode.removeChild(shape);  
 
         this.selectedShape = toolForShape.createEditableShape(annotation);
+        this.selectedShape.scaleHandles(1 / this.currentScale());
 
         // Yikes... hack to make the tool act like SVG annotation shapes - needs redesign
         this.selectedShape.element.annotation = annotation;         
@@ -171,26 +172,29 @@ export default class OSDAnnotationLayer extends EventEmitter {
     shapes.forEach(s => this.g.removeChild(s));
     annotations.forEach(this.addAnnotation);
   }
+
+  // Helper to compute current scale factor
+  currentScale = () => {
+    const { x, y } = this.viewer.viewport.getContainerSize();
+    const containerSize = Math.max(x, y);
+    const zoom = this.viewer.viewport.getZoom(true);
+    return zoom * containerSize / this.viewer.world.getContentFactor();
+  }
   
   resize() {
     // Current upper left corner
     const p = this.viewer.viewport.pixelFromPoint(new OpenSeadragon.Point(0, 0), true);
-
-    // Compute scale factor
-    const { x, y } = this.viewer.viewport.getContainerSize();
-    const containerSize = Math.max(x, y);
-    const zoom = this.viewer.viewport.getZoom(true);
-    const scale = zoom * containerSize / this.viewer.world.getContentFactor();
-
+    const scale = this.currentScale();
     const rotation = this.viewer.viewport.getRotation();
 
     this.g.setAttribute('transform', `translate(${p.x}, ${p.y}) scale(${scale}) rotate(${rotation})`);
 
     if (this.selectedShape) {
+      this.selectedShape.scaleHandles(1 / scale);
+       
       // TODO HACK!!
       const shape = this.selectedShape.element || this.selectedShape;
       this.emit('moveSelection', shape);
-      // this.emit('moveSelection', this.selectedShape);
     }
   }
 
