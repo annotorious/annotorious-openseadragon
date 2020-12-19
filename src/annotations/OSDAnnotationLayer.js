@@ -146,9 +146,9 @@ export default class OSDAnnotationLayer extends EventEmitter {
         this.selectedShape.element.annotation = annotation;         
         //this.attachHoverListener(this.selectedShape.element, annotation);
         
-        // Hack: disable normal OSD nav
+        // Disable normal OSD nav
         // TODO en-/disable based on hover status
-        this.mouseTracker = new OpenSeadragon.MouseTracker({
+        this.selectedShape.mouseTracker = new OpenSeadragon.MouseTracker({
           element: this.svg
         }).setTracking(true);
     
@@ -207,8 +207,8 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
       if (this.selectedShape.destroy) {
         // Modifiable shape: destroy and re-add the annotation
+        this.selectedShape.mouseTracker.destroy();
         this.selectedShape.destroy();
-        this.mouseTracker.destroy();
 
         if (!annotation.isSelection)
           this.addAnnotation(annotation);
