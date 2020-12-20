@@ -90,12 +90,12 @@ export default class OSDAnnotationLayer extends EventEmitter {
     shape.annotation = annotation;
 
     shape.addEventListener('mouseenter', evt => {
-      if (!this.tools.current.isDrawing)
+      if (!this.tools?.current.isDrawing)
         this.emit('mouseEnterAnnotation', annotation, evt);
     });
 
     shape.addEventListener('mouseleave', evt => {
-      if (!this.tools.current.isDrawing)
+      if (!this.tools?.current.isDrawing)
         this.emit('mouseLeaveAnnotation', annotation, evt);
     });
 
@@ -270,14 +270,21 @@ export default class OSDAnnotationLayer extends EventEmitter {
         this.selectedShape = toolForShape.createEditableShape(annotation);
         this.selectedShape.scaleHandles(1 / this.currentScale());
 
-        this.selectedShape.element.annotation = annotation;         
-        // TODO this.attachHoverListener(this.selectedShape.element, annotation);
-        
+        this.selectedShape.element.annotation = annotation;        
+
         // Disable normal OSD nav
-        // TODO en-/disable based on hover status
-        this.selectedShape.mouseTracker = new OpenSeadragon.MouseTracker({
+        const editableShapeMouseTracker = new OpenSeadragon.MouseTracker({
           element: this.svg
         }).setTracking(true);
+
+        // En-/disable OSD nav based on hover status
+        this.selectedShape.element.addEventListener('mouseenter', evt =>
+          editableShapeMouseTracker.setTracking(true));
+    
+        this.selectedShape.element.addEventListener('mouseleave', evt =>
+          editableShapeMouseTracker.setTracking(false));
+        
+        this.selectedShape.mouseTracker = editableShapeMouseTracker;
     
         this.selectedShape.on('update', fragment =>
           this.emit('updateTarget', this.selectedShape.element, fragment));
