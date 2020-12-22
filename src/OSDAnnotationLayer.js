@@ -2,6 +2,7 @@ import EventEmitter from 'tiny-emitter';
 import OpenSeadragon from 'openseadragon';
 import { SVG_NAMESPACE } from './SVGConst';
 import { DrawingTools, drawShape, format, parseRectFragment } from '@recogito/annotorious/src';
+import { getSnippet } from './ImageSnippet';
 
 export default class OSDAnnotationLayer extends EventEmitter {
 
@@ -64,9 +65,9 @@ export default class OSDAnnotationLayer extends EventEmitter {
     }).setTracking(false);
 
     this.tools.on('complete', shape => { 
-      this.emit('createSelection', shape.annotation);
       this.mouseTracker.setTracking(false);
       this.selectShape(shape);
+      this.emit('createSelection', shape.annotation);
     });
 
     // Keep tracker disabled until Shift is held
@@ -169,6 +170,13 @@ export default class OSDAnnotationLayer extends EventEmitter {
   getAnnotations = () => {
     const shapes = Array.from(this.g.querySelectorAll('.a9s-annotation'));
     return shapes.map(s => s.annotation);
+  }
+
+  getSelectedSnippet = () => {
+    if (this.selectedShape) {
+      const { annotation } = this.selectedShape;
+      return getSnippet(this.viewer, annotation);
+    }
   }
 
   init = annotations => {

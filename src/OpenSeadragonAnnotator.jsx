@@ -132,6 +132,9 @@ export default class OpenSeadragonAnnotator extends Component {
   getAnnotations = () =>
     this.annotationLayer.getAnnotations().map(a => a.clone());
 
+  getSelectedSnippet = () =>
+    this.annotationLayer.getSelectedSnippet();
+
   panTo = (annotationOrId, immediately) =>
     this.annotationLayer.panTo(annotationOrId, immediately);
 
