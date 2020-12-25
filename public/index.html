@@ -90,7 +90,8 @@
 
         anno.on('createSelection', function(selection) {
           console.log('selection', selection);
-          console.log(anno.getSelectedSnippet());
+          const { snippet } = anno.getSelectedImageSnippet();
+          // document.body.appendChild(snippet);
         });
 
         anno.on('selectAnnotation', function(annotation) {

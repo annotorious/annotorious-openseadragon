@@ -1,7 +1,6 @@
 import EventEmitter from 'tiny-emitter';
 import OpenSeadragon from 'openseadragon';
-import { SVG_NAMESPACE } from './SVGConst';
-import { DrawingTools, drawShape, format, parseRectFragment } from '@recogito/annotorious/src';
+import { SVG_NAMESPACE, DrawingTools, drawShape, format, parseRectFragment } from '@recogito/annotorious/src';
 import { getSnippet } from './ImageSnippet';
 
 export default class OSDAnnotationLayer extends EventEmitter {
@@ -174,8 +173,8 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
   getSelectedImageSnippet = () => {
     if (this.selectedShape) {
-      const { annotation } = this.selectedShape;
-      return getSnippet(this.viewer, annotation);
+      const shape = this.selectedShape.element ?? this.selectedShape;
+      return getSnippet(this.viewer, shape);
     }
   }
 
