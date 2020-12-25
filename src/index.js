@@ -109,8 +109,8 @@ class OSDAnnotorious {
     return annotations.map(a => a.underlying);
   }
   
-  getSelectedSnippet = () =>
-    this._app.current.getSelectedSnippet();
+  getSelectedImageSnippet = () =>
+    this._app.current.getSelectedImageSnippet();
 
   loadAnnotations = url => axios.get(url).then(response => {
     const annotations = response.data.map(a => new WebAnnotation(a));

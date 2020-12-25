@@ -172,7 +172,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
     return shapes.map(s => s.annotation);
   }
 
-  getSelectedSnippet = () => {
+  getSelectedImageSnippet = () => {
     if (this.selectedShape) {
       const { annotation } = this.selectedShape;
       return getSnippet(this.viewer, annotation);
