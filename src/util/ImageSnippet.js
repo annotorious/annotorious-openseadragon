@@ -24,7 +24,7 @@ export const getSnippet = (viewer, element) => {
   const ctx = snippet.getContext('2d');
   snippet.width = width;
   snippet.height = height;
-  ctx.drawImage(canvas, x * kx, y * ky, width * kx, height * ky, 0, 0, width * kx, height * ky);
+  ctx.drawImage(canvas, x * kx, y * ky, width * kx, height * ky, 0, 0, width, height);
 
   // Compute reverse transform
   const topLeft = viewer.viewport.viewportToImageCoordinates(shapeBounds.x, shapeBounds.y);
