@@ -57,6 +57,18 @@ class OSDAnnotorious {
   /*  External events */
   /********************/  
 
+  handleAnnotationCreated = (annotation, overrideId) =>
+    this._emitter.emit('createAnnotation', annotation.underlying, overrideId);
+
+  handleAnnotationDeleted = annotation =>
+    this._emitter.emit('deleteAnnotation', annotation.underlying);
+
+  handleAnnotationSelected = annotation => 
+    this._emitter.emit('selectAnnotation', annotation.underlying);
+
+  handleAnnotationUpdated = (annotation, previous) =>
+    this._emitter.emit('updateAnnotation', annotation.underlying, previous.underlying);
+
   handleSelectionCreated = selection =>
     this._emitter.emit('createSelection', selection.underlying);
 
@@ -66,23 +78,11 @@ class OSDAnnotorious {
   handleSelectionCanceled = annotation =>
     this._emitter.emit('cancelSelection', annotation.underlying);
 
-  handleAnnotationCreated = (annotation, overrideId) =>
-    this._emitter.emit('createAnnotation', annotation.underlying, overrideId);
-
-  handleAnnotationDeleted = annotation =>
-    this._emitter.emit('deleteAnnotation', annotation.underlying);
-
   handleMouseEnterAnnotation = (annotation, evt) =>
     this._emitter.emit('mouseEnterAnnotation', annotation.underlying, evt);
 
   handleMouseLeaveAnnotation = (annotation, evt) =>
     this._emitter.emit('mouseLeaveAnnotation', annotation.underlying, evt);
-
-  handleAnnotationSelected = annotation => 
-    this._emitter.emit('selectAnnotation', annotation.underlying);
-
-  handleAnnotationUpdated = (annotation, previous) =>
-    this._emitter.emit('updateAnnotation', annotation.underlying, previous.underlying);
 
   /********************/               
   /*  External API    */
@@ -94,6 +94,12 @@ class OSDAnnotorious {
 
   addAnnotation = annotation =>
     this._app.current.addAnnotation(new WebAnnotation(annotation));
+
+  cancelSelected = () =>
+    this._app.current.cancelSelected();
+
+  clearAnnotations = () =>
+    this.setAnnotations([]);
 
   clearAuthInfo = () =>
     this._env.user = null;
