@@ -114,6 +114,11 @@ class OSDAnnotorious {
     const annotations = this._app.current.getAnnotations();
     return annotations.map(a => a.underlying);
   }
+
+  getSelected = () => {
+    const selected = this._app.current.getSelected();
+    return selected?.underlying;
+  }
   
   getSelectedImageSnippet = () =>
     this._app.current.getSelectedImageSnippet();
@@ -155,6 +160,9 @@ class OSDAnnotorious {
 
   setDrawingTool = shape =>
     this._app.current.setDrawingTool(shape);
+
+  setVisible = visible =>
+    this._app.current.setVisible(visible); 
 
   setServerTime = timestamp => 
     this._env.setServerTime(timestamp);

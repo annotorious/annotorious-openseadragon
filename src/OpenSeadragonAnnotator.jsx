@@ -126,11 +126,22 @@ export default class OpenSeadragonAnnotator extends Component {
   addAnnotation = annotation =>
     this.annotationLayer.addOrUpdateAnnotation(annotation.clone());
   
+  cancelSelected = () => {
+    const { selectedAnnotation } = this.state;
+    if (selectedAnnotation)
+      this.onCancelAnnotation(selectedAnnotation);
+  }
+  
   fitBounds = (annotationOrId, immediately) =>
     this.annotationLayer.fitBounds(annotationOrId, immediately);
   
   getAnnotations = () =>
     this.annotationLayer.getAnnotations().map(a => a.clone());
+
+  getSelected = () => {
+    const selected = this.annotationLayer.getSelected();
+    return selected ? selected.annotation.clone() : null;
+  }
 
   getSelectedImageSnippet = () =>
     this.annotationLayer.getSelectedImageSnippet();
@@ -140,6 +151,24 @@ export default class OpenSeadragonAnnotator extends Component {
 
   removeAnnotation = annotation =>
     this.annotationLayer.removeAnnotation(annotation.clone());
+
+  saveSelected = () => {
+    const a = this.state.selectedAnnotation;
+
+    if (a) {
+      if (a.isSelection) {
+        this.onCreateOrUpdateAnnotation('onAnnotationCreated')(a.toAnnotation(), a);
+      } else {
+        const { beforeHeadlessModify } = this.state;
+        if (beforeHeadlessModify) {
+          this.onCreateOrUpdateAnnotation('onAnnotationUpdated')(a, beforeHeadlessModify);
+        } else {
+          console.log('No change - canceling');
+          this.onCancelAnnotation();
+        } 
+      }
+    }
+  }
 
   selectAnnotation = arg => {
     const annotation = this.annotationLayer.selectAnnotation(arg);

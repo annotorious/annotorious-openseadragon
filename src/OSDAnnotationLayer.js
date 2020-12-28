@@ -171,6 +171,14 @@ export default class OSDAnnotationLayer extends EventEmitter {
     return shapes.map(s => s.annotation);
   }
 
+  getSelected = () => {
+    if (this.selectedShape) {
+      const { annotation } = this.selectedShape;
+      const element = this.selectedShape.element || this.selectedShape;
+      return { annotation, element };
+    }
+  }
+
   getSelectedImageSnippet = () => {
     if (this.selectedShape) {
       const shape = this.selectedShape.element ?? this.selectedShape;
@@ -312,5 +320,12 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
   setDrawingTool = shape =>
     this.tools.setCurrent(shape);
+
+  setVisible = visible => {
+    if (visible)
+      this.svg.style.display = null;
+    else
+      this.svg.style.display = 'none';
+  }
 
 }
