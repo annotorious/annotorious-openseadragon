@@ -13,6 +13,7 @@ Download the [latest release](https://github.com/recogito/annotorious-openseadra
 and include it in your web page __after__ the OpenSeadragon script.
 
 ```html
+<link rel="stylesheet" href="annotorious.min.css">
 <script src="openseadragon/openseadragon.2.4.2.min.js"></script>
 <script src="openseadragon-annotorious.min.js"></script>
 ```
