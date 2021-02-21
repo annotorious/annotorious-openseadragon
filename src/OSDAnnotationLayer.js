@@ -119,10 +119,9 @@ export default class OSDAnnotationLayer extends EventEmitter {
   }
 
   currentScale = () => {
-    const { x, y } = this.viewer.viewport.getContainerSize();
-    const containerSize = Math.max(x, y);
+    const containerWidth = this.viewer.viewport.getContainerSize().x;
     const zoom = this.viewer.viewport.getZoom(true);
-    return zoom * containerSize / this.viewer.world.getContentFactor();
+    return zoom * containerWidth / this.viewer.world.getContentFactor();
   }
 
   deselect = () => {
