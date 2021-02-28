@@ -12,7 +12,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
     this.readOnly = props.config.readOnly;
     this.headless = props.config.headless;
-    this.formatter = props.config?.formatter;
+    this.formatter = props.config.formatter;
 
     this.svg = document.createElementNS(SVG_NAMESPACE, 'svg');
     this.svg.setAttribute('class', 'a9s-annotationlayer', 'a9s-osd-annotationlayer');
