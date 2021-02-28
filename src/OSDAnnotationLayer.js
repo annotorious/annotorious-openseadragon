@@ -10,7 +10,8 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
     this.viewer = props.viewer;
 
-    this.readOnly = props.readOnly;
+    this.readOnly = props.config.readOnly;
+    this.headless = props.config.headless;
     this.formatter = props.config?.formatter;
 
     this.svg = document.createElementNS(SVG_NAMESPACE, 'svg');
