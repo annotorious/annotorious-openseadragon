@@ -164,7 +164,7 @@ export default class OpenSeadragonAnnotator extends Component {
           this.onCreateOrUpdateAnnotation('onAnnotationUpdated')(a, beforeHeadlessModify);
         } else {
           console.log('No change - canceling');
-          this.onCancelAnnotation();
+          this.onCancelAnnotation(a);
         } 
       }
     }
