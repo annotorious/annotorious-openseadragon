@@ -25,6 +25,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
     this.viewer.addHandler('animation', () => this.resize());
     this.viewer.addHandler('rotate', () => this.resize());
     this.viewer.addHandler('resize', () => this.resize());
+    this.viewer.addHandler('flip', () => this.resize());
 
     this.viewer.addHandler('open', () => { 
       // Store image properties to environment
@@ -231,11 +232,15 @@ export default class OSDAnnotationLayer extends EventEmitter {
   }
 
   resize() {
-    const p = this.viewer.viewport.pixelFromPoint(new OpenSeadragon.Point(0, 0), true);
+    let p = this.viewer.viewport.pixelFromPoint(new OpenSeadragon.Point(0, 0), true);
+    if (this.viewer.viewport.getFlip()) {
+      p.x = this.viewer.viewport._containerInnerSize.x - p.x;
+    }
     const scale = this.currentScale();
     const rotation = this.viewer.viewport.getRotation();
+    const flip = this.viewer.viewport.getFlip() ? -1: 1;
 
-    this.g.setAttribute('transform', `translate(${p.x}, ${p.y}) scale(${scale}) rotate(${rotation})`);
+    this.g.setAttribute('transform', `translate(${p.x}, ${p.y}) scale(${scale*flip}, ${scale}) rotate(${rotation})`);
 
     if (this.selectedShape) {
       if (this.selectedShape.element) { // Editable shape
