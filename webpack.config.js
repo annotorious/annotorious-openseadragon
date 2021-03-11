@@ -15,8 +15,7 @@ module.exports = {
     filename: 'openseadragon-annotorious.min.js',
     library: ['OpenSeadragon', 'Annotorious'],
     libraryTarget: 'umd',
-    libraryExport: 'default',
-    pathinfo: true
+    libraryExport: 'default'
   },
   externals: {
     openseadragon: {
@@ -72,8 +71,7 @@ module.exports = {
     hot: true,
     host: process.env.HOST || 'localhost',
     port: 3000,
-    publicPath: '/',
-    injectClient: false
+    publicPath: '/'
   },
   plugins: [
     new HtmlWebpackPlugin ({
