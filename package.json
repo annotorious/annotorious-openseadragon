@@ -2,9 +2,9 @@
   "name": "@recogito/annotorious-openseadragon",
   "version": "2.2.2",
   "description": "Annotorious image annotation for OpenSeadragon",
-  "main": "dist/openseadragon-annotorious.min.js",
+  "module": "dist/openseadragon-annotorious.min.js",
   "scripts": {
-    "start": "webpack-dev-server --open --mode=development -d",
+    "start": "webpack serve --open --mode=development",
     "build": "webpack --mode=production"
   },
   "repository": {
@@ -23,22 +23,23 @@
   },
   "homepage": "https://recogito.github.io/annotorious",
   "devDependencies": {
-    "@babel/core": "^7.6.2",
-    "@babel/plugin-proposal-class-properties": "^7.5.5",
-    "@babel/preset-env": "^7.6.2",
-    "@babel/preset-react": "^7.0.0",
-    "babel-loader": "^8.0.6",
+    "@babel/core": "^7.13.10",
+    "@babel/plugin-proposal-class-properties": "^7.13.0",
+    "@babel/preset-env": "^7.13.10",
+    "@babel/preset-react": "^7.12.13",
+    "@babel/runtime": "^7.13.10",
+    "babel-loader": "^8.2.2",
     "css-loader": "^3.2.0",
-    "html-webpack-plugin": "^3.2.0",
+    "html-webpack-plugin": "^4.5.2",
     "mini-css-extract-plugin": "^0.11.2",
     "node-forge": ">=0.10.0",
     "node-sass": "^4.14.1",
     "sass-loader": "^8.0.0",
     "serialize-javascript": "^3.1.0",
-    "uglifyjs-webpack-plugin": "^2.2.0",
-    "webpack": "^4.41.0",
-    "webpack-cli": "^3.3.9",
-    "webpack-dev-server": "^3.11.0"
+    "terser-webpack-plugin": "^4.2.3",
+    "webpack": "4.46.0",
+    "webpack-cli": "^4.5.0",
+    "webpack-dev-server": "^3.11.2"
   },
   "dependencies": {
     "@babel/polyfill": "^7.10.4",

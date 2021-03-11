@@ -2,7 +2,7 @@ const path = require('path');
 const fs = require('fs');
 
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 const APP_DIR = fs.realpathSync(process.cwd());
@@ -31,7 +31,8 @@ module.exports = {
   },
   devtool: 'source-map',
   optimization: {
-    minimizer: [ new UglifyJsPlugin({ sourceMap: true }) ],
+    minimize: true,
+    minimizer: [new TerserPlugin()],
   },
   resolve: {
     extensions: ['.js', '.jsx'],
@@ -71,7 +72,8 @@ module.exports = {
     hot: true,
     host: process.env.HOST || 'localhost',
     port: 3000,
-    publicPath: '/'
+    publicPath: '/',
+    injectClient: false
   },
   plugins: [
     new HtmlWebpackPlugin ({
