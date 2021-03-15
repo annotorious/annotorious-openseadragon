@@ -44,13 +44,13 @@ class OSDAnnotorious {
         env={this._env}
         onSelectionCreated={this.handleSelectionCreated}
         onSelectionTargetChanged={this.handleSelectionTargetChanged}
-        onAnnotationSelected={this.handleAnnotationSelected}
         onAnnotationCreated={this.handleAnnotationCreated} 
+        onAnnotationSelected={this.handleAnnotationSelected}
         onAnnotationUpdated={this.handleAnnotationUpdated} 
         onAnnotationDeleted={this.handleAnnotationDeleted}
+        onCancelSelected={this.handleCancelSelected}
         onMouseEnterAnnotation={this.handleMouseEnterAnnotation}
-        onMouseLeaveAnnotation={this.handleMouseLeaveAnnotation} 
-        onSelectionCanceled={this.handleSelectionCanceled} />, this.appContainerEl);
+        onMouseLeaveAnnotation={this.handleMouseLeaveAnnotation} />, this.appContainerEl);
   }
 
   /********************/               
@@ -69,14 +69,14 @@ class OSDAnnotorious {
   handleAnnotationUpdated = (annotation, previous) =>
     this._emitter.emit('updateAnnotation', annotation.underlying, previous.underlying);
 
-  handleSelectionCreated = selection =>
+  handleCancelSelected = annotation =>
+    this._emitter.emit('cancelSelected', annotation.underlying);
+  
+    handleSelectionCreated = selection =>
     this._emitter.emit('createSelection', selection.underlying);
 
   handleSelectionTargetChanged = target =>
     this._emitter.emit('changeSelectionTarget', target);
-
-  handleSelectionCanceled = annotation =>
-    this._emitter.emit('cancelSelection', annotation.underlying);
 
   handleMouseEnterAnnotation = (annotation, evt) =>
     this._emitter.emit('mouseEnterAnnotation', annotation.underlying, evt);

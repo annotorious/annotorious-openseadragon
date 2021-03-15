@@ -11,11 +11,11 @@ export default class OpenSeadragonAnnotator extends Component {
   }
 
   /** Shorthand **/
-  clearState = () => this.setState({
+  clearState = opt_callback => this.setState({
     selectedAnnotation: null,
     selectedDOMElement: null,
     modifiedTarget: null
-  });
+  }, opt_callback);
 
   componentDidMount() {
     this.annotationLayer = new OSDAnnotationLayer(this.props);
@@ -28,8 +28,8 @@ export default class OpenSeadragonAnnotator extends Component {
 
     this.annotationLayer.on('moveSelection', this.handleMoveSelection);
 
-    this.annotationLayer.on('mouseEnterAnnotation', this.props.onMouseEnterAnnotation);
-    this.annotationLayer.on('mouseLeaveAnnotation', this.props.onMouseLeaveAnnotation);
+    this.annotationLayer.on('mouseEnterAnnotation', this.handleMouseEnter);
+    this.annotationLayer.on('mouseLeaveAnnotation', this.handleMouseLeave);
   }
 
   componentWillUnmount() {
@@ -41,16 +41,42 @@ export default class OpenSeadragonAnnotator extends Component {
 
   handleSelect = evt => {
     const { annotation, element, skipEvent } = evt;
-    if (annotation) {
-      this.setState({ 
-        selectedAnnotation: annotation, 
-        selectedDOMElement: element 
-      });
 
-      if (!annotation.isSelection && !skipEvent)
-        this.props.onAnnotationSelected(annotation.clone());
+    if (annotation) {
+      // Select action needs to run immediately if no annotation was
+      // selected before. Otherwise, make a deselect state change first,
+      // and then select after this state change has completed. (This is
+      // keep our external event cycle clean!)
+      const select = () => {
+        this.setState({ 
+          selectedAnnotation: annotation,
+          selectedDOMElement: element,
+          modifiedTarget: null
+        });
+  
+        if (!annotation.isSelection && !skipEvent)
+          this.props.onAnnotationSelected(annotation.clone());  
+      }
+
+      // If there is another selected annotation,
+      // fire cancel before making the new selection
+      const { selectedAnnotation } = this.state;
+
+      if (selectedAnnotation && !selectedAnnotation.isEqual(annotation)) {
+        this.clearState(() => {
+          this.props.onCancelSelected(selectedAnnotation);
+          select();
+        });
+      } else {
+        select();
+      }
     } else {
-      this.clearState();
+      const { selectedAnnotation } = this.state; 
+      
+      if (selectedAnnotation)
+        this.clearState(() => this.props.onCancelSelected(selectedAnnotation));
+      else
+        this.clearState();
     }
   }
 
@@ -61,6 +87,13 @@ export default class OpenSeadragonAnnotator extends Component {
     this.props.onSelectionTargetChanged(clone);
   }
 
+  handleMouseEnter = annotation =>
+    this.props.onMouseEnterAnnotation(annotation.clone());
+
+  handleMouseLeave = annotation =>
+    this.props.onMouseLeaveAnnotation(annotation.clone());
+
+  // TODO is this only called when the OSD canvas is panned/zoomed? Rename!
   handleMoveSelection = selectedDOMElement =>
     this.setState({ selectedDOMElement });
 
@@ -114,9 +147,7 @@ export default class OpenSeadragonAnnotator extends Component {
   onCancelAnnotation = annotation => {
     this.clearState();
     this.annotationLayer.deselect();
-
-    if (annotation.isSelection)
-      this.props.onSelectionCanceled(annotation);
+    this.props.onCancelSelected(annotation);
   }
 
   /****************/               
