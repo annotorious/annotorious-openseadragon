@@ -24,22 +24,22 @@ class OSDAnnotorious {
 
     this._env = createEnvironment();
 
-    const viewerEl = viewer.element;
+    this._element = viewer.element;
 
-    if (!viewerEl.style.position)
-      viewerEl.style.position = 'relative';
+    if (!this._element.style.position)
+      this._element.style.position = 'relative';
 
     setLocale(config.locale);
 
     this.appContainerEl = document.createElement('DIV');
 
-    viewerEl.appendChild(this.appContainerEl);
+    this._element.appendChild(this.appContainerEl);
     
     ReactDOM.render(
       <OpenSeadragonAnnotator 
         ref={this._app}
         viewer={viewer} 
-        wrapperEl={viewerEl}
+        wrapperEl={this._element}
         config={config} 
         env={this._env}
         onSelectionCreated={this.handleSelectionCreated}
