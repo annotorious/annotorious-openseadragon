@@ -53,8 +53,10 @@ export default class OSDAnnotationLayer extends EventEmitter {
     this.mouseTracker = new OpenSeadragon.MouseTracker({
       element: this.svg,
 
-      pressHandler:  evt =>
-        this.tools.current.startDrawing(evt.originalEvent),
+      pressHandler:  evt => {
+        if (!this.tools.current.isDrawing)
+          this.tools.current.startDrawing(evt.originalEvent);
+      },
 
       moveHandler: evt => {
         if (this.tools.current.isDrawing)
