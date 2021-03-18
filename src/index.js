@@ -72,7 +72,7 @@ class OSDAnnotorious {
   handleCancelSelected = annotation =>
     this._emitter.emit('cancelSelected', annotation.underlying);
   
-    handleSelectionCreated = selection =>
+  handleSelectionCreated = selection =>
     this._emitter.emit('createSelection', selection.underlying);
 
   handleSelectionTargetChanged = target =>
@@ -94,6 +94,9 @@ class OSDAnnotorious {
 
   addAnnotation = annotation =>
     this._app.current.addAnnotation(new WebAnnotation(annotation));
+
+  addDrawingTool = plugin =>
+    this._app.current.addDrawingTool(plugin);
 
   cancelSelected = () =>
     this._app.current.cancelSelected();
@@ -122,6 +125,9 @@ class OSDAnnotorious {
   
   getSelectedImageSnippet = () =>
     this._app.current.getSelectedImageSnippet();
+
+  listDrawingTools = () =>
+    this._app.current.listDrawingTools();
 
   loadAnnotations = url => axios.get(url).then(response => {
     const annotations = response.data;

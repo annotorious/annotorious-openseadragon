@@ -1,6 +1,6 @@
 import EventEmitter from 'tiny-emitter';
 import OpenSeadragon from 'openseadragon';
-import { SVG_NAMESPACE, DrawingTools, drawShape, format, parseRectFragment } from '@recogito/annotorious/src';
+import { SVG_NAMESPACE, DrawingTools, drawShape, shapeArea, format, parseRectFragment } from '@recogito/annotorious/src';
 import { getSnippet } from './util/ImageSnippet';
 
 export default class OSDAnnotationLayer extends EventEmitter {
@@ -111,6 +111,9 @@ export default class OSDAnnotationLayer extends EventEmitter {
     this.g.appendChild(shape);
   }
 
+  addDrawingTool = plugin =>
+    this.tools.registerTool(plugin);
+
   addOrUpdateAnnotation = (annotation, previous) => {
     if (this.selectedShape?.annotation === annotation || this.selectShape?.annotation == previous)
       this.deselect();
@@ -120,6 +123,9 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
     this.removeAnnotation(annotation);
     this.addAnnotation(annotation);
+
+    // Make sure rendering order is large-to-small
+    this.redraw();
   }
 
   currentScale = () => {
@@ -128,7 +134,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
     return zoom * containerWidth / this.viewer.world.getContentFactor();
   }
 
-  deselect = () => {
+  deselect = skipRedraw => {
     if (this.selectedShape) {
       const { annotation } = this.selectedShape;
 
@@ -142,6 +148,9 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
         if (!annotation.isSelection)
           this.addAnnotation(annotation);
+
+          if (!skipRedraw)
+            this.redraw();
       }
       
       this.selectedShape = null;
@@ -195,6 +204,9 @@ export default class OSDAnnotationLayer extends EventEmitter {
     annotations.forEach(this.addAnnotation);
   }
 
+  listDrawingTools = () =>
+    this.tools.listTools();
+
   overrideId = (originalId, forcedId) => {
     // Update SVG shape data attribute
     const shape = this.findShape(originalId);
@@ -220,6 +232,19 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
       this.viewer.viewport.panTo(center, immediately);
     }    
+  }
+
+  redraw = () => {
+    const shapes = Array.from(this.g.querySelectorAll('.a9s-annotation'));
+
+    const annotations = shapes.map(s => s.annotation);
+    annotations.sort((a, b) => shapeArea(b) - shapeArea(a));
+
+    // Clear the SVG element
+    shapes.forEach(s => this.g.removeChild(s));
+
+    // Redraw
+    annotations.forEach(this.addAnnotation);
   }
   
   removeAnnotation = annotation => {
@@ -278,7 +303,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
     // If another shape is currently selected, deselect first
     if (this.selectedShape && this.selectedShape.annotation !== shape.annotation)
-      this.deselect();
+      this.deselect(true);
 
     const { annotation } = shape;
 

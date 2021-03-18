@@ -157,6 +157,9 @@ export default class OpenSeadragonAnnotator extends Component {
   addAnnotation = annotation =>
     this.annotationLayer.addOrUpdateAnnotation(annotation.clone());
   
+  addDrawingTool = plugin =>
+    this.annotationLayer.addDrawingTool(plugin);
+
   cancelSelected = () => {
     const { selectedAnnotation } = this.state;
     if (selectedAnnotation)
@@ -176,6 +179,9 @@ export default class OpenSeadragonAnnotator extends Component {
 
   getSelectedImageSnippet = () =>
     this.annotationLayer.getSelectedImageSnippet();
+
+  listDrawingTools = () =>
+    this.annotationLayer.listDrawingTools();
 
   panTo = (annotationOrId, immediately) =>
     this.annotationLayer.panTo(annotationOrId, immediately);
