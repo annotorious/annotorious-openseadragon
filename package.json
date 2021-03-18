@@ -2,7 +2,7 @@
   "name": "@recogito/annotorious-openseadragon",
   "version": "2.2.3",
   "description": "Annotorious image annotation for OpenSeadragon",
-  "module": "dist/openseadragon-annotorious.min.js",
+  "main": "dist/openseadragon-annotorious.min.js",
   "scripts": {
     "start": "webpack serve --open --mode=development",
     "build": "webpack --mode=production"
