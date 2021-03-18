@@ -93,8 +93,6 @@
 
         anno.on('createSelection', function(selection) {
           console.log('selection', selection);
-          const { snippet } = anno.getSelectedImageSnippet();
-          // document.body.appendChild(snippet);
         });
 
         anno.on('selectAnnotation', function(annotation) {
@@ -106,11 +104,11 @@
         });
 
         anno.on('mouseEnterAnnotation', function(annotation) {
-          console.log('mouseEnter', annotation);
+          // console.log('mouseEnter', annotation);
         });
 
         anno.on('mouseLeaveAnnotation', function(annotation) {
-          console.log('mouseLeave', annotation);
+          // console.log('mouseLeave', annotation);
         });
 
         anno.loadAnnotations('annotations.w3c.json');

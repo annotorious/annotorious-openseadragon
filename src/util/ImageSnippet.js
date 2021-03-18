@@ -1,4 +1,4 @@
-import { hasClass } from '@recogito/annotorious/src';
+import { hasClass } from '@recogito/annotorious/src/util/SVG';
 
 export const getSnippet = (viewer, element) => {
   // Annotation shape could be the element itself or a 
