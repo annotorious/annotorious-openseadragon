@@ -4,7 +4,6 @@ import { SVG_NAMESPACE } from '@recogito/annotorious/src/util/SVG';
 import DrawingTools from '@recogito/annotorious/src/tools/ToolsRegistry';
 import { drawShape, shapeArea } from '@recogito/annotorious/src/selectors';
 import { format } from '@recogito/annotorious/src/util/Formatting';
-import { parseRectFragment } from '@recogito/annotorious/src/selectors/RectFragment';
 import { getSnippet } from './util/ImageSnippet';
 
 export default class OSDAnnotationLayer extends EventEmitter {
