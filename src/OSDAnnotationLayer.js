@@ -189,9 +189,8 @@ export default class OSDAnnotationLayer extends EventEmitter {
   fitBounds = (annotationOrId, immediately) => {
     const shape = this.findShape(annotationOrId);
     if (shape) {
-      const { x, y, w, h } = parseRectFragment(shape.annotation);      
-      const rect = this.viewer.viewport.imageToViewportRectangle(x, y, w, h);
-      
+      const { x, y, width, height } = shape.getBBox(); // SVG element bounds, image coordinates
+      const rect = this.viewer.viewport.imageToViewportRectangle(x, y, width, height);
       this.viewer.viewport.fitBounds(rect, immediately);
     }    
   }

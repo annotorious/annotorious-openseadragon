@@ -64,6 +64,8 @@
           locale: 'auto'
         });
 
+        var selected = null;
+
         anno.setAuthInfo({
           id: 'http://www.example.com/rainer',
           displayName: 'rainer'
@@ -81,7 +83,12 @@
         });
 
         var modeBtn = document.getElementById('mode');
-        modeBtn.addEventListener('click', function() {          
+        modeBtn.addEventListener('click', function() {   
+          
+          console.log('fitBounds', selected);
+          
+          anno.fitBounds(selected);
+          
           if (modeBtn.innerHTML == 'MODE: VIEW') {
             modeBtn.innerHTML = 'MODE: ANNOTATE';
             anno.setDrawingEnabled(true);
@@ -96,6 +103,7 @@
         });
 
         anno.on('selectAnnotation', function(annotation) {
+          selected = annotation;
           console.log('selected', annotation);
         });
 
