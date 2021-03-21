@@ -4,6 +4,7 @@ import { SVG_NAMESPACE } from '@recogito/annotorious/src/util/SVG';
 import DrawingTools from '@recogito/annotorious/src/tools/ToolsRegistry';
 import { drawShape, shapeArea } from '@recogito/annotorious/src/selectors';
 import { format } from '@recogito/annotorious/src/util/Formatting';
+import { isTouchDevice, enableTouch } from '@recogito/annotorious/src/util/Touch';
 import { getSnippet } from './util/ImageSnippet';
 
 export default class OSDAnnotationLayer extends EventEmitter {
@@ -18,11 +19,17 @@ export default class OSDAnnotationLayer extends EventEmitter {
     this.formatter = props.config.formatter;
 
     this.svg = document.createElementNS(SVG_NAMESPACE, 'svg');
-    this.svg.setAttribute('class', 'a9s-annotationlayer', 'a9s-osd-annotationlayer');
+
+    if (isTouchDevice()) {
+      this.svg.setAttribute('class', 'a9s-annotationlayer a9s-osd-annotationlayer touch');
+      enableTouch(this.svg);
+    } else {
+      this.svg.setAttribute('class', 'a9s-annotationlayer a9s-osd-annotationlayer');
+    }    
 
     this.g = document.createElementNS(SVG_NAMESPACE, 'g');
     this.svg.appendChild(this.g);
-
+    
     this.viewer.canvas.appendChild(this.svg);
 
     this.viewer.addHandler('animation', () => this.resize());
