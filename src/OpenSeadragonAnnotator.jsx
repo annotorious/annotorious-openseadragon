@@ -186,8 +186,8 @@ export default class OpenSeadragonAnnotator extends Component {
   panTo = (annotationOrId, immediately) =>
     this.annotationLayer.panTo(annotationOrId, immediately);
 
-  removeAnnotation = annotation =>
-    this.annotationLayer.removeAnnotation(annotation.clone());
+  removeAnnotation = annotationOrId =>
+    this.annotationLayer.removeAnnotation(annotationOrId);
 
   saveSelected = () => {
     const a = this.state.selectedAnnotation;

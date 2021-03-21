@@ -263,14 +263,15 @@ export default class OSDAnnotationLayer extends EventEmitter {
     annotations.forEach(this.addAnnotation);
   }
   
-  removeAnnotation = annotation => {
-    if (this.selectedShape?.annotation === annotation)
-      this.deselect();
+  removeAnnotation = annotationOrId => {
+    const toRemove = this.findShape(annotationOrId);
 
-    const shape = this.findShape(annotation);
-    if (shape) {
-      shape.mouseTracker.destroy();
-      shape.parentNode.removeChild(shape);
+    if (toRemove) {
+      if (this.selectedShape?.annotation === toRemove.annotation)
+        this.deselect();
+
+      toRemove.mouseTracker.destroy();
+      toRemove.parentNode.removeChild(toRemove);
     }
   }
 

@@ -148,8 +148,8 @@ class OSDAnnotorious {
   panTo = (annotationOrId, immediately) =>
     this._app.current.panTo(this._wrap(annotationOrId), immediately);
 
-  removeAnnotation = annotation =>
-    this._app.current.removeAnnotation(new WebAnnotation(annotation));
+  removeAnnotation = annotationOrId =>
+    this._app.current.removeAnnotation(this._wrap(annotationOrId));
 
   selectAnnotation = annotationOrId => {
     const selected = this._app.current.selectAnnotation(this._wrap(annotationOrId));
