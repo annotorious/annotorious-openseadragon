@@ -7,20 +7,30 @@ export default class OpenSeadragonAnnotator extends Component {
   state = {
     selectedAnnotation: null,
     selectedDOMElement: null,
-    modifiedTarget: null
+    modifiedTarget: null,
+
+    // ReadOnly mode
+    readOnly: this.props.config.readOnly,
+
+    // Headless mode
+    editorDisabled: this.props.config.disableEditor,
+
+    // Records the state before any potential headless modify (done via
+    // .updateSelected) so we can properly fire the updateAnnotation(a, previous)
+    // event, and distinguish between headless Save and Cancel 
+    beforeHeadlessModify: null
   }
 
   /** Shorthand **/
   clearState = opt_callback => this.setState({
     selectedAnnotation: null,
     selectedDOMElement: null,
-    modifiedTarget: null
+    modifiedTarget: null,
+    beforeHeadlessModify: null
   }, opt_callback);
 
   componentDidMount() {
     this.annotationLayer = new OSDAnnotationLayer(this.props);
-
-    this.annotationLayer.on('createSelection', this.handleCreateSelection);
 
     this.annotationLayer.on('select', this.handleSelect);
 
@@ -30,17 +40,34 @@ export default class OpenSeadragonAnnotator extends Component {
 
     this.annotationLayer.on('mouseEnterAnnotation', this.handleMouseEnter);
     this.annotationLayer.on('mouseLeaveAnnotation', this.handleMouseLeave);
+    
+    // In headless mode, Escape cancels editing
+    if (this.props.config.disableEditor)
+      document.addEventListener('keyup', this.headlessCancel);
   }
 
   componentWillUnmount() {
     this.annotationLayer.destroy();
+
+    if (this.state.editorDisabled)
+      document.removeEventListener('keyup', this.headlessCancel);
   }
 
-  handleCreateSelection = selection =>
-    this.props.onSelectionCreated(selection.clone());
+  // Handle Escape key in headless mode
+  headlessCancel = evt => {
+    if (evt.which === 27)  { // Escape
+      this.clearState();
+      this.annotationLayer.deselect();
+    }
+  }
 
   handleSelect = evt => {
-    const { annotation, element, skipEvent } = evt;
+    this.state.editorDisabled ?
+      this.onHeadlessSelect(evt) : this.onNormalSelect(evt);
+  }
+
+  onNormalSelect = (evt, skipEvent) => {
+    const { annotation, element } = evt;
 
     if (annotation) {
       // Select action needs to run immediately if no annotation was
@@ -52,10 +79,15 @@ export default class OpenSeadragonAnnotator extends Component {
           selectedAnnotation: annotation,
           selectedDOMElement: element,
           modifiedTarget: null
-        });
-  
-        if (!annotation.isSelection && !skipEvent)
-          this.props.onAnnotationSelected(annotation.clone());  
+        }, () => {
+          if (!skipEvent) {
+            if (annotation.isSelection) {
+              this.props.onSelectionCreated(annotation.clone());
+            } else {
+              this.props.onAnnotationSelected(annotation.clone());
+            }
+          }
+        });  
       }
 
       // If there is another selected annotation,
@@ -74,10 +106,27 @@ export default class OpenSeadragonAnnotator extends Component {
       const { selectedAnnotation } = this.state; 
       
       if (selectedAnnotation)
-        this.clearState(() => this.props.onCancelSelected(selectedAnnotation));
+        this.clearState(() => 
+          this.props.onCancelSelected(selectedAnnotation));
       else
         this.clearState();
     }
+  }
+
+  onHeadlessSelect = evt => {
+    // When in headless mode, changing selection acts as 'Ok' - changes
+    // to the previous annotation are stored! (In normal mode, selection
+    // acts as 'Cancel'.)
+    this.saveSelected().then(() =>  {
+      this.onNormalSelect(evt);
+
+      const { annotation } = evt;
+
+      if (annotation && !annotation.isSelection)  {
+        const selection = this.annotationLayer.selectAnnotation(evt.annotation, true);
+        this.setState({ selectedDOMElement: selection.element });
+      }
+    });
   }
 
   handleUpdateTarget = (selectedDOMElement, modifiedTarget) => {
@@ -122,20 +171,25 @@ export default class OpenSeadragonAnnotator extends Component {
   /* Annotation CRUD events */
   /**************************/  
 
-  onCreateOrUpdateAnnotation = method => (annotation, previous) => {
+  onCreateOrUpdateAnnotation = (method, opt_callback) => (annotation, previous) => {
     // Merge updated target if necessary
-    const a = (this.state.modifiedTarget) ?
-      annotation.clone({ target: this.state.modifiedTarget }) : annotation.clone();
+    let a = annotation.isSelection ? annotation.toAnnotation() : annotation;
 
-    // Call CREATE or UPDATE handler
-    if (previous)
-      this.props[method](a, previous.clone());
-    else
-      this.props[method](a, this.overrideAnnotationId(annotation));
+    a = (this.state.modifiedTarget) ?
+      a.clone({ target: this.state.modifiedTarget }) : a.clone();
 
-    this.clearState();    
-    this.annotationLayer.deselect();
-    this.annotationLayer.addOrUpdateAnnotation(a, previous);
+    this.clearState(() => {
+      this.annotationLayer.deselect();
+      this.annotationLayer.addOrUpdateAnnotation(a, previous);
+
+      // Call CREATE or UPDATE handler
+      if (previous)
+        this.props[method](a, previous.clone());
+      else
+        this.props[method](a, this.overrideAnnotationId(annotation));  
+
+      opt_callback && opt_callback();
+    });
   }
 
   onDeleteAnnotation = annotation => {
@@ -144,10 +198,12 @@ export default class OpenSeadragonAnnotator extends Component {
     this.props.onAnnotationDeleted(annotation);
   }
 
-  onCancelAnnotation = annotation => {
-    this.clearState();
-    this.annotationLayer.deselect();
+  onCancelAnnotation = (annotation, opt_callback) => {
+    if (!this.state.editorDisabled)
+      this.annotationLayer.deselect();
+
     this.props.onCancelSelected(annotation);
+    this.clearState(opt_callback);
   }
 
   /****************/               
@@ -164,6 +220,21 @@ export default class OpenSeadragonAnnotator extends Component {
     const { selectedAnnotation } = this.state;
     if (selectedAnnotation)
       this.onCancelAnnotation(selectedAnnotation);
+  }
+
+  get disableEditor() {
+    return this.state.editorDisabled;
+  }
+
+  set disableEditor(disabled) {
+    this.setState({ editorDisabled: disabled }, () => {
+      // En- or disable Esc key listener
+      if (disabled && !this.state.editorDisabled) {
+        document.addEventListener('keyup', this.headlessCancel);
+      } else if (!disabled && this.state.editorDisabled) {
+        document.removeEventListener('keyup', this.headlessCancel);
+      }
+    });
   }
   
   fitBounds = (annotationOrId, immediately) =>
@@ -186,34 +257,58 @@ export default class OpenSeadragonAnnotator extends Component {
   panTo = (annotationOrId, immediately) =>
     this.annotationLayer.panTo(annotationOrId, immediately);
 
+  get readOnly() {
+    return this.state.readOnly;
+  }
+
+  set readOnly(readOnly) {
+    this.annotationLayer.readOnly = readOnly;
+    this.setState({ readOnly });
+  }
+
   removeAnnotation = annotationOrId =>
     this.annotationLayer.removeAnnotation(annotationOrId);
 
-  saveSelected = () => {
-    const a = this.state.selectedAnnotation;
+  saveSelected = () =>
+    new Promise(resolve => {
+      const a = this.state.selectedAnnotation;
 
-    if (a) {
-      if (a.isSelection) {
-        this.onCreateOrUpdateAnnotation('onAnnotationCreated')(a.toAnnotation(), a);
-      } else {
-        const { beforeHeadlessModify } = this.state;
-        if (beforeHeadlessModify) {
-          this.onCreateOrUpdateAnnotation('onAnnotationUpdated')(a, beforeHeadlessModify);
+      if (a) {
+        if (a.isSelection) {
+          if (a.bodies.length > 0 || this.props.config.allowEmpty) {
+            this.onCreateOrUpdateAnnotation('onAnnotationCreated', resolve)(a, a);
+          } else {
+            this.annotationLayer.deselect();
+            resolve();
+          }
         } else {
-          console.log('No change - canceling');
-          this.onCancelAnnotation(a);
-        } 
+          // Headless update?
+          const { beforeHeadlessModify, modifiedTarget } = this.state;
+          
+          if (beforeHeadlessModify) {
+            // Annotation was modified using '.updateSelected()'
+            this.onCreateOrUpdateAnnotation('onAnnotationUpdated', resolve)(a, beforeHeadlessModify);
+          } else if (modifiedTarget) {
+            // Target was modified, but otherwise no change
+            this.onCreateOrUpdateAnnotation('onAnnotationUpdated', resolve)(a, a);
+          } else {
+            this.onCancelAnnotation(a, resolve);
+          } 
+        }
+      } else {
+        resolve();
       }
-    }
-  }
+    });
 
   selectAnnotation = arg => {
-    const annotation = this.annotationLayer.selectAnnotation(arg);
+    const selected = this.annotationLayer.selectAnnotation(arg);
     
-    if (annotation) 
-      return annotation.clone();
-    else 
+    if (selected) { 
+      this.handleSelect(selected);
+      return selected.annotation.clone();
+    } else {
       this.clearState(); // Deselect
+    }
   }
   
   setAnnotations = annotations =>
@@ -225,21 +320,37 @@ export default class OpenSeadragonAnnotator extends Component {
   setDrawingTool = shape =>
     this.annotationLayer.setDrawingTool(shape);
 
-  updateSelected = annotation => {
-    if (this.state.selectedAnnotation)
-      this.setState({ selectedAnnotation: annotation });
-    else
-      console.warn('No selection - cannot update');
-  }
+  updateSelected = (annotation, saveImmediately) =>
+    new Promise(resolve => {
+      if (this.state.selectedAnnotation) {
+        if (saveImmediately) {
+          if (this.state.selectedAnnotation.isSelection) {
+            this.onCreateOrUpdateAnnotation('onAnnotationCreated', resolve)(annotation);
+          } else {
+            this.onCreateOrUpdateAnnotation('onAnnotationUpdated', resolve)(annotation, this.state.selectedAnnotation);
+          }
+        } else {
+          this.setState({ 
+            selectedAnnotation: annotation,
+            beforeHeadlessModify: this.state.beforeHeadlessModify || this.state.selectedAnnotation
+          }, resolve);
+        }
+      }
+    })
 
   render() {
-    return (
-      this.state.selectedAnnotation && (
+    // The editor should open under normal conditions - annotation was selected, no headless mode
+    const open = this.state.selectedAnnotation && !this.state.editorDisabled;
+
+    const readOnly = this.state.readOnly || this.state.selectedAnnotation?.readOnly;
+
+    return (open && (
         <Editor
           wrapperEl={this.props.wrapperEl}
           annotation={this.state.selectedAnnotation}
+          modifiedTarget={this.state.modifiedTarget}
           selectedElement={this.state.selectedDOMElement}
-          readOnly={this.props.config.readOnly}
+          readOnly={readOnly}
           config={this.props.config}
           env={this.props.env}
           onAnnotationCreated={this.onCreateOrUpdateAnnotation('onAnnotationCreated')}

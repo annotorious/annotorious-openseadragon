@@ -22,6 +22,9 @@ class OSDAnnotorious {
   constructor(viewer, conf) {
     const config = conf || {};
 
+    // TODO .headless option is deprecated!
+    config.disableEditor = config.disableEditor || config.headless;
+
     this._app = React.createRef();
     
     this._emitter = new Emitter();
@@ -110,6 +113,14 @@ class OSDAnnotorious {
 
   clearAuthInfo = () =>
     this._env.user = null;
+
+  get disableEditor() {
+    return this._app.current.disableEditor;
+  }
+
+  set disableEditor(disabled) {
+    this._app.current.disableEditor = disabled;
+  }
   
   destroy = () =>
     ReactDOM.unmountComponentAtNode(this.appContainerEl);
@@ -148,8 +159,19 @@ class OSDAnnotorious {
   panTo = (annotationOrId, immediately) =>
     this._app.current.panTo(this._wrap(annotationOrId), immediately);
 
+  get readOnly() {
+    return this._app.current.readOnly;
+  }
+
+  set readOnly(readOnly) {
+    this._app.current.readOnly = readOnly;
+  }
+
   removeAnnotation = annotationOrId =>
     this._app.current.removeAnnotation(this._wrap(annotationOrId));
+
+  saveSelected = () =>
+    this._app.current.saveSelected();
 
   selectAnnotation = annotationOrId => {
     const selected = this._app.current.selectAnnotation(this._wrap(annotationOrId));

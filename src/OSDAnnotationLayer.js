@@ -311,19 +311,23 @@ export default class OSDAnnotationLayer extends EventEmitter {
     }
   }
   
-  selectAnnotation = annotationOrId => {
+  selectAnnotation = (annotationOrId, skipEvent) => {
     if (this.selectedShape)
       this.deselect();
 
     const selected = this.findShape(annotationOrId);
 
     // Select with 'skipEvent' flag
-    if (selected)
-      this.selectShape(selected, true);
-    else
-      this.deselect();
+    if (selected) {
+      this.selectShape(selected, skipEvent);
 
-    return selected?.annotation;
+      const element = this.selectedShape.element ? 
+        this.selectedShape.element : this.selectedShape;
+
+      return { annotation: selected.annotation, element };
+    } else {
+      this.deselect();
+    }
   }
 
   selectShape = (shape, skipEvent) => {
@@ -366,7 +370,8 @@ export default class OSDAnnotationLayer extends EventEmitter {
       this.selectedShape.on('update', fragment =>
         this.emit('updateTarget', this.selectedShape.element, fragment));
 
-      this.emit('select', { annotation, element: this.selectedShape.element, skipEvent });
+      if (!skipEvent)
+        this.emit('select', { annotation, element: this.selectedShape.element });
     } else {
       this.selectedShape = shape;
       this.emit('select', { annotation, element: shape, skipEvent });   
