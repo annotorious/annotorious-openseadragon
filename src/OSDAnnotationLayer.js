@@ -317,7 +317,6 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
     const selected = this.findShape(annotationOrId);
 
-    // Select with 'skipEvent' flag
     if (selected) {
       this.selectShape(selected, skipEvent);
 
