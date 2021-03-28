@@ -304,9 +304,9 @@ export default class OSDAnnotationLayer extends EventEmitter {
     if (this.selectedShape) {
       if (this.selectedShape.element) { // Editable shape
         this.selectedShape.scaleHandles(1 / scaleY);
-        this.emit('moveSelection', this.selectedShape.element);
+        this.emit('viewportChange', this.selectedShape.element);
       } else {
-        this.emit('moveSelection', this.selectedShape); 
+        this.emit('viewportChange', this.selectedShape); 
       }       
     }
   }

@@ -36,7 +36,7 @@ export default class OpenSeadragonAnnotator extends Component {
 
     this.annotationLayer.on('updateTarget', this.handleUpdateTarget);
 
-    this.annotationLayer.on('moveSelection', this.handleMoveSelection);
+    this.annotationLayer.on('viewportChange', this.handleViewportChange);
 
     this.annotationLayer.on('mouseEnterAnnotation', this.handleMouseEnter);
     this.annotationLayer.on('mouseLeaveAnnotation', this.handleMouseLeave);
@@ -142,8 +142,7 @@ export default class OpenSeadragonAnnotator extends Component {
   handleMouseLeave = annotation =>
     this.props.onMouseLeaveAnnotation(annotation.clone());
 
-  // TODO is this only called when the OSD canvas is panned/zoomed? Rename!
-  handleMoveSelection = selectedDOMElement =>
+  handleViewportChange = selectedDOMElement =>
     this.setState({ selectedDOMElement });
 
   /**
