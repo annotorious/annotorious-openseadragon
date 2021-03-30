@@ -373,7 +373,9 @@ export default class OSDAnnotationLayer extends EventEmitter {
         this.emit('select', { annotation, element: this.selectedShape.element });
     } else {
       this.selectedShape = shape;
-      this.emit('select', { annotation, element: shape, skipEvent });   
+
+      if (!skipEvent)
+        this.emit('select', { annotation, element: shape, skipEvent });   
     }
   }
 
