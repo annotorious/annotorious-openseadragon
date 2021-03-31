@@ -300,7 +300,7 @@ export default class OpenSeadragonAnnotator extends Component {
     });
 
   selectAnnotation = arg => {
-    const selected = this.annotationLayer.selectAnnotation(arg);
+    const selected = this.annotationLayer.selectAnnotation(arg, true);
     
     if (selected) { 
       this.handleSelect(selected);
