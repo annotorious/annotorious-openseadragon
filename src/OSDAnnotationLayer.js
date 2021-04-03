@@ -4,7 +4,7 @@ import { SVG_NAMESPACE } from '@recogito/annotorious/src/util/SVG';
 import DrawingTools from '@recogito/annotorious/src/tools/ToolsRegistry';
 import { drawShape, shapeArea } from '@recogito/annotorious/src/selectors';
 import { format } from '@recogito/annotorious/src/util/Formatting';
-import { isTouchDevice, enableTouch } from '@recogito/annotorious/src/util/Touch';
+import { isTouchDevice, enableTouchTranslation } from '@recogito/annotorious/src/util/Touch';
 import { getSnippet } from './util/ImageSnippet';
 
 export default class OSDAnnotationLayer extends EventEmitter {
@@ -22,7 +22,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
     if (isTouchDevice()) {
       this.svg.setAttribute('class', 'a9s-annotationlayer a9s-osd-annotationlayer touch');
-      enableTouch(this.svg);
+      enableTouchTranslation(this.svg);
     } else {
       this.svg.setAttribute('class', 'a9s-annotationlayer a9s-osd-annotationlayer');
     }    
@@ -62,12 +62,6 @@ export default class OSDAnnotationLayer extends EventEmitter {
   /** Initializes the OSD MouseTracker used for drawing **/
   _initDrawingMouseTracker = () => {
 
-    // Shorthand
-    const toSVG = osdEvt => {
-      const { layerX, layerY } = osdEvt.originalEvent;
-      return this.tools.current.toSVG(layerX, layerY );
-    }
-
     this.mouseTracker = new OpenSeadragon.MouseTracker({
       element: this.svg,
 
@@ -78,14 +72,14 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
       moveHandler: evt => {
         if (this.tools.current.isDrawing) {
-          const { x , y } = toSVG(evt);
+          const { x , y } = this.tools.current.toSVG(evt.originalEvent);
           this.tools.current.onMouseMove(x, y, evt.originalEvent);
         }
       },
 
       releaseHandler: evt => {
         if (this.tools.current.isDrawing) {
-          const { x , y } = toSVG(evt);
+          const { x , y } = this.tools.current.toSVG(evt.originalEvent);
           this.tools.current.onMouseUp(x, y, evt.originalEvent);
         }
       }
