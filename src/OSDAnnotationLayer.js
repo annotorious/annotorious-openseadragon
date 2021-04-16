@@ -176,7 +176,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
   }
 
   destroy = () => {
-    this.selectedShape = null;
+    this.deselect();
     this.mouseTracker.destroy();
     this.svg.parentNode.removeChild(this.svg);
   }
