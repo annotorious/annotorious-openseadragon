@@ -36,7 +36,7 @@ class OSDAnnotorious {
     if (!this._element.style.position)
       this._element.style.position = 'relative';
 
-    setLocale(config.locale);
+    setLocale(config.locale, config.messages);
 
     this.appContainerEl = document.createElement('DIV');
 

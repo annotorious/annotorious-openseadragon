@@ -72,14 +72,14 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
       moveHandler: evt => {
         if (this.tools.current.isDrawing) {
-          const { x , y } = this.tools.current.toSVG(evt.originalEvent);
+          const { x , y } = this.tools.current.getSVGPoint(evt.originalEvent);
           this.tools.current.onMouseMove(x, y, evt.originalEvent);
         }
       },
 
       releaseHandler: evt => {
         if (this.tools.current.isDrawing) {
-          const { x , y } = this.tools.current.toSVG(evt.originalEvent);
+          const { x , y } = this.tools.current.getSVGPoint(evt.originalEvent);
           this.tools.current.onMouseUp(x, y, evt.originalEvent);
         }
       }
