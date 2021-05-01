@@ -41,24 +41,20 @@ export default class OpenSeadragonAnnotator extends Component {
     this.annotationLayer.on('mouseEnterAnnotation', this.handleMouseEnter);
     this.annotationLayer.on('mouseLeaveAnnotation', this.handleMouseLeave);
     
-    // In headless mode, Escape cancels editing
-    if (this.props.config.disableEditor)
-      document.addEventListener('keyup', this.headlessCancel);
+    // Escape cancels editing
+    document.addEventListener('keyup', this.escapeKeyCancel);
   }
 
   componentWillUnmount() {
     this.annotationLayer.destroy();
 
-    if (this.state.editorDisabled)
-      document.removeEventListener('keyup', this.headlessCancel);
+    document.removeEventListener('keyup', this.escapeKeyCancel);
   }
 
   // Handle Escape key in headless mode
-  headlessCancel = evt => {
-    if (evt.which === 27)  { // Escape
-      this.clearState();
-      this.annotationLayer.deselect();
-    }
+  escapeKeyCancel = evt => {
+    if (evt.which === 27) // Escape
+      this.cancelSelected();
   }
 
   handleSelect = evt => {
@@ -228,11 +224,10 @@ export default class OpenSeadragonAnnotator extends Component {
   set disableEditor(disabled) {
     this.setState({ editorDisabled: disabled }, () => {
       // En- or disable Esc key listener
-      if (disabled && !this.state.editorDisabled) {
-        document.addEventListener('keyup', this.headlessCancel);
-      } else if (!disabled && this.state.editorDisabled) {
-        document.removeEventListener('keyup', this.headlessCancel);
-      }
+      if (disabled)
+        document.addEventListener('keyup', this.escapeKeyCancel);
+      else
+        document.removeEventListener('keyup', this.escapeKeyCancel);
     });
   }
   
