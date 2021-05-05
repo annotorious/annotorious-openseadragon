@@ -216,8 +216,14 @@ export default class OSDAnnotationLayer extends EventEmitter {
   }
 
   init = annotations => {
+    // Clear existing
+    this.deselect();
+
     const shapes = Array.from(this.g.querySelectorAll('.a9s-annotation'));
     shapes.forEach(s => this.g.removeChild(s));
+
+    // Add
+    annotations.sort((a, b) => shapeArea(b) - shapeArea(a));
     annotations.forEach(this.addAnnotation);
   }
 
