@@ -51,10 +51,14 @@ export default class OpenSeadragonAnnotator extends Component {
     document.removeEventListener('keyup', this.escapeKeyCancel);
   }
 
-  // Handle Escape key in headless mode
   escapeKeyCancel = evt => {
-    if (evt.which === 27) // Escape
-      this.cancelSelected();
+    if (evt.which === 27) { // Escape
+      const { selectedAnnotation } = this.state;
+      if (selectedAnnotation) {
+        this.cancelSelected();
+        this.props.onCancelSelected(selectedAnnotation);
+      }
+    }
   }
 
   handleSelect = evt => {
