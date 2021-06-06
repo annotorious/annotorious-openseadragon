@@ -379,11 +379,13 @@ export default class OSDAnnotationLayer extends EventEmitter {
   }
 
   setDrawingEnabled = enable =>
-    this.mouseTracker.setTracking(enable);
+    this.mouseTracker?.setTracking(enable);
 
   setDrawingTool = shape => {
-    this.tools.current?.stop();
-    this.tools.setCurrent(shape);
+    if (this.tools) {
+      this.tools.current?.stop();
+      this.tools.setCurrent(shape);
+    }
   }
 
   setVisible = visible => {
