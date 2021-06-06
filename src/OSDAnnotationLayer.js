@@ -106,7 +106,6 @@ export default class OSDAnnotationLayer extends EventEmitter {
   addAnnotation = annotation => {
     const shape = drawShape(annotation);
     shape.setAttribute('class', 'a9s-annotation');
-    format(shape, annotation, this.formatter);
 
     shape.setAttribute('data-id', annotation.id);
     shape.annotation = annotation;
@@ -127,6 +126,10 @@ export default class OSDAnnotationLayer extends EventEmitter {
     }).setTracking(true);
 
     this.g.appendChild(shape);
+
+    format(shape, annotation, this.formatter);
+
+    this.scaleFormatterElements(shape);
   }
 
   addDrawingTool = plugin =>
@@ -300,6 +303,8 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
     this.g.setAttribute('transform', `translate(${p.x}, ${p.y}) scale(${scaleX}, ${scaleY}) rotate(${rotation})`);
 
+    this.scaleFormatterElements();
+
     if (this.selectedShape) {
       if (this.selectedShape.element) { // Editable shape
         this.selectedShape.scaleHandles(1 / scaleY);
@@ -310,6 +315,20 @@ export default class OSDAnnotationLayer extends EventEmitter {
     }
   }
   
+  scaleFormatterElements = opt_shape => {
+    const scale = 1 / this.currentScale();
+
+    if (opt_shape) {
+      const el = opt_shape.querySelector('.a9s-formatter-el');
+      if (el)
+        el.firstChild.setAttribute('transform', `scale(${scale})`);
+    } else {
+      const elements = Array.from(this.g.querySelectorAll('.a9s-formatter-el'));
+      elements.forEach(el =>
+        el.firstChild.setAttribute('transform', `scale(${scale})`));
+    }
+  }
+
   selectAnnotation = (annotationOrId, skipEvent) => {
     if (this.selectedShape)
       this.deselect();
