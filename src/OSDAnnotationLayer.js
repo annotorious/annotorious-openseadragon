@@ -62,6 +62,8 @@ export default class OSDAnnotationLayer extends EventEmitter {
   /** Initializes the OSD MouseTracker used for drawing **/
   _initDrawingMouseTracker = () => {
 
+    let started = false;
+
     this.mouseTracker = new OpenSeadragon.MouseTracker({
       element: this.svg,
 
@@ -74,6 +76,11 @@ export default class OSDAnnotationLayer extends EventEmitter {
         if (this.tools.current.isDrawing) {
           const { x , y } = this.tools.current.getSVGPoint(evt.originalEvent);
           this.tools.current.onMouseMove(x, y, evt.originalEvent);
+
+          if (!started) {
+            this.emit('startSelection', { x , y });
+            started = true;
+          }
         }
       },
 
@@ -82,6 +89,8 @@ export default class OSDAnnotationLayer extends EventEmitter {
           const { x , y } = this.tools.current.getSVGPoint(evt.originalEvent);
           this.tools.current.onMouseUp(x, y, evt.originalEvent);
         }
+
+        started = false;
       }
     }).setTracking(false);
 

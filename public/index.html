@@ -92,6 +92,10 @@
           }
         });
 
+        anno.on('startSelection', function(a) {
+          console.log('start selection', a);
+        });
+
         anno.on('createSelection', function(selection) {
           console.log('selection', selection);
         });

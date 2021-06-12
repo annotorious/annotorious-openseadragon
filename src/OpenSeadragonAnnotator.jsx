@@ -32,6 +32,7 @@ export default class OpenSeadragonAnnotator extends Component {
   componentDidMount() {
     this.annotationLayer = new OSDAnnotationLayer(this.props);
 
+    this.annotationLayer.on('startSelection', this.handleStartSelect);
     this.annotationLayer.on('select', this.handleSelect);
 
     this.annotationLayer.on('updateTarget', this.handleUpdateTarget);
@@ -61,6 +62,9 @@ export default class OpenSeadragonAnnotator extends Component {
     }
   }
 
+  handleStartSelect = pt =>
+    this.props.onSelectionStarted(pt);
+    
   handleSelect = evt => {
     this.state.editorDisabled ?
       this.onHeadlessSelect(evt) : this.onNormalSelect(evt);
