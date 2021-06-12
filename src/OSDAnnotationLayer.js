@@ -368,6 +368,8 @@ export default class OSDAnnotationLayer extends EventEmitter {
       this.selectedShape = toolForAnnotation.createEditableShape(annotation);
       this.selectedShape.scaleHandles(1 / this.currentScale());
 
+      this.scaleFormatterElements(this.selectedShape.element);
+
       this.selectedShape.element.annotation = annotation;        
 
       // Disable normal OSD nav
