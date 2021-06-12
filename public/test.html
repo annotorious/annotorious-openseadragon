@@ -51,10 +51,13 @@
         pointer-events:none;
       }
 
-      .a9s-annotationlayer .a9s-formatter-el foreignObject .a9s-shape-label {
+      .a9s-annotationlayer .a9s-formatter-el foreignObject .a9s-shape-label-wrapper {
         position:relative;
-        top:-2em;
-        left:-2px;
+        transform:translateY(-100%);
+        padding-bottom:4px;
+      }
+
+      .a9s-annotationlayer .a9s-formatter-el foreignObject .a9s-shape-label-wrapper .a9s-shape-label {
         display:table;
         padding:3px 5px;
         white-space:nowrap;
@@ -73,13 +76,11 @@
         if (firstTag) {
           const foreignObject = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
 
-          // Fill annotation dimensions
-          foreignObject.setAttribute('width', '100%');
-          foreignObject.setAttribute('height', '100%');
-
           foreignObject.innerHTML = `
-            <div xmlns="http://www.w3.org/1999/xhtml" class="a9s-shape-label">
-              ${firstTag.value}
+            <div xmlns="http://www.w3.org/1999/xhtml" class="a9s-shape-label-wrapper">
+              <div class="a9s-shape-label">
+                ${firstTag.value}
+              </div>
             </div>`;
 
           return {
