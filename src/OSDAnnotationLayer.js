@@ -53,10 +53,8 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
     this.selectedShape = null;
 
-    if (!this.readOnly) {
-      this.tools = new DrawingTools(this.g, props.config, props.env);
-      this._initDrawingMouseTracker();
-    }
+    this.tools = new DrawingTools(this.g, props.config, props.env);
+    this._initDrawingMouseTracker();
   }
 
   /** Initializes the OSD MouseTracker used for drawing **/
@@ -67,7 +65,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
     this.mouseTracker = new OpenSeadragon.MouseTracker({
       element: this.svg,
 
-      pressHandler:  evt => {
+      pressHandler: evt => {
         if (!this.tools.current.isDrawing)
           this.tools.current.start(evt.originalEvent);
       },
@@ -103,7 +101,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
     // Keep tracker disabled until Shift is held
     document.addEventListener('keydown', evt => {
       if (evt.which === 16 && !this.selectedShape) // Shift
-        this.mouseTracker.setTracking(true);
+        this.mouseTracker.setTracking(!this.readOnly);
     });
 
     document.addEventListener('keyup', evt => {
@@ -409,7 +407,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
   }
 
   setDrawingEnabled = enable =>
-    this.mouseTracker?.setTracking(enable);
+    this.mouseTracker?.setTracking(enable && !this.readOnly);
 
   setDrawingTool = shape => {
     if (this.tools) {
