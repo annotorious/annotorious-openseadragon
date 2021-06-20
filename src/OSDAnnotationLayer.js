@@ -51,6 +51,11 @@ export default class OSDAnnotationLayer extends EventEmitter {
       this.resize();
     });
 
+    this.viewer.addHandler('page', () => {
+      this.emit('viewerPageChange');
+      this.init([]);
+    });
+
     this.selectedShape = null;
 
     this.tools = new DrawingTools(this.g, props.config, props.env);

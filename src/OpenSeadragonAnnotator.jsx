@@ -38,6 +38,7 @@ export default class OpenSeadragonAnnotator extends Component {
     this.annotationLayer.on('updateTarget', this.handleUpdateTarget);
 
     this.annotationLayer.on('viewportChange', this.handleViewportChange);
+    this.annotationLayer.on('viewerPageChange', this.handleViewerPageChange);
 
     this.annotationLayer.on('mouseEnterAnnotation', this.handleMouseEnter);
     this.annotationLayer.on('mouseLeaveAnnotation', this.handleMouseLeave);
@@ -148,6 +149,13 @@ export default class OpenSeadragonAnnotator extends Component {
 
   handleViewportChange = selectedDOMElement =>
     this.setState({ selectedDOMElement });
+
+  handleViewerPageChange = () => {
+    const {selectedAnnotation} = this.state;
+    if(selectedAnnotation) {
+      this.cancelSelected();
+    }
+  };
 
   /**
    * A convenience method that allows the external application to

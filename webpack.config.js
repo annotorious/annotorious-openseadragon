@@ -77,6 +77,10 @@ module.exports = {
     new HtmlWebpackPlugin ({
       template: resolveAppPath('public/index.html')
     }),
+    new HtmlWebpackPlugin({
+      filename: 'sequence-mode.html',
+      template: resolveAppPath('public/sequence-mode.html')
+    }),
     new MiniCssExtractPlugin({
       filename: 'annotorious.min.css',
     })
