@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Annotorious OpenSeadragon Sequence Mode Example</title>
+    <link href="https://fonts.googleapis.com/css?family=Lato&display=swap" rel="stylesheet">
+    <style>
+      html, body {
+        margin:0;
+        padding:0;
+        background-color:#e2e2e2;
+        height:100%;
+        font-family:Lato;
+        line-height:160%;
+      }
+
+      .column {
+        max-width:700px;
+        padding:20px;
+        margin:0 auto;
+        background-color:#fff;
+        height:100%;
+        box-sizing:border-box;
+      }
+
+      h1 {
+        font-size:21px;
+        font-weight:normal;
+        margin:0;
+        padding:0;
+      }
+
+      p.instructions {
+        padding:10px 0 30px 0;
+      }
+
+      .openseadragon-canvas {
+        outline:none;
+        background-color:#efefef !important;
+      }
+
+      .a9s-selection-mask {
+        fill:rgba(0,0,0,0.6) !important;
+        pointer-events:none;
+      }
+    </style>
+    <script>
+      const tileSources = [
+        {
+          type: 'image',
+          url: '1280px-Hallstatt.jpg'
+        },
+        {
+          type: 'image',
+          url: 'wadirum.jpg'
+        }
+      ];
+
+      const AnnotoriousOSDPaginationPlugin = function(anno, viewer) {
+        let currentViewerPage;
+        let pagedAnnotations = [];
+
+        const addOrUpdateAnnotationPages = (annotation) => {
+          const currentPage = viewer.currentPage();
+          if(!pagedAnnotations[currentPage]) {
+            pagedAnnotations[currentPage] = {};
+          }
+          pagedAnnotations[currentPage][annotation.id] = annotation;
+        };
+
+        const removePagedAnnotation = (annotation) => {
+          const currentPage = viewer.currentPage();
+          delete pagedAnnotations[currentPage]?.[annotation.id]; 
+        };
+        
+        anno.on('createAnnotation', addOrUpdateAnnotationPages);
+
+        anno.on('deleteAnnotation', removePagedAnnotation);
+
+        anno.on('updateAnnotation', addOrUpdateAnnotationPages);
+
+        viewer.addHandler('page', ({page}) => {
+          if(pagedAnnotations[page]) {
+            anno.setAnnotations(Object.values(pagedAnnotations[page]))
+          }
+        });
+
+      };
+
+      window.onload = function() {
+        var viewer = OpenSeadragon({
+          id: "openseadragon",
+          prefixUrl: "openseadragon/images/",
+          tileSources: tileSources,
+          gestureSettingsTouch: {
+            pinchRotate: true
+          },
+          showRotationControl: true,
+          showFlipControl: true,
+          constrainDuringPan: true,
+          sequenceMode: true
+        });
+
+        var anno = OpenSeadragon.Annotorious(viewer, {
+          locale: 'auto'
+        });
+
+        AnnotoriousOSDPaginationPlugin(anno, viewer);
+
+        anno.setAuthInfo({
+          id: 'http://www.example.com/rainer',
+          displayName: 'rainer'
+        });
+
+        anno.on('startSelection', function(a) {
+          console.log('start selection', a);
+        });
+
+        anno.on('createSelection', function(selection) {
+          console.log('selection', selection);
+        });
+
+        anno.on('selectAnnotation', function(annotation) {
+          console.log('selected', annotation);
+        });
+
+        anno.on('cancelSelected', function(a) {
+          console.log('cancelSelected', a);
+        });
+
+        anno.on('mouseEnterAnnotation', function(annotation) {
+          // console.log('mouseEnter', annotation);
+        });
+
+        anno.on('mouseLeaveAnnotation', function(annotation) {
+          // console.log('mouseLeave', annotation);
+        });
+      }
+    </script>
+  </head>
+  <body>
+    <div class="column">
+      <h1>Annotorious | Sequence Mode Example</h1>
+      <p class="instructions">
+        In Sequence Mode, on page change ,the annotation layer is cleared and all the annotations
+        are removed, its upto the client application to handle pagination. This page contains a
+        simple example of handling pagination.
+      </p>
+      <div id="openseadragon" style="width: 640px; height: 480px;"></div>
+    </div>
+    <script src="openseadragon/openseadragon.2.4.2.min.js"></script>
+  </body>
+</html>
