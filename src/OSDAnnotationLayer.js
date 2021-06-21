@@ -37,10 +37,10 @@ export default class OSDAnnotationLayer extends EventEmitter {
     this.viewer.addHandler('resize', () => this.resize());
     this.viewer.addHandler('flip', () => this.resize());
 
-    this.viewer.addHandler('open', () => { 
-      // Store image properties to environment
+    // Store image properties on open and after page change
+    this.viewer.addHandler('open',  () => {
       const { x, y } = this.viewer.world.getItemAt(0).source.dimensions;
-      
+
       props.env.image = {
         src: this.viewer.world.getItemAt(0).source['@id'] || 
           new URL(this.viewer.world.getItemAt(0).source.url, document.baseURI).href,
@@ -48,12 +48,15 @@ export default class OSDAnnotationLayer extends EventEmitter {
         naturalHeight: y
       };
 
-      this.resize();
+      this.resize();      
     });
 
-    this.viewer.addHandler('page', () => {
-      this.emit('viewerPageChange');
+    // Clear annotation layer on page change 
+    // Note: page change will also trigger 'open' - page size gets 
+    // updated automatically
+    this.viewer.addHandler('page', evt => {
       this.init([]);
+      this.emit('pageChange');
     });
 
     this.selectedShape = null;
