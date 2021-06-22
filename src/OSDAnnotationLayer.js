@@ -376,9 +376,6 @@ export default class OSDAnnotationLayer extends EventEmitter {
     const readOnly = this.readOnly || annotation.readOnly;
 
     if (!(readOnly || this.headless)) {
-      // Replace the shape with an editable version
-      setTimeout(() => shape.parentNode.removeChild(shape), 1);  
-
       const toolForAnnotation = this.tools.forAnnotation(annotation);
       this.selectedShape = toolForAnnotation.createEditableShape(annotation);
       this.selectedShape.scaleHandles(1 / this.currentScale());
@@ -406,6 +403,8 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
       if (!skipEvent)
         this.emit('select', { annotation, element: this.selectedShape.element });
+
+      shape.parentNode.removeChild(shape);
     } else {
       this.selectedShape = shape;
 
