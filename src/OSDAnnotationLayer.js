@@ -17,6 +17,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
     this.readOnly = props.config.readOnly;
     this.headless = props.config.headless;
     this.formatter = props.config.formatter;
+    this.deferredAnnotations = [];
 
     this.svg = document.createElementNS(SVG_NAMESPACE, 'svg');
 
@@ -32,10 +33,10 @@ export default class OSDAnnotationLayer extends EventEmitter {
     
     this.viewer.canvas.appendChild(this.svg);
 
-    this.viewer.addHandler('animation', () => this.resize());
-    this.viewer.addHandler('rotate', () => this.resize());
-    this.viewer.addHandler('resize', () => this.resize());
-    this.viewer.addHandler('flip', () => this.resize());
+    this.viewer.addHandler('animation', () => this.resizeAnnotationLayers());
+    this.viewer.addHandler('rotate', () => this.resizeAnnotationLayers());
+    this.viewer.addHandler('resize', () => this.resizeAnnotationLayers());
+    this.viewer.addHandler('flip', () => this.resizeAnnotationLayers());
 
     // Store image properties on open and after page change
     this.viewer.addHandler('open',  () => {
@@ -48,7 +49,33 @@ export default class OSDAnnotationLayer extends EventEmitter {
         naturalHeight: y
       };
 
-      this.resize();      
+      // In collectionMode, use separate drawing tools for
+      // separate images
+      if(this.viewer.collectionMode) {
+        const itemCount = this.viewer.world.getItemCount();
+        for (let i = 1; i < itemCount; i++){
+          const tileSource = this.viewer.world.getItemAt(i);
+          const {x, y} = tileSource.source.dimensions;
+          const env = Object.assign({}, props.env);
+          env.image = {
+            src: tileSource.source['@id'] || 
+              new URL(tileSource.source.url, document.baseURI).href,
+            naturalWidth: x,
+            naturalHeight: y
+          };
+          const g = document.createElementNS(SVG_NAMESPACE, 'g');
+          const tools = new DrawingTools(g, props.config, env);
+          this.annotationTools.push([g, tools]);
+          this.svg.appendChild(g);
+        }
+      }
+
+      // Sometimes addAnnotation is called before the images are loaded
+      //  into the viewer. Keep track of those and Add them later.
+      this.deferredAnnotations.forEach(anno => this.addAnnotation(anno));
+      this.deferredAnnotations = [];
+
+      this.resizeAnnotationLayers();      
     });
 
     // Clear annotation layer on page change 
@@ -62,7 +89,25 @@ export default class OSDAnnotationLayer extends EventEmitter {
     this.selectedShape = null;
 
     this.tools = new DrawingTools(this.g, props.config, props.env);
+    this.annotationTools = [[this.g, this.tools]];
+
     this._initDrawingMouseTracker();
+  }
+
+  _getTiledImageFromUrl = url => {
+    const itemsCount = this.viewer.world.getItemCount();
+    for(let i = 0; i < itemsCount; i++) {
+      const tiledImage = this.viewer.world.getItemAt(i);
+      if(tiledImage.source.url === url) {
+        return tiledImage;
+      }
+    }
+  }
+
+  _getLayerByAnnotationTarget = annotation => {
+    const targetUrl = annotation.target.source;
+    const tileSource = this._getTiledImageFromUrl(targetUrl);
+    return tileSource ? this.annotationTools[this.viewer.world.getIndexOfItem(tileSource)]: this.annotationTools[0];
   }
 
   /** Initializes the OSD MouseTracker used for drawing **/
@@ -119,6 +164,12 @@ export default class OSDAnnotationLayer extends EventEmitter {
   }
 
   addAnnotation = annotation => {
+    if(!this.viewer.isOpen()) {
+      this.deferredAnnotations.push(annotation);
+      return;
+    }
+    const [targetLayer, targetTool] = this._getLayerByAnnotationTarget(annotation);
+
     const shape = drawShape(annotation);
     shape.setAttribute('class', 'a9s-annotation');
 
@@ -126,12 +177,12 @@ export default class OSDAnnotationLayer extends EventEmitter {
     shape.annotation = annotation;
 
     shape.addEventListener('mouseenter', evt => {
-      if (!this.tools?.current.isDrawing)
+      if (!targetTool?.current.isDrawing)
         this.emit('mouseEnterAnnotation', annotation, evt);
     });
 
     shape.addEventListener('mouseleave', evt => {
-      if (!this.tools?.current.isDrawing)
+      if (!targetTool?.current.isDrawing)
         this.emit('mouseLeaveAnnotation', annotation, evt);
     });
 
@@ -140,7 +191,9 @@ export default class OSDAnnotationLayer extends EventEmitter {
       clickHandler: () => this.selectShape(shape)
     }).setTracking(true);
 
-    this.g.appendChild(shape);
+    
+
+    targetLayer.appendChild(shape);
 
     format(shape, annotation, this.formatter);
 
@@ -305,10 +358,19 @@ export default class OSDAnnotationLayer extends EventEmitter {
     }
   }
 
-  resize() {
+  resizeAnnotationLayers() {
+    this.annotationTools.forEach(([g, tool], index) => {
+      const item = this.viewer.world.getItemAt(index);
+      const imageBbox = item.getBounds(true);
+      this.resize(g, new OpenSeadragon.Point(imageBbox.x, imageBbox.y));
+    });
+  }
+  
+
+  resize(g, viewportStartPoint) {
     const flipped = this.viewer.viewport.getFlip();
 
-    const p = this.viewer.viewport.pixelFromPoint(new OpenSeadragon.Point(0, 0), true);
+    const p = this.viewer.viewport.pixelFromPoint(viewportStartPoint, true);
     if (flipped)
       p.x = this.viewer.viewport._containerInnerSize.x - p.x;
 
@@ -316,7 +378,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
     const scaleX = flipped ? - scaleY : scaleY;
     const rotation = this.viewer.viewport.getRotation();
 
-    this.g.setAttribute('transform', `translate(${p.x}, ${p.y}) scale(${scaleX}, ${scaleY}) rotate(${rotation})`);
+    g.setAttribute('transform', `translate(${p.x}, ${p.y}) scale(${scaleX}, ${scaleY}) rotate(${rotation})`);
 
     this.scaleFormatterElements();
 

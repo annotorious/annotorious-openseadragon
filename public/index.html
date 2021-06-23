@@ -20,7 +20,7 @@
         padding:20px;
         margin:0 auto;
         background-color:#fff;
-        height:100%;
+        height:70%;
         box-sizing:border-box;
       }
 
@@ -46,6 +46,32 @@
       }
     </style>
     <script>
+      const logEvents = (anno) => {
+        anno.on('startSelection', function(a) {
+          console.log('start selection', a);
+        });
+
+        anno.on('createSelection', function(selection) {
+          console.log('selection', selection);
+        });
+
+        anno.on('selectAnnotation', function(annotation) {
+          console.log('selected', annotation);
+        });
+
+        anno.on('cancelSelected', function(a) {
+          console.log('cancelSelected', a);
+        });
+
+        anno.on('mouseEnterAnnotation', function(annotation) {
+          // console.log('mouseEnter', annotation);
+        });
+
+        anno.on('mouseLeaveAnnotation', function(annotation) {
+          // console.log('mouseLeave', annotation);
+        });
+      }
+
       window.onload = function() {
         var viewer = OpenSeadragon({
           id: "openseadragon",
@@ -93,31 +119,39 @@
           }
         });
 
-        anno.on('startSelection', function(a) {
-          console.log('start selection', a);
-        });
-
-        anno.on('createSelection', function(selection) {
-          console.log('selection', selection);
-        });
-
-        anno.on('selectAnnotation', function(annotation) {
-          console.log('selected', annotation);
-        });
-
-        anno.on('cancelSelected', function(a) {
-          console.log('cancelSelected', a);
-        });
-
-        anno.on('mouseEnterAnnotation', function(annotation) {
-          // console.log('mouseEnter', annotation);
-        });
-
-        anno.on('mouseLeaveAnnotation', function(annotation) {
-          // console.log('mouseLeave', annotation);
-        });
+        logEvents(anno);
 
         anno.loadAnnotations('annotations.w3c.json');
+
+        const viewer2 = OpenSeadragon({
+          id: "openseadragon-collection",
+          prefixUrl: "openseadragon/images/",
+          tileSources: [
+            {
+              type: "image",
+              url: "1280px-Hallstatt.jpg"
+            },
+            {
+              type: "image",
+              url: "wadirum.jpg"
+            }
+          ],
+          collectionMode: true,
+          gestureSettingsTouch: {
+            pinchRotate: true
+          },
+          showRotationControl: true,
+          showFlipControl: true,
+          constrainDuringPan: true,
+        });
+
+        const anno2 = OpenSeadragon.Annotorious(viewer2, {
+          locale: 'auto'
+        });
+
+        logEvents(anno2);
+
+        anno2.loadAnnotations('annotations.w3c.json')
       }
     </script>
   </head>
@@ -133,6 +167,14 @@
         <button id="mode">MODE: VIEW</button>
       </p>
       <div id="openseadragon" style="width: 640px; height: 480px;"></div>
+    </div>
+    <div class="column">
+      <h1>Annotorious | Collection Mode Example</h1>
+      <p class="instructions">
+        Click the annotation to edit. Hold <strong>SHIFT</strong> while clicking and 
+        dragging the mouse to create a new annotation. 
+      </p>
+      <div id="openseadragon-collection" style="width: 640px; height: 480px;"></div>
     </div>      
     <script src="openseadragon/openseadragon.2.4.2.min.js"></script>
     <script src="openseadragon-annotorious.min.js"></script>
