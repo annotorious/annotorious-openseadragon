@@ -13,7 +13,7 @@
         "conformsTo": "http://www.w3.org/TR/media-frags/",
         "value": "xywh=540,240,180,340"
       },
-      "source": "wadirum.jpg"
+      "source": "1280px-Hallstatt.jpg"
     }
   },
   { 
@@ -22,7 +22,7 @@
     "type": "Annotation",
     "body": [{
       "type": "TextualBody",
-      "value": "Annotation #2"
+      "value": "Annotation #3"
     }],
     "target": {
       "selector": {
@@ -30,7 +30,7 @@
         "conformsTo": "http://www.w3.org/TR/media-frags/",
         "value": "xywh=200,240,180,340"
       },
-      "source": "1280px-Hallstatt.jpg"
+      "source": "wadirum.jpg"
     }
   }
 

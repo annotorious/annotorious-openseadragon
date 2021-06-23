@@ -217,10 +217,14 @@ export default class OSDAnnotationLayer extends EventEmitter {
     this.redraw();
   }
 
-  currentScale = () => {
+  currentScale = (item) => {
     const containerWidth = this.viewer.viewport.getContainerSize().x;
     const zoom = this.viewer.viewport.getZoom(true);
-    return zoom * containerWidth / this.viewer.world.getContentFactor();
+    let contentFactor = this.viewer.world.getContentFactor();
+    if (item) {
+      contentFactor = item.getContentSize().x / item.getBounds().width;
+    }
+    return zoom * containerWidth / contentFactor;
   }
 
   deselect = skipRedraw => {
@@ -362,19 +366,19 @@ export default class OSDAnnotationLayer extends EventEmitter {
     this.annotationTools.forEach(([g, tool], index) => {
       const item = this.viewer.world.getItemAt(index);
       const imageBbox = item.getBounds(true);
-      this.resize(g, new OpenSeadragon.Point(imageBbox.x, imageBbox.y));
+      this.resize(g, item, new OpenSeadragon.Point(imageBbox.x, imageBbox.y));
     });
   }
   
 
-  resize(g, viewportStartPoint) {
+  resize(g, item, viewportStartPoint) {
     const flipped = this.viewer.viewport.getFlip();
 
     const p = this.viewer.viewport.pixelFromPoint(viewportStartPoint, true);
     if (flipped)
       p.x = this.viewer.viewport._containerInnerSize.x - p.x;
 
-    const scaleY = this.currentScale();
+    const scaleY = this.currentScale(item);
     const scaleX = flipped ? - scaleY : scaleY;
     const rotation = this.viewer.viewport.getRotation();
 
@@ -439,8 +443,8 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
     if (!(readOnly || this.headless)) {
       setTimeout(() => shape.parentNode.removeChild(shape), 1);
-
-      const toolForAnnotation = this.tools.forAnnotation(annotation);
+      const currentTool = this._getLayerByAnnotationTarget(annotation)[1];
+      const toolForAnnotation = currentTool.forAnnotation(annotation);
       this.selectedShape = toolForAnnotation.createEditableShape(annotation);
       this.selectedShape.scaleHandles(1 / this.currentScale());
 
