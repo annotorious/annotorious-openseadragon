@@ -64,9 +64,10 @@ export default class OSDAnnotationLayer extends EventEmitter {
             naturalHeight: y
           };
           const g = document.createElementNS(SVG_NAMESPACE, 'g');
+          this.svg.appendChild(g);
           const tools = new DrawingTools(g, props.config, env);
           this.annotationTools.push([g, tools]);
-          this.svg.appendChild(g);
+          this.addToolEvents();
         }
       }
 
@@ -88,8 +89,8 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
     this.selectedShape = null;
 
-    this.tools = new DrawingTools(this.g, props.config, props.env);
-    this.annotationTools = [[this.g, this.tools]];
+    this.currentTool = new DrawingTools(this.g, props.config, props.env);
+    this.annotationTools = [[this.g, this.currentTool]];
 
     this._initDrawingMouseTracker();
   }
@@ -98,7 +99,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
     const itemsCount = this.viewer.world.getItemCount();
     for(let i = 0; i < itemsCount; i++) {
       const tiledImage = this.viewer.world.getItemAt(i);
-      if(tiledImage.source.url === url) {
+      if(new URL(tiledImage.source.url, document.baseURI).href === new URL(url, document.baseURI).href) {
         return tiledImage;
       }
     }
@@ -110,6 +111,30 @@ export default class OSDAnnotationLayer extends EventEmitter {
     return tileSource ? this.annotationTools[this.viewer.world.getIndexOfItem(tileSource)]: this.annotationTools[0];
   }
 
+  shapeBBoxInsideImage = (bbox, image) => {
+    if(bbox.x >= 0 && 
+       bbox.y >= 0 && 
+       (bbox.x + bbox.width) <= image.naturalWidth &&
+       (bbox.y + bbox.height) <= image.naturalHeight) {
+      return true;
+    }
+  }
+
+  getCurrentToolFromElementPosition = (position) => {
+    const numItems = this.viewer.world.getItemCount();
+    for(let i = 0; i < numItems; i++){
+      const item = this.viewer.world.getItemAt(i);
+      const itemBounds = item.getBounds(true);
+      const viewportCoordinates = this.viewer.viewport.viewerElementToViewportCoordinates(position);
+      if(viewportCoordinates.x >= itemBounds.x &&
+         viewportCoordinates.y >= itemBounds.y &&
+         viewportCoordinates.x <= (itemBounds.x + itemBounds.width) &&
+         viewportCoordinates.y <= (itemBounds.y + itemBounds.height)) {
+           return this.annotationTools[i][1];
+      }
+    }
+  }
+
   /** Initializes the OSD MouseTracker used for drawing **/
   _initDrawingMouseTracker = () => {
 
@@ -119,14 +144,15 @@ export default class OSDAnnotationLayer extends EventEmitter {
       element: this.svg,
 
       pressHandler: evt => {
-        if (!this.tools.current.isDrawing)
-          this.tools.current.start(evt.originalEvent);
+        this.currentTool = this.getCurrentToolFromElementPosition(evt.position) || this.currentTool;
+        if (!this.currentTool.current.isDrawing)
+          this.currentTool.current.start(evt.originalEvent);
       },
 
       moveHandler: evt => {
-        if (this.tools.current.isDrawing) {
-          const { x , y } = this.tools.current.getSVGPoint(evt.originalEvent);
-          this.tools.current.onMouseMove(x, y, evt.originalEvent);
+        if (this.currentTool.current.isDrawing) {
+          const { x , y } = this.currentTool.current.getSVGPoint(evt.originalEvent);
+          this.currentTool.current.onMouseMove(x, y, evt.originalEvent);
 
           if (!started) {
             this.emit('startSelection', { x , y });
@@ -136,19 +162,25 @@ export default class OSDAnnotationLayer extends EventEmitter {
       },
 
       releaseHandler: evt => {
-        if (this.tools.current.isDrawing) {
-          const { x , y } = this.tools.current.getSVGPoint(evt.originalEvent);
-          this.tools.current.onMouseUp(x, y, evt.originalEvent);
+        if (this.currentTool.current.isDrawing) {
+          const { x , y } = this.currentTool.current.getSVGPoint(evt.originalEvent);
+          this.currentTool.current.onMouseUp(x, y, evt.originalEvent);
         }
 
         started = false;
       }
     }).setTracking(false);
+  }
 
-    this.tools.on('complete', shape => { 
-      this.mouseTracker.setTracking(false);
-      this.selectShape(shape);
-      this.emit('createSelection', shape.annotation);
+  addToolEvents = () => {
+    this.annotationTools.forEach(([g, tool]) => {
+      tool.on('complete', shape => {
+        this.mouseTracker.setTracking(false);
+        if(this.shapeBBoxInsideImage(shape.getBBox(), tool._env.image)){
+          this.selectShape(shape);
+          this.emit('createSelection', shape.annotation);
+        }
+      });
     });
 
     // Keep tracker disabled until Shift is held
@@ -158,7 +190,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
     });
 
     document.addEventListener('keyup', evt => {
-      if (evt.which === 16 && !this.tools.current.isDrawing)
+      if (evt.which === 16 && !this.currentTool.current.isDrawing)
         this.mouseTracker.setTracking(false);
     });
   }
@@ -192,7 +224,6 @@ export default class OSDAnnotationLayer extends EventEmitter {
     }).setTracking(true);
 
     
-
     targetLayer.appendChild(shape);
 
     format(shape, annotation, this.formatter);
@@ -201,7 +232,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
   }
 
   addDrawingTool = plugin =>
-    this.tools.registerTool(plugin);
+    this.currentTool.registerTool(plugin);
 
   addOrUpdateAnnotation = (annotation, previous) => {
     if (this.selectedShape?.annotation === annotation || this.selectShape?.annotation == previous)
@@ -228,7 +259,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
   }
 
   deselect = skipRedraw => {
-    this.tools?.current.stop();
+    this.currentTool?.current.stop();
     
     if (this.selectedShape) {
       const { annotation } = this.selectedShape;
@@ -320,7 +351,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
   }
 
   listDrawingTools = () =>
-    this.tools.listTools();
+    this.currentTool.listTools();
 
   overrideId = (originalId, forcedId) => {
     // Update SVG shape data attribute
@@ -505,10 +536,12 @@ export default class OSDAnnotationLayer extends EventEmitter {
     this.mouseTracker?.setTracking(enable && !this.readOnly);
 
   setDrawingTool = shape => {
-    if (this.tools) {
-      this.tools.current?.stop();
-      this.tools.setCurrent(shape);
-    }
+    this.annotationTools.forEach(([g, tool]) => {
+      if(tool) {
+        tool.current?.stop();
+        tool.setCurrent(shape);
+      }
+    });
   }
 
   setVisible = visible => {
