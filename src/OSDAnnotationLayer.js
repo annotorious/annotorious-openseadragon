@@ -257,21 +257,37 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
   findShape = annotationOrId => {
     const id = annotationOrId?.id ? annotationOrId.id : annotationOrId;
-    return this.g.querySelector(`.a9s-annotation[data-id="${id}"]`);
+    const svgLayers = this.annotationTools.map(([g, tool]) => g);
+    return svgLayers
+      .map(g => g.querySelector(`.a9s-annotation[data-id="${id}"]`))
+      .find(shapeEl => !!shapeEl);
   }
 
   fitBounds = (annotationOrId, immediately) => {
     const shape = this.findShape(annotationOrId);
     if (shape) {
+      const annotation = shape.annotation;
+      const tileSource = this._getTiledImageFromUrl(annotation.target.source);
+
       const { x, y, width, height } = shape.getBBox(); // SVG element bounds, image coordinates
-      const rect = this.viewer.viewport.imageToViewportRectangle(x, y, width, height);
+      let rect = this.viewer.viewport.imageToViewportRectangle(x, y, width, height);
+
+      if(tileSource) {
+        rect = tileSource.imageToViewportRectangle(x, y, width, height);
+      }
+
       this.viewer.viewport.fitBounds(rect, immediately);
     }    
   }
 
+  getAnnotationToolsShapes = () => {
+    const svgLayers = this.annotationTools.map(([g, tool]) => g);
+    return svgLayers.map(g => Array.from(g.querySelectorAll('.a9s-annotation')));
+  }
+
   getAnnotations = () => {
-    const shapes = Array.from(this.g.querySelectorAll('.a9s-annotation'));
-    return shapes.map(s => s.annotation);
+    const shapes = this.getAnnotationToolsShapes();
+    return shapes.flat().map(s => s.annotation);
   }
 
   getSelected = () => {
@@ -293,8 +309,10 @@ export default class OSDAnnotationLayer extends EventEmitter {
     // Clear existing
     this.deselect();
 
-    const shapes = Array.from(this.g.querySelectorAll('.a9s-annotation'));
-    shapes.forEach(s => this.g.removeChild(s));
+    const shapes = this.getAnnotationToolsShapes();
+    this.annotationTools.forEach(([g, tool], index) => {
+      shapes[index].forEach(shape => g.removeChild(shape));
+    });
 
     // Add
     annotations.sort((a, b) => shapeArea(b) - shapeArea(a));
@@ -332,14 +350,15 @@ export default class OSDAnnotationLayer extends EventEmitter {
   }
 
   redraw = () => {
-    const shapes = Array.from(this.g.querySelectorAll('.a9s-annotation'));
+    const shapes = this.getAnnotationToolsShapes();
 
-    const annotations = shapes.map(s => s.annotation);
+    const annotations = shapes.flat().map(s => s.annotation);
     annotations.sort((a, b) => shapeArea(b) - shapeArea(a));
 
     // Clear the SVG element
-    shapes.forEach(s => this.g.removeChild(s));
-
+    this.annotationTools.forEach(([g, tool], index) => {
+      shapes[index].forEach(s => g.removeChild(s));
+    });
     // Redraw
     annotations.forEach(this.addAnnotation);
   }
@@ -396,6 +415,9 @@ export default class OSDAnnotationLayer extends EventEmitter {
     }
   }
   
+  // ToDo: There needs to be an intellegent way
+  // to do this because scale factors are different
+  // in collectionMode.
   scaleFormatterElements = opt_shape => {
     const scale = 1 / this.currentScale();
 

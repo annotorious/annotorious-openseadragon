@@ -1,7 +1,7 @@
 [
   { 
     "@context": "http://www.w3.org/ns/anno.jsonld",
-    "id": "#07475897-d2eb-4dce-aa12-ecb50771c734",
+    "id": "#07475897-d2eb-4dce-aa12-ecb50771c744",
     "type": "Annotation",
     "body": [{
       "type": "TextualBody",
@@ -28,7 +28,7 @@
       "selector": {
         "type": "FragmentSelector",
         "conformsTo": "http://www.w3.org/TR/media-frags/",
-        "value": "xywh=200,240,180,340"
+        "value": "xywh=200,140,180,200"
       },
       "source": "wadirum.jpg"
     }
