@@ -67,9 +67,10 @@ export default class OSDAnnotationLayer extends EventEmitter {
           this.svg.appendChild(g);
           const tools = new DrawingTools(g, props.config, env);
           this.annotationTools.push([g, tools]);
-          this.addToolEvents();
         }
       }
+
+      this.addToolEvents();
 
       // Sometimes addAnnotation is called before the images are loaded
       //  into the viewer. Keep track of those and Add them later.
