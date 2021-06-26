@@ -117,14 +117,14 @@ export default class OSDAnnotationLayer extends EventEmitter {
     shape.setAttribute('data-id', annotation.id);
     shape.annotation = annotation;
 
-    shape.addEventListener('mouseenter', evt => {
+    shape.addEventListener('mouseenter', () => {
       if (!this.tools?.current.isDrawing)
-        this.emit('mouseEnterAnnotation', annotation, evt);
+        this.emit('mouseEnterAnnotation', annotation, shape);
     });
 
-    shape.addEventListener('mouseleave', evt => {
+    shape.addEventListener('mouseleave', () => {
       if (!this.tools?.current.isDrawing)
-        this.emit('mouseLeaveAnnotation', annotation, evt);
+        this.emit('mouseLeaveAnnotation', annotation, shape);
     });
 
     shape.mouseTracker = new OpenSeadragon.MouseTracker({

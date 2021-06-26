@@ -101,20 +101,20 @@
           console.log('selection', selection);
         });
 
-        anno.on('selectAnnotation', function(annotation) {
-          console.log('selected', annotation);
+        anno.on('selectAnnotation', function(annotation, shape) {
+          console.log('selected', shape);
         });
 
         anno.on('cancelSelected', function(a) {
           console.log('cancelSelected', a);
         });
 
-        anno.on('mouseEnterAnnotation', function(annotation) {
-          // console.log('mouseEnter', annotation);
+        anno.on('mouseEnterAnnotation', function(annotation, shape) {
+          console.log('mouseEnter', shape);
         });
 
-        anno.on('mouseLeaveAnnotation', function(annotation) {
-          // console.log('mouseLeave', annotation);
+        anno.on('mouseLeaveAnnotation', function(annotation, shape) {
+          console.log('mouseLeave', shape);
         });
 
         anno.loadAnnotations('annotations.w3c.json');

@@ -88,7 +88,7 @@ export default class OpenSeadragonAnnotator extends Component {
             if (annotation.isSelection) {
               this.props.onSelectionCreated(annotation.clone());
             } else {
-              this.props.onAnnotationSelected(annotation.clone());
+              this.props.onAnnotationSelected(annotation.clone(), element);
             }
           }
         });  
@@ -140,11 +140,11 @@ export default class OpenSeadragonAnnotator extends Component {
     this.props.onSelectionTargetChanged(clone);
   }
 
-  handleMouseEnter = annotation =>
-    this.props.onMouseEnterAnnotation(annotation.clone());
+  handleMouseEnter = (annotation, elem) =>
+    this.props.onMouseEnterAnnotation(annotation.clone(), elem);
 
-  handleMouseLeave = annotation =>
-    this.props.onMouseLeaveAnnotation(annotation.clone());
+  handleMouseLeave = (annotation, elem) =>
+    this.props.onMouseLeaveAnnotation(annotation.clone(), elem);
 
   handleViewportChange = selectedDOMElement =>
     this.setState({ selectedDOMElement });
