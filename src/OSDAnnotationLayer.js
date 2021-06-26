@@ -368,7 +368,16 @@ export default class OSDAnnotationLayer extends EventEmitter {
     const readOnly = this.readOnly || annotation.readOnly;
 
     if (!(readOnly || this.headless)) {
-      setTimeout(() => shape.parentNode.removeChild(shape), 1);
+      setTimeout(() => {
+        shape.parentNode.removeChild(shape);
+
+        // Fire the event AFTER the original shape was removed. Otherwise,
+        // people calling `.getAnnotations()` in the `onSelectAnnotation` 
+        // handler will receive a duplicate annotation
+        // (See issue https://github.com/recogito/annotorious-openseadragon/issues/63)
+        if (!skipEvent)
+          this.emit('select', { annotation, element: this.selectedShape.element });
+      }, 1);
 
       const toolForAnnotation = this.tools.forAnnotation(annotation);
       this.selectedShape = toolForAnnotation.createEditableShape(annotation);
@@ -395,8 +404,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
       this.selectedShape.on('update', fragment =>
         this.emit('updateTarget', this.selectedShape.element, fragment));
 
-      if (!skipEvent)
-        this.emit('select', { annotation, element: this.selectedShape.element });
+
     } else {
       this.selectedShape = shape;
 

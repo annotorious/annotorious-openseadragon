@@ -72,7 +72,7 @@
         });
 
         var toolToggle = document.getElementById('current-tool');
-        toolToggle.addEventListener('click', function() {
+        toolToggle.addEventListener('click', function() {          
           if (toolToggle.innerHTML == 'TOOL: RECTANGLE') {
             toolToggle.innerHTML = 'TOOL: POLYGON';
             anno.setDrawingTool('polygon');
@@ -102,6 +102,8 @@
         });
 
         anno.on('selectAnnotation', function(annotation) {
+          console.log(anno.getAnnotations());
+          
           console.log('selected', annotation);
         });
 
