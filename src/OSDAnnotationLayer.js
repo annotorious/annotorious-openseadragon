@@ -51,14 +51,6 @@ export default class OSDAnnotationLayer extends EventEmitter {
       this.resize();      
     });
 
-    // Clear annotation layer on page change 
-    // Note: page change will also trigger 'open' - page size gets 
-    // updated automatically
-    this.viewer.addHandler('page', evt => {
-      this.init([]);
-      this.emit('pageChange');
-    });
-
     this.selectedShape = null;
 
     this.tools = new DrawingTools(this.g, props.config, props.env);
