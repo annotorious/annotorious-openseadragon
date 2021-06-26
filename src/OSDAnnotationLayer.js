@@ -1,7 +1,8 @@
 import EventEmitter from 'tiny-emitter';
 import OpenSeadragon from 'openseadragon';
-import { SVG_NAMESPACE } from '@recogito/annotorious/src/util/SVG';
+import { SVG_NAMESPACE, addClass } from '@recogito/annotorious/src/util/SVG';
 import DrawingTools from '@recogito/annotorious/src/tools/ToolsRegistry';
+import Crosshair from '@recogito/annotorious/src/Crosshair';
 import { drawShape, shapeArea } from '@recogito/annotorious/src/selectors';
 import { format } from '@recogito/annotorious/src/util/Formatting';
 import { isTouchDevice, enableTouchTranslation } from '@recogito/annotorious/src/util/Touch';
@@ -47,6 +48,11 @@ export default class OSDAnnotationLayer extends EventEmitter {
         naturalWidth: x,
         naturalHeight: y
       };
+
+      if (props.config.crosshair) {
+        this.crosshair = new Crosshair(this.g, x, y);
+        addClass(this.svg, 'has-crosshair');
+      }
 
       this.resize();      
     });
