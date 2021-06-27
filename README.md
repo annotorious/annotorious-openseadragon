@@ -1,6 +1,3 @@
-## Development Branch
-This project is a fork of [annotorious-openseadragon](https://github.com/recogito/annotorious-openseadragon) in an attempt to support multi-image collection mode for openseadragon. Once the changes made to this branch are fully feature proof, a pull request will be made to the upstream. 
-
 <p align="center">
   <img width="345" src="https://raw.githubusercontent.com/recogito/annotorious-openseadragon/master/annotorious-osd-stylized.png" />
   <br/><br/>
