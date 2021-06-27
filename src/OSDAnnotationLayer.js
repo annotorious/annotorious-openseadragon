@@ -1,6 +1,6 @@
 import EventEmitter from 'tiny-emitter';
 import OpenSeadragon from 'openseadragon';
-import { SVG_NAMESPACE } from '@recogito/annotorious/src/util/SVG';
+import { SVG_NAMESPACE, addClass } from '@recogito/annotorious/src/util/SVG';
 import DrawingTools from '@recogito/annotorious/src/tools/ToolsRegistry';
 import { drawShape, shapeArea } from '@recogito/annotorious/src/selectors';
 import { format } from '@recogito/annotorious/src/util/Formatting';
@@ -496,11 +496,16 @@ export default class OSDAnnotationLayer extends EventEmitter {
     const readOnly = this.readOnly || annotation.readOnly;
 
     if (!(readOnly || this.headless)) {
-      setTimeout(() => shape.parentNode.removeChild(shape), 1);
+      setTimeout(() => {
+        shape.parentNode.removeChild(shape);
+        if (!skipEvent)
+        this.emit('select', { annotation, element: this.selectedShape.element });
+      } , 1);
       const currentTool = this._getLayerByAnnotationTarget(annotation)[1];
       const toolForAnnotation = currentTool.forAnnotation(annotation);
+      const tileSourceForAnnotation = this._getTiledImageFromUrl(annotation.target.source);
       this.selectedShape = toolForAnnotation.createEditableShape(annotation);
-      this.selectedShape.scaleHandles(1 / this.currentScale());
+      this.selectedShape.scaleHandles(1 / this.currentScale(tileSourceForAnnotation));
 
       this.scaleFormatterElements(this.selectedShape.element);
 
@@ -523,8 +528,6 @@ export default class OSDAnnotationLayer extends EventEmitter {
       this.selectedShape.on('update', fragment =>
         this.emit('updateTarget', this.selectedShape.element, fragment));
 
-      if (!skipEvent)
-        this.emit('select', { annotation, element: this.selectedShape.element });
     } else {
       this.selectedShape = shape;
 
