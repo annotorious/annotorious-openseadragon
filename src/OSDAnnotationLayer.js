@@ -38,8 +38,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
     this.viewer.addHandler('resize', () => this.resize());
     this.viewer.addHandler('flip', () => this.resize());
 
-    // Store image properties on open and after page change
-    this.viewer.addHandler('open',  () => {
+    const onLoad = () => {
       const { x, y } = this.viewer.world.getItemAt(0).source.dimensions;
 
       props.env.image = {
@@ -55,7 +54,11 @@ export default class OSDAnnotationLayer extends EventEmitter {
       }
 
       this.resize();      
-    });
+    }
+
+    // Store image properties on open (incl. after page change) and on addTiledImage
+    this.viewer.addHandler('open', onLoad);
+    this.viewer.world.addHandler('add-item', onLoad);
 
     this.selectedShape = null;
 
