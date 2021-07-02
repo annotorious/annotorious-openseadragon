@@ -7,6 +7,7 @@ import { drawShape, shapeArea } from '@recogito/annotorious/src/selectors';
 import { format } from '@recogito/annotorious/src/util/Formatting';
 import { isTouchDevice, enableTouchTranslation } from '@recogito/annotorious/src/util/Touch';
 import { getSnippet } from './util/ImageSnippet';
+import { renderPrecise } from './rendering';
 
 export default class OSDAnnotationLayer extends EventEmitter {
 
@@ -30,6 +31,10 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
     this.g = document.createElementNS(SVG_NAMESPACE, 'g');
     this.svg.appendChild(this.g);
+
+    // Hack!
+    this.shadowGroup = document.createElementNS(SVG_NAMESPACE, 'g');
+    this.svg.appendChild(this.shadowGroup);
     
     this.viewer.canvas.appendChild(this.svg);
 
@@ -48,6 +53,8 @@ export default class OSDAnnotationLayer extends EventEmitter {
         naturalHeight: y
       };
 
+      // this.svg.setAttribute('viewBox', `0 0 ${x} ${y}`);
+
       if (props.config.crosshair) {
         this.crosshair = new Crosshair(this.g, x, y);
         addClass(this.svg, 'has-crosshair');
@@ -62,7 +69,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
     this.selectedShape = null;
 
-    this.tools = new DrawingTools(this.g, props.config, props.env);
+    this.tools = new DrawingTools(this.shadowGroup, props.config, props.env);
     this._initDrawingMouseTracker();
   }
 
@@ -146,6 +153,9 @@ export default class OSDAnnotationLayer extends EventEmitter {
     format(shape, annotation, this.formatter);
 
     this.scaleFormatterElements(shape);
+
+    // Hack 
+    this.resize();
   }
 
   addDrawingTool = plugin =>
@@ -307,6 +317,27 @@ export default class OSDAnnotationLayer extends EventEmitter {
   }
 
   resize() {
+    const shapes = Array.from(this.g.querySelectorAll('.a9s-annotation'));
+
+    const extent = this.viewer.viewport.viewportToImageRectangle(this.viewer.viewport.getBounds(true));
+    const scale = this.currentScale();
+
+    const p = this.viewer.viewport.pixelFromPoint(new OpenSeadragon.Point(0, 0), true);
+    this.shadowGroup.setAttribute('transform', `translate(${p.x}, ${p.y}) scale(${scale}, ${scale})`);
+
+    shapes.forEach(shape => renderPrecise(shape, extent, scale));
+
+    if (this.selectedShape) {
+      if (this.selectedShape.element) { // Editable shape
+        this.selectedShape.scaleHandles(1 / scale);
+        this.emit('viewportChange', this.selectedShape.element);
+      } else {
+        this.emit('viewportChange', this.selectedShape); 
+      }       
+    }
+ }
+
+  resizeOriginal() {
     const flipped = this.viewer.viewport.getFlip();
 
     const p = this.viewer.viewport.pixelFromPoint(new OpenSeadragon.Point(0, 0), true);

@@ -1,0 +1,27 @@
+[{
+  "type": "Annotation",
+  "body": [],
+  "target": {
+    "source": "http://localhost:3000/",
+    "selector": {
+      "type": "FragmentSelector",
+      "conformsTo": "http://www.w3.org/TR/media-frags/",
+      "value": "xywh=pixel:33318740,21471662,103892,61896"
+    }
+  },
+  "@context": "http://www.w3.org/ns/anno.jsonld",
+  "id": "#11137815-e8bb-47b8-b25c-18e999d2bb9a"
+},{
+  "type": "Annotation",
+  "body": [],
+  "target": {
+    "source": "http://localhost:3000/",
+    "selector": {
+      "type": "FragmentSelector",
+      "conformsTo": "http://www.w3.org/TR/media-frags/",
+      "value": "xywh=pixel:33349862.71,21558745.32,870,202"
+    }
+  },
+  "@context": "http://www.w3.org/ns/anno.jsonld",
+  "id": "#11137815-e8bb-47b8-b25c-18e999d2bb9b"
+}]
