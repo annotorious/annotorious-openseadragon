@@ -5,13 +5,9 @@ import OpenSeadragonAnnotator from './OpenSeadragonAnnotator';
 import { 
   Selection,
   WebAnnotation,
-  addPolyfills, 
   createEnvironment,
-  setLocale 
+  setLocale
 } from '@recogito/recogito-client-core';
-
-import '@babel/polyfill';
-addPolyfills(); // Some extra polyfills that babel doesn't include
 
 import '@recogito/annotorious/src/ImageAnnotator.scss';
 import '@recogito/recogito-client-core/themes/default';

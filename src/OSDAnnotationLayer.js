@@ -443,8 +443,6 @@ export default class OSDAnnotationLayer extends EventEmitter {
   
       this.selectedShape.on('update', fragment =>
         this.emit('updateTarget', this.selectedShape.element, fragment));
-
-
     } else {
       this.selectedShape = shape;
 
