@@ -317,27 +317,6 @@ export default class OSDAnnotationLayer extends EventEmitter {
   }
 
   resize() {
-    const shapes = Array.from(this.g.querySelectorAll('.a9s-annotation'));
-
-    const extent = this.viewer.viewport.viewportToImageRectangle(this.viewer.viewport.getBounds(true));
-    const scale = this.currentScale();
-
-    const p = this.viewer.viewport.pixelFromPoint(new OpenSeadragon.Point(0, 0), true);
-    this.shadowGroup.setAttribute('transform', `translate(${p.x}, ${p.y}) scale(${scale}, ${scale})`);
-
-    shapes.forEach(shape => renderPrecise(shape, extent, scale));
-
-    if (this.selectedShape) {
-      if (this.selectedShape.element) { // Editable shape
-        this.selectedShape.scaleHandles(1 / scale);
-        this.emit('viewportChange', this.selectedShape.element);
-      } else {
-        this.emit('viewportChange', this.selectedShape); 
-      }       
-    }
- }
-
-  resizeOriginal() {
     const flipped = this.viewer.viewport.getFlip();
 
     const p = this.viewer.viewport.pixelFromPoint(new OpenSeadragon.Point(0, 0), true);
