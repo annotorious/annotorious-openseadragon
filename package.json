@@ -6,6 +6,7 @@
   "scripts": {
     "start": "webpack serve --open --mode=development",
     "build": "webpack --mode=production",
+    "build-polyfills": "webpack --mode=production --config webpack.polyfills.js",
     "vite-build": "vite build && mv ./dist/annotorious-openseadragon.umd.js ./dist/openseadragon-annotorious.min.js && mv ./dist/annotorious-openseadragon.umd.js.map ./dist/openseadragon-annotorious.min.js.map && mv ./dist/style.css ./dist/annotorious.min.css"
   },
   "repository": {
@@ -24,19 +25,16 @@
   },
   "homepage": "https://recogito.github.io/annotorious",
   "devDependencies": {
-    "@babel/core": "^7.14.3",
-    "@babel/plugin-proposal-class-properties": "^7.13.0",
-    "@babel/preset-env": "^7.14.4",
-    "@babel/preset-react": "^7.13.13",
+    "@babel/plugin-proposal-class-properties": "^7.14.5",
+    "@babel/preset-env": "^7.14.7",
+    "@babel/preset-react": "^7.14.5",
     "@preact/preset-vite": "^2.1.0",
     "babel-loader": "^8.2.2",
-    "css-loader": "^5.2.4",
+    "css-loader": "^5.2.6",
     "html-webpack-plugin": "^4.5.2",
     "mini-css-extract-plugin": "^1.6.0",
-    "node-sass": "^5.0.0",
-    "sass": "^1.34.1",
+    "sass": "^1.35.2",
     "sass-loader": "^10.2.0",
-    "terser-webpack-plugin": "^4.2.3",
     "vite": "^2.3.7",
     "webpack": "4.46.0",
     "webpack-cli": "^4.7.0",
