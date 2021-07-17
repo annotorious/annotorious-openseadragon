@@ -15,6 +15,9 @@ export default class OpenSeadragonAnnotator extends Component {
     // Headless mode
     editorDisabled: this.props.config.disableEditor,
 
+    // Widgets
+    widgets: this.props.config.widgets,
+
     // Records the state before any potential headless modify (done via
     // .updateSelected) so we can properly fire the updateAnnotation(a, previous)
     // event, and distinguish between headless Save and Cancel 
@@ -330,6 +333,9 @@ export default class OpenSeadragonAnnotator extends Component {
       this.clearState();
   }
 
+  setWidgets = widgets =>
+    this.setState({ widgets });
+
   updateSelected = (annotation, saveImmediately) =>
     new Promise(resolve => {
       if (this.state.selectedAnnotation) {
@@ -362,7 +368,7 @@ export default class OpenSeadragonAnnotator extends Component {
           selectedElement={this.state.selectedDOMElement}
           readOnly={readOnly}
           allowEmpty={this.props.config.allowEmpty}
-          widgets={this.props.config.widgets}
+          widgets={this.state.widgets}
           env={this.props.env}
           onAnnotationCreated={this.onCreateOrUpdateAnnotation('onAnnotationCreated')}
           onAnnotationUpdated={this.onCreateOrUpdateAnnotation('onAnnotationUpdated')}

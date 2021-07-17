@@ -195,6 +195,9 @@ class OSDAnnotorious {
   setVisible = visible =>
     this._app.current.setVisible(visible); 
 
+  setWidgets = widgets =>
+    this._app.current.setWidgets(widgets);
+
   setServerTime = timestamp => 
     this._env.setServerTime(timestamp);
 
