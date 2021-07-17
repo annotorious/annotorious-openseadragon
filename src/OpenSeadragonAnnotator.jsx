@@ -42,11 +42,18 @@ export default class OpenSeadragonAnnotator extends Component {
 
     this.annotationLayer.on('viewportChange', this.handleViewportChange);
 
-    this.annotationLayer.on('mouseEnterAnnotation', this.handleMouseEnter);
-    this.annotationLayer.on('mouseLeaveAnnotation', this.handleMouseLeave);
+    this.forwardEvent('mouseEnterAnnotation', 'onMouseEnterAnnotation');
+    this.forwardEvent('mouseLeaveAnnotation', 'onMouseLeaveAnnotation');
+    this.forwardEvent('clickAnnotation','onClickAnnotation');
     
     // Escape cancels editing
     document.addEventListener('keyup', this.escapeKeyCancel);
+  }
+
+  forwardEvent = (from, to) => {
+    this.annotationLayer.on(from, (annotation, elem) => {
+      this.props[to](annotation.clone(), elem);
+    });
   }
 
   componentWillUnmount() {
@@ -142,12 +149,6 @@ export default class OpenSeadragonAnnotator extends Component {
     const clone = JSON.parse(JSON.stringify(modifiedTarget));
     this.props.onSelectionTargetChanged(clone);
   }
-
-  handleMouseEnter = (annotation, elem) =>
-    this.props.onMouseEnterAnnotation(annotation.clone(), elem);
-
-  handleMouseLeave = (annotation, elem) =>
-    this.props.onMouseLeaveAnnotation(annotation.clone(), elem);
 
   handleViewportChange = selectedDOMElement =>
     this.setState({ selectedDOMElement });

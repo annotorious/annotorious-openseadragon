@@ -121,13 +121,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
     });
   }
 
-  addAnnotation = annotation => {
-    const shape = drawShape(annotation);
-    shape.setAttribute('class', 'a9s-annotation');
-
-    shape.setAttribute('data-id', annotation.id);
-    shape.annotation = annotation;
-
+  _attachMouseListeners = (shape, annotation) => {
     shape.addEventListener('mouseenter', () => {
       if (!this.tools?.current.isDrawing)
         this.emit('mouseEnterAnnotation', annotation, shape);
@@ -142,12 +136,22 @@ export default class OSDAnnotationLayer extends EventEmitter {
       element: shape,
       clickHandler: () => {
         if (this.disableSelect) {
-          // TODO clicke event
+          this.emit('clickAnnotation', shape.annotation, shape);
         } else {
           this.selectShape(shape)
         }
       }
     }).setTracking(true);
+  }
+
+  addAnnotation = annotation => {
+    const shape = drawShape(annotation);
+    shape.setAttribute('class', 'a9s-annotation');
+
+    shape.setAttribute('data-id', annotation.id);
+    shape.annotation = annotation;
+
+    this._attachMouseListeners(shape, annotation);
 
     this.g.appendChild(shape);
 
@@ -373,8 +377,12 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
   selectShape = (shape, skipEvent) => {
     // Don't re-select
-    if (this.selectedShape?.annotation === shape?.annotation)
+    if (this.selectedShape?.annotation === shape?.annotation) {
+      if (!skipEvent)
+        this.emit('clickAnnotation', shape.annotation, shape);
+        
       return;
+    }
 
     // If another shape is currently selected, deselect first
     if (this.selectedShape && this.selectedShape.annotation !== shape.annotation)
@@ -403,6 +411,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
       this.scaleFormatterElements(this.selectedShape.element);
 
       this.selectedShape.element.annotation = annotation;        
+      this._attachMouseListeners(this.selectedShape.element, annotation);
 
       // Disable normal OSD nav
       const editableShapeMouseTracker = new OpenSeadragon.MouseTracker({
@@ -426,6 +435,9 @@ export default class OSDAnnotationLayer extends EventEmitter {
       if (!skipEvent)
         this.emit('select', { annotation, element: shape, skipEvent });   
     }
+
+    if (!skipEvent)
+      this.emit('clickAnnotation', annotation, shape);
   }
 
   setDrawingEnabled = enable =>

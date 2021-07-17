@@ -102,6 +102,10 @@
           console.log('selection', selection);
         });
 
+        anno.on('clickAnnotation', function(annotation, shape) {
+          console.log('clicked', annotation, shape);
+        });
+
         anno.on('selectAnnotation', function(annotation, shape) {
           console.log('selected', annotation, shape);
         });

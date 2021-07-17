@@ -52,6 +52,7 @@ class OSDAnnotorious {
         onAnnotationUpdated={this.handleAnnotationUpdated} 
         onAnnotationDeleted={this.handleAnnotationDeleted}
         onCancelSelected={this.handleCancelSelected}
+        onClickAnnotation={this.handleClickAnnotation}
         onMouseEnterAnnotation={this.handleMouseEnterAnnotation}
         onMouseLeaveAnnotation={this.handleMouseLeaveAnnotation} />, this.appContainerEl);
   }
@@ -74,6 +75,9 @@ class OSDAnnotorious {
 
   handleCancelSelected = annotation =>
     this._emitter.emit('cancelSelected', annotation.underlying);
+
+  handleClickAnnotation = (annotation, elem) =>
+    this._emitter.emit('clickAnnotation', annotation.underlying, elem);
   
   handleSelectionCreated = selection =>
     this._emitter.emit('createSelection', selection.underlying);
