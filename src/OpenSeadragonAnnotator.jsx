@@ -242,6 +242,19 @@ export default class OpenSeadragonAnnotator extends Component {
         document.removeEventListener('keyup', this.escapeKeyCancel);
     });
   }
+
+  get disableSelect() {
+    return this.annotationLayer.disableSelect;
+  }
+
+  set disableSelect(disable) {   
+    this.annotationLayer.disableSelect = disable;
+
+    if (disable) {
+      this.annotationLayer.deselect();
+      this.clearState();
+    }
+  }
   
   fitBounds = (annotationOrId, immediately) =>
     this.annotationLayer.fitBounds(annotationOrId, immediately);

@@ -19,6 +19,8 @@ export default class OSDAnnotationLayer extends EventEmitter {
     this.headless = props.config.headless;
     this.formatter = props.config.formatter;
 
+    this.disableSelect = false;
+
     this.svg = document.createElementNS(SVG_NAMESPACE, 'svg');
 
     if (isTouchDevice()) {
@@ -138,7 +140,13 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
     shape.mouseTracker = new OpenSeadragon.MouseTracker({
       element: shape,
-      clickHandler: () => this.selectShape(shape)
+      clickHandler: () => {
+        if (this.disableSelect) {
+          // TODO clicke event
+        } else {
+          this.selectShape(shape)
+        }
+      }
     }).setTracking(true);
 
     this.g.appendChild(shape);
@@ -152,7 +160,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
     this.tools.registerTool(plugin);
 
   addOrUpdateAnnotation = (annotation, previous) => {
-    if (this.selectedShape?.annotation === annotation || this.selectShape?.annotation == previous)
+    if (this.selectedShape?.annotation === annotation || this.selectedShape?.annotation == previous)
       this.deselect();
   
     if (previous)

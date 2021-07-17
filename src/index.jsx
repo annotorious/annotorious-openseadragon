@@ -120,6 +120,14 @@ class OSDAnnotorious {
   set disableEditor(disabled) {
     this._app.current.disableEditor = disabled;
   }
+
+  get disableSelect() {
+    return this._app.current.disableSelect;
+  }
+
+  set disableSelect(select) {
+    this._app.current.disableSelect = select;
+  }
   
   destroy = () =>
     ReactDOM.unmountComponentAtNode(this.appContainerEl);
