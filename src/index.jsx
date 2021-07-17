@@ -155,6 +155,9 @@ class OSDAnnotorious {
   on = (event, handler) =>
     this._emitter.on(event, handler);
 
+  once = (event, handler) =>
+    this._emitter.once(event, handler);
+
   panTo = (annotationOrId, immediately) =>
     this._app.current.panTo(this._wrap(annotationOrId), immediately);
 
