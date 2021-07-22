@@ -410,8 +410,9 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
       this.scaleFormatterElements(this.selectedShape.element);
 
-      this.selectedShape.element.annotation = annotation;        
-      this._attachMouseListeners(this.selectedShape.element, annotation);
+      this.selectedShape.element.annotation = annotation;     
+      this.selectedShape.element.addEventListener(() =>
+        this.emit('clickAnnotation', annotation, this.selectedShape.element));
 
       // Disable normal OSD nav
       const editableShapeMouseTracker = new OpenSeadragon.MouseTracker({
