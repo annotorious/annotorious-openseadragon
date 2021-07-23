@@ -63,8 +63,7 @@
         });
         
         var anno = OpenSeadragon.Annotorious(viewer, {
-          locale: 'auto',
-          crosshair: true
+          locale: 'auto'
         });
 
         anno.setAuthInfo({
@@ -95,7 +94,7 @@
         });
 
         anno.on('startSelection', function(a) {
-          console.log('start selection', a);
+          // console.log('start selection', a);
         });
 
         anno.on('createSelection', function(selection) {
@@ -115,11 +114,11 @@
         });
 
         anno.on('mouseEnterAnnotation', function(annotation, shape) {
-          console.log('mouseEnter', shape);
+          // console.log('mouseEnter', shape);
         });
 
         anno.on('mouseLeaveAnnotation', function(annotation, shape) {
-          console.log('mouseLeave', shape);
+          // console.log('mouseLeave', shape);
         });
 
         anno.loadAnnotations('annotations.w3c.json');
