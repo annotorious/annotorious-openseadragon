@@ -250,11 +250,6 @@ export default class OpenSeadragonAnnotator extends Component {
 
   set disableSelect(disable) {   
     this.annotationLayer.disableSelect = disable;
-
-    if (disable) {
-      this.annotationLayer.deselect();
-      this.clearState();
-    }
   }
   
   fitBounds = (annotationOrId, immediately) =>
