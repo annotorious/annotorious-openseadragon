@@ -371,6 +371,7 @@ export default class OpenSeadragonAnnotator extends Component {
 
     return (open && (
         <Editor
+          detachable
           wrapperEl={this.props.wrapperEl}
           annotation={this.state.selectedAnnotation}
           modifiedTarget={this.state.modifiedTarget}
