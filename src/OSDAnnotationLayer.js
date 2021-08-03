@@ -205,7 +205,6 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
       if (this.selectedShape.destroy) {
         // Modifiable shape: destroy and re-add the annotation
-        this.selectedShape.mouseTracker.destroy();
         this.selectedShape.destroy();
 
         if (!annotation.isSelection)
@@ -221,7 +220,6 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
   destroy = () => {
     this.deselect();
-    this.mouseTracker.destroy();
     this.svg.parentNode.removeChild(this.svg);
   }
 
@@ -327,7 +325,6 @@ export default class OSDAnnotationLayer extends EventEmitter {
       if (this.selectedShape?.annotation === toRemove.annotation)
         this.deselect();
 
-      toRemove.mouseTracker.destroy();
       toRemove.parentNode.removeChild(toRemove);
     }
   }
