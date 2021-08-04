@@ -379,11 +379,11 @@ export default class OSDAnnotationLayer extends EventEmitter {
   }
 
   selectShape = (shape, skipEvent) => {
-    if (!skipEvent)
+    if (!skipEvent && !shape.annotation.isSelection)
       this.emit('clickAnnotation', shape.annotation, shape);
   
-      // Don't re-select
-    if (this.selectedShape?.annotation === shape?.annotation)
+    // Don't re-select
+    if (this.selectedShape?.annotation === shape.annotation)
       return;
 
     // If another shape is currently selected, deselect first

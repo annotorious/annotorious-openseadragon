@@ -97,8 +97,8 @@
           // console.log('start selection', a);
         });
 
-        anno.on('createSelection', function(selection) {
-          console.log('selection', selection);
+        anno.on('createAnnotation', function(a) {
+          console.log('created', a);
         });
 
         anno.on('clickAnnotation', function(annotation, shape) {
