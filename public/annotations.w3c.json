@@ -1,12 +1,40 @@
 [
-  { 
+  {
+    "type": "Annotation",
+    "body": [
+      {
+        "type": "TextualBody",
+        "value": "Annotation #1",
+        "purpose": "commenting",
+        "creator": {
+          "id": "http://www.example.com/rainer",
+          "name": "rainer"
+        },
+        "created": "2021-08-04T05:29:06.251Z",
+        "modified": "2021-08-04T05:29:09.797Z"
+      }
+    ],
+    "target": {
+      "source": "http://localhost:3000/1280px-Hallstatt.jpg",
+      "selector": {
+        "type": "FragmentSelector",
+        "conformsTo": "http://www.w3.org/TR/media-frags/",
+        "value": "xywh=pixel:865,170,268,260"
+      }
+    },
+    "@context": "http://www.w3.org/ns/anno.jsonld",
+    "id": "#440a73fb-1e95-4889-bd64-a11696791eea"
+  },
+  {
     "@context": "http://www.w3.org/ns/anno.jsonld",
     "id": "#07475897-d2eb-4dce-aa12-ecb50771c734",
     "type": "Annotation",
-    "body": [{
-      "type": "TextualBody",
-      "value": "Annotation #2"
-    }],
+    "body": [
+      {
+        "type": "TextualBody",
+        "value": "Annotation #2"
+      }
+    ],
     "target": {
       "selector": {
         "type": "FragmentSelector",
@@ -15,5 +43,4 @@
       }
     }
   }
-
 ]

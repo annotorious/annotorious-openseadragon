@@ -292,16 +292,31 @@ export default class OSDAnnotationLayer extends EventEmitter {
   }
 
   redraw = () => {
-    const shapes = Array.from(this.g.querySelectorAll('.a9s-annotation'));
+    // The selected annotation shape
+    const selected = this.g.querySelector('.a9s-annotation.selected');
 
-    const annotations = shapes.map(s => s.annotation);
+    // All other shapes and annotations
+    const unselected = Array.from(this.g.querySelectorAll('.a9s-annotation:not(.selected)'));
+    const annotations = unselected.map(s => s.annotation);
     annotations.sort((a, b) => shapeArea(b) - shapeArea(a));
 
-    // Clear the SVG element
-    shapes.forEach(s => this.g.removeChild(s));
-
-    // Redraw
+    // Clear unselected annotations and redraw
+    unselected.forEach(s => this.g.removeChild(s));
     annotations.forEach(this.addAnnotation);
+
+    // Then re-draw the selected on top, if any
+    if (selected) {
+      // Editable shapes might be wrapped in additional group
+      // elements (mask!), we need to get the top-level wrapper 
+      // of .a9s-annotation.selected that sits directly 
+      // beneath this.g
+      let toRedraw = selected;
+      
+      while (toRedraw.parentNode !== this.g)
+        toRedraw = toRedraw.parentNode;
+
+      this.g.appendChild(toRedraw);
+    } 
   }
   
   removeAnnotation = annotationOrId => {

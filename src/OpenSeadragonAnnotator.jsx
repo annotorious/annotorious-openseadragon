@@ -217,8 +217,15 @@ export default class OpenSeadragonAnnotator extends Component {
   /* External API */
   /****************/
 
-  addAnnotation = annotation =>
+  addAnnotation = annotation => {
+    // Deselect first in case the annotation is currently selected
+    if (annotation.id === this.state.selectedAnnotation?.id) {
+      this.annotationLayer.deselect(true);
+      this.clearState();
+    }
+
     this.annotationLayer.addOrUpdateAnnotation(annotation.clone());
+  }
   
   addDrawingTool = plugin =>
     this.annotationLayer.addDrawingTool(plugin);
