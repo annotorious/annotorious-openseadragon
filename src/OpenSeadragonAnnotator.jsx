@@ -259,8 +259,7 @@ export default class OpenSeadragonAnnotator extends Component {
     this.annotationLayer.getAnnotations().map(a => a.clone());
 
   getSelected = () => {
-    const selected = this.annotationLayer.getSelected();
-    return selected ? selected.annotation.clone() : null;
+    return this.state.selectedAnnotation ? this.state.selectedAnnotation.clone() : null;
   }
 
   getSelectedImageSnippet = () =>
