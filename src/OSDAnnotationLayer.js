@@ -123,23 +123,34 @@ export default class OSDAnnotationLayer extends EventEmitter {
     });
   }
 
+  _removeMouseListeners = shape => {
+    // Remove mouseLeave/mouseEnter listener - otherwise
+    // they'll fire when shapes are added/removed to the
+    // DOM (when the mouse is over them)
+    for (let listener in shape.listeners) {
+      shape.removeEventListener(listener, shape.listeners[listener]);
+    }
+  }
+
   _attachMouseListeners = (shape, annotation) => {
-    shape.addEventListener('mouseenter', () => {
+    const onMouseEnter = () => {
       this.viewer.gestureSettingsByDeviceType('mouse').clickToZoom = false;
 
       if (!this.tools?.current.isDrawing)
         this.emit('mouseEnterAnnotation', annotation, shape);
-    });
+    };
 
-    shape.addEventListener('mouseleave', () => {
+    const onMouseLeave = () => {
       this.viewer.gestureSettingsByDeviceType('mouse').clickToZoom = true;
 
       if (!this.tools?.current.isDrawing)
         this.emit('mouseLeaveAnnotation', annotation, shape);
-    });
+    };
 
     // Common click/tap handler
     const onClick = () => {
+      this.viewer.gestureSettingsByDeviceType('mouse').clickToZoom = false;
+
       // Unfortunately, click also fires after drag, which means
       // a new selection on top of this shape will be inerpreted 
       // as click. Identify this case and pervent the default
@@ -154,8 +165,18 @@ export default class OSDAnnotationLayer extends EventEmitter {
       }
     }
 
+    shape.addEventListener('mouseenter', onMouseEnter);
+    shape.addEventListener('mouseleave', onMouseLeave);
     shape.addEventListener('click', onClick);
     shape.addEventListener('touchend', onClick);
+
+    // Store, so we can remove later
+    shape.listeners = {
+      mouseenter: onMouseEnter,
+      mouseleave: onMouseLeave,
+      click: onClick,
+      touchend: onClick
+    }
   }
 
   addAnnotation = annotation => {
@@ -410,6 +431,8 @@ export default class OSDAnnotationLayer extends EventEmitter {
     const readOnly = this.readOnly || annotation.readOnly;
 
     if (!(readOnly || this.headless)) {
+      this._removeMouseListeners(shape);
+
       setTimeout(() => {
         shape.parentNode.removeChild(shape);
 
@@ -426,14 +449,13 @@ export default class OSDAnnotationLayer extends EventEmitter {
       this.selectedShape.scaleHandles(1 / this.currentScale());
 
       this.scaleFormatterElements(this.selectedShape.element);
-
       this.selectedShape.element.annotation = annotation;     
-
-      setTimeout(() => 
-        this._attachMouseListeners(this.selectedShape.element, annotation), 1);
   
       this.selectedShape.on('update', fragment =>
         this.emit('updateTarget', this.selectedShape.element, fragment));
+
+      setTimeout(() => 
+        this._attachMouseListeners(this.selectedShape.element, annotation), 10);
     } else {
       this.selectedShape = shape;
 
