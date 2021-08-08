@@ -454,8 +454,13 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
       this.selectedShape.element.annotation = annotation;     
 
-      setTimeout(() => 
-        this._attachMouseListeners(this.selectedShape.element, annotation), 10);
+      // If we attach immediately 'mouseEnter' will fire when the editable shape
+      // is added to the DOM!
+      setTimeout(() => {
+        // Can be undefined in headless mode, when saving immediately
+        if (this.selectedShape)
+          this._attachMouseListeners(this.selectedShape.element, annotation);
+      }, 10);
 
       // Disable normal OSD nav
       const editableShapeMouseTracker = new OpenSeadragon.MouseTracker({
