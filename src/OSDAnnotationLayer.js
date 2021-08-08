@@ -152,8 +152,8 @@ export default class OSDAnnotationLayer extends EventEmitter {
       this.viewer.gestureSettingsByDeviceType('mouse').clickToZoom = false;
 
       // Unfortunately, click also fires after drag, which means
-      // a new selection on top of this shape will be inerpreted 
-      // as click. Identify this case and pervent the default
+      // a new selection on top of this shape will be interpreted 
+      // as click. Identify this case and prevent the default
       // selection action!
       const isSelection = this.selectedShape?.annotation.isSelection;
       if (!isSelection) {
@@ -226,6 +226,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
       if (this.selectedShape.destroy) {
         // Modifiable shape: destroy and re-add the annotation
+        this.selectedShape.mouseTracker.destroy();
         this.selectedShape.destroy();
 
         if (!annotation.isSelection)
@@ -241,6 +242,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
   destroy = () => {
     this.deselect();
+    this.mouseTracker.destroy();
     this.svg.parentNode.removeChild(this.svg);
   }
 
@@ -449,13 +451,28 @@ export default class OSDAnnotationLayer extends EventEmitter {
       this.selectedShape.scaleHandles(1 / this.currentScale());
 
       this.scaleFormatterElements(this.selectedShape.element);
+
       this.selectedShape.element.annotation = annotation;     
-  
-      this.selectedShape.on('update', fragment =>
-        this.emit('updateTarget', this.selectedShape.element, fragment));
 
       setTimeout(() => 
         this._attachMouseListeners(this.selectedShape.element, annotation), 10);
+
+      // Disable normal OSD nav
+      const editableShapeMouseTracker = new OpenSeadragon.MouseTracker({
+        element: this.svg
+      }).setTracking(true);
+
+      // En-/disable OSD nav based on hover status
+      this.selectedShape.element.addEventListener('mouseenter', evt =>
+        editableShapeMouseTracker.setTracking(true));
+
+      this.selectedShape.element.addEventListener('mouseleave', evt =>
+        editableShapeMouseTracker.setTracking(false));
+
+      this.selectedShape.mouseTracker = editableShapeMouseTracker;
+
+      this.selectedShape.on('update', fragment =>
+        this.emit('updateTarget', this.selectedShape.element, fragment));
     } else {
       this.selectedShape = shape;
 
