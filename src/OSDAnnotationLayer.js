@@ -156,13 +156,12 @@ export default class OSDAnnotationLayer extends EventEmitter {
       // as click. Identify this case and prevent the default
       // selection action!
       const isSelection = this.selectedShape?.annotation.isSelection;
-      if (!isSelection) {
-        if (this.disableSelect) {
-          this.emit('clickAnnotation', shape.annotation, shape);
-        } else {
-          this.selectShape(shape)
-        }
-      }
+
+      if (!isSelection && !this.disableSelect)
+        this.selectShape(shape);
+      
+      if (this.disableSelect)
+        this.emit('clickAnnotation', shape.annotation, shape);
     }
 
     shape.addEventListener('mouseenter', onMouseEnter);
