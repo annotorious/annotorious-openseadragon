@@ -381,6 +381,9 @@ export default class OSDAnnotationLayer extends EventEmitter {
         this.emit('viewportChange', this.selectedShape); 
       }       
     }
+
+    if (this.tools?.current)
+      this.tools.current.scaleHandles(1 / scaleY);
   }
   
   scaleFormatterElements = opt_shape => {
