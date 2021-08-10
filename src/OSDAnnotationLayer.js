@@ -78,7 +78,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
       pressHandler: evt => {
         if (!this.tools.current.isDrawing)
-          this.tools.current.start(evt.originalEvent);
+          this.tools.current.start(evt.originalEvent, this.currentScale());
       },
 
       moveHandler: evt => {
@@ -382,7 +382,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
       }       
     }
 
-    if (this.tools?.current)
+    if (this.tools?.current.isDrawing)
       this.tools.current.scaleHandles(1 / scaleY);
   }
   
