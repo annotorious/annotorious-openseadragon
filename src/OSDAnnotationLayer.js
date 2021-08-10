@@ -78,7 +78,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
       pressHandler: evt => {
         if (!this.tools.current.isDrawing)
-          this.tools.current.start(evt.originalEvent, this.currentScale());
+          this.tools.current.start(evt.originalEvent, 1 / this.currentScale());
       },
 
       moveHandler: evt => {
