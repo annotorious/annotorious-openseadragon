@@ -4,24 +4,30 @@ import OSDAnnotationLayer from './OSDAnnotationLayer';
 
 export default class OpenSeadragonAnnotator extends Component {
 
-  state = {
-    selectedAnnotation: null,
-    selectedDOMElement: null,
-    modifiedTarget: null,
+  constructor(props) {
+    super(props);
 
-    // ReadOnly mode
-    readOnly: this.props.config.readOnly,
+    this.state = {
+      selectedAnnotation: null,
+      selectedDOMElement: null,
+      modifiedTarget: null,
+  
+      // ReadOnly mode
+      readOnly: props.config.readOnly,
+  
+      // Headless mode
+      editorDisabled: props.config.disableEditor,
+  
+      // Widgets
+      widgets: props.config.widgets,
+  
+      // Records the state before any potential headless modify (done via
+      // .updateSelected) so we can properly fire the updateAnnotation(a, previous)
+      // event, and distinguish between headless Save and Cancel 
+      beforeHeadlessModify: null
+    }
 
-    // Headless mode
-    editorDisabled: this.props.config.disableEditor,
-
-    // Widgets
-    widgets: this.props.config.widgets,
-
-    // Records the state before any potential headless modify (done via
-    // .updateSelected) so we can properly fire the updateAnnotation(a, previous)
-    // event, and distinguish between headless Save and Cancel 
-    beforeHeadlessModify: null
+    this._editor = React.createRef();
   }
 
   /** Shorthand **/
@@ -266,7 +272,7 @@ export default class OpenSeadragonAnnotator extends Component {
     this.annotationLayer.getAnnotations().map(a => a.clone());
 
   getSelected = () => {
-    return this.state.selectedAnnotation ? this.state.selectedAnnotation.clone() : null;
+    return this._editor.current?.getCurrentAnnotation();
   }
 
   getSelectedImageSnippet = () =>
@@ -377,6 +383,7 @@ export default class OpenSeadragonAnnotator extends Component {
 
     return (open && (
         <Editor
+          ref={this._editor}
           detachable
           wrapperEl={this.props.wrapperEl}
           annotation={this.state.selectedAnnotation}
