@@ -7,6 +7,9 @@ import { drawShape, shapeArea } from '@recogito/annotorious/src/selectors';
 import { format } from '@recogito/annotorious/src/util/Formatting';
 import { isTouchDevice, enableTouchTranslation } from '@recogito/annotorious/src/util/Touch';
 import { getSnippet } from './util/ImageSnippet';
+import { parseRectFragment, toRectFragment } from '@recogito/annotorious/src/selectors';
+import { renderPrecise } from './rendering';
+import { WebAnnotation } from '@recogito/recogito-client-core';
 
 export default class OSDAnnotationLayer extends EventEmitter {
 
@@ -18,6 +21,8 @@ export default class OSDAnnotationLayer extends EventEmitter {
     this.readOnly = props.config.readOnly;
     this.headless = props.config.headless;
     this.formatter = props.config.formatter;
+
+    this.env = props.env;
 
     this.disableSelect = false;
 
@@ -104,7 +109,11 @@ export default class OSDAnnotationLayer extends EventEmitter {
       }
     }).setTracking(false);
 
-    this.tools.on('complete', shape => { 
+    this.tools.on('complete', shape => {     
+      // Annotation is in SVG coordinates - project to image coordinates  
+      const reprojected = shape.annotation.clone({ target: this._projectToImage(shape.annotation.target) });
+      shape.annotation = reprojected;
+
       this.selectShape(shape);
       this.emit('createSelection', shape.annotation);
       this.mouseTracker.setTracking(false);
@@ -158,7 +167,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
       // selection action!
       const isSelection = this.selectedShape?.annotation.isSelection;
 
-      if (!isSelection && !this.disableSelect)
+      if (!isSelection && !this.disableSelect && this.selectedShape?.element !== shape)
         this.selectShape(shape);
       
       if (this.disableSelect)
@@ -181,10 +190,13 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
   addAnnotation = annotation => {
     const shape = drawShape(annotation);
+
     shape.setAttribute('class', 'a9s-annotation');
 
     shape.setAttribute('data-id', annotation.id);
     shape.annotation = annotation;
+
+    this._projectToViewport(shape);
 
     this._attachMouseListeners(shape, annotation);
 
@@ -192,7 +204,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
     format(shape, annotation, this.formatter);
 
-    this.scaleFormatterElements(shape);
+    // this.scaleFormatterElements(shape);
   }
 
   addDrawingTool = plugin =>
@@ -280,7 +292,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
     shapes.forEach(s => this.g.removeChild(s));
 
     // Add
-    annotations.sort((a, b) => shapeArea(b) - shapeArea(a));
+    // annotations.sort((a, b) => shapeArea(b) - shapeArea(a));
     annotations.forEach(this.addAnnotation);
   }
 
@@ -340,6 +352,8 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
       this.g.appendChild(toRedraw);
     } 
+
+    this.resize();
   }
   
   removeAnnotation = annotationOrId => {
@@ -359,7 +373,85 @@ export default class OSDAnnotationLayer extends EventEmitter {
     }
   }
 
+  _projectToImage = target => {
+    const extent = this.viewer.viewport.viewportToImageRectangle(this.viewer.viewport.getBounds(true));
+    const scale = this.currentScale();
+
+    const { x, y, w, h } = parseRectFragment(WebAnnotation.create({ target }));
+
+    const xP = extent.x + x / scale;
+    const yP = extent.y + y / scale; 
+    const wP = w / scale;
+    const hP = h / scale;
+
+    return toRectFragment(xP, yP, wP, hP, this.env.image);
+  }
+
+  _projectToViewport = shape => {
+    const extent = this.viewer.viewport.viewportToImageRectangle(this.viewer.viewport.getBounds(true));
+    const scale = this.currentScale();
+    renderPrecise(shape, extent, scale);
+  }
+
+
+  _annotationToViewport = annotation => {
+    const extent = this.viewer.viewport.viewportToImageRectangle(this.viewer.viewport.getBounds(true));
+    const scale = this.currentScale();
+  
+    const fragmentSelector = annotation.selector('FragmentSelector');
+    const svgSelector = annotation.selector('SvgSelector');
+
+    if (fragmentSelector) {
+      const { x, y, w, h } = parseRectFragment(annotation);
+
+      const updatedX = (x - extent.x) * scale;
+      const updatedY = (y - extent.y) * scale;
+
+      const target = toRectFragment(
+        updatedX, updatedY, 
+        w * scale, h * scale, 
+        this.env.image
+      );
+
+      return annotation.clone({ target });
+    } else if (svgSelector) {
+      const shape = svgFragmentToShape(annotation);
+
+    }
+  }
+
   resize() {
+    const shapes = Array.from(this.g.querySelectorAll('.a9s-annotation:not(.selected)'));
+    shapes.forEach(this._projectToViewport);
+
+
+    if (this.selectedShape) {
+      if (this.selectedShape.element) { // Editable shape
+        this._projectToViewport(this.selectedShape);
+
+        /*
+        const { x, y, width, height } = this.selectedShape.element.getBBox();
+        const target = toRectFragment(x, y, width, height, this.env.image);
+
+        const projected = this.selectedShape.element.annotation.clone({
+          target
+        });
+
+        console.log(projected.underlying.target.selector);
+
+        // console.log(this.selectedShape.element.annotation.underlying.target.selector);
+        // const projected = this._annotationToViewport(this.selectedShape.element.annotation);
+        */
+        this.selectedShape.update && this.selectedShape.update();
+        this.emit('viewportChange', this.selectedShape.element);
+      } else {
+        this.emit('viewportChange', this.selectedShape); 
+      }       
+    }
+
+  }
+
+  resize_orig() {
     const flipped = this.viewer.viewport.getFlip();
 
     const p = this.viewer.viewport.pixelFromPoint(new OpenSeadragon.Point(0, 0), true);
@@ -450,12 +542,14 @@ export default class OSDAnnotationLayer extends EventEmitter {
       }, 1);
 
       const toolForAnnotation = this.tools.forAnnotation(annotation);
+      // const projected = this._annotationToViewport(annotation);
+
       this.selectedShape = toolForAnnotation.createEditableShape(annotation);
-      this.selectedShape.scaleHandles(1 / this.currentScale());
-
-      this.scaleFormatterElements(this.selectedShape.element);
-
       this.selectedShape.element.annotation = annotation;     
+
+      this._projectToViewport(this.selectedShape);
+
+      this.selectedShape.update();
 
       // If we attach immediately 'mouseEnter' will fire when the editable shape
       // is added to the DOM!
@@ -479,8 +573,25 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
       this.selectedShape.mouseTracker = editableShapeMouseTracker;
 
-      this.selectedShape.on('update', fragment =>
-        this.emit('updateTarget', this.selectedShape.element, fragment));
+      this.selectedShape.on('update', fragment => {
+        // Fragment is in viewport coordinates - project to image coords
+        const projectedTarget = this._projectToImage(fragment);
+
+        const merged = this.selectedShape.annotation.clone({ target: fragment });
+        this.selectedShape.element.annotation = this.selectedShape.annotation.clone({ target: projectedTarget });
+
+        
+        // this.selectedShape.annotation = merged;
+        // this.selectedShape.element.annotation = merged;
+        
+        /*
+        const updatedAnnotation = annotation.clone({ target: projected });
+        
+        this.selectedShape.annotation = updatedAnnotation;
+        */
+
+        this.emit('updateTarget', this.selectedShape.element, projectedTarget)
+      });
     } else {
       this.selectedShape = shape;
 

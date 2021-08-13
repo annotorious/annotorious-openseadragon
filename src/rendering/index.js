@@ -16,14 +16,21 @@ export const renderPrecise = (shape, extent, scale) => {
 }
 
 const renderRectFragment = (shape, extent, scale) => {
-  const { x, y, w, h } = parseRectFragment(shape.annotation);
+  const annotation = shape.element ? shape.element.annotation : shape.annotation;
+  const elem = shape.element ? shape.element : shape; 
 
-  const outer = shape.querySelector('.a9s-outer');
-  const inner = shape.querySelector('.a9s-inner');
+  const { x, y, w, h } = parseRectFragment(annotation);
+
+  const outer = elem.querySelector('.a9s-outer');
+  const inner = elem.querySelector('.a9s-inner');
+
+  // console.log('render orig', x, y);
 
   const offsetX = scale * (x - extent.x);
   const offsetY = scale * (y - extent.y);
 
+  /// console.log('setting', offsetX, offsetY);
+  
   outer.setAttribute('x', offsetX);
   outer.setAttribute('y', offsetY);
   outer.setAttribute('width', w * scale);

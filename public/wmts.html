@@ -37,8 +37,9 @@
       }
 
       .a9s-selection-mask {
-        fill:rgba(0,0,0,0.6) !important;
-        pointer-events:none;
+        display:none;
+        // fill:rgba(0,0,0,0.6) !important;
+        // pointer-events:none;
       }
 
       .a9s-annotationlayer .a9s-annotation .a9s-inner {
@@ -114,7 +115,7 @@
 
         const annotations = [];
 
-        for(var i=0; i<2000; i++) {
+        for(var i=0; i<100; i++) {
           annotations.push(randomAnnotation());
         }
 
