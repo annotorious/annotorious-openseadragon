@@ -1,74 +1,14 @@
-import EventEmitter from 'tiny-emitter';
 import OpenSeadragon from 'openseadragon';
-import DrawingTools from '@recogito/annotorious/src/tools/ToolsRegistry';
-import Crosshair from '@recogito/annotorious/src/Crosshair';
-import { SVG_NAMESPACE, addClass } from '@recogito/annotorious/src/util/SVG';
 import { drawShape, shapeArea } from '@recogito/annotorious/src/selectors';
 import { format } from '@recogito/annotorious/src/util/Formatting';
-import { isTouchDevice, enableTouchTranslation } from '@recogito/annotorious/src/util/Touch';
-import { getSnippet } from '../util/ImageSnippet';
 import { viewportTargetToImage, imageAnnotationToViewport, refreshViewportPosition } from '.';
+import OSDAnnotationLayer from '../OSDAnnotationLayer';
 
-export default class GigapixelAnnotationLayer extends EventEmitter {
+export default class GigapixelAnnotationLayer extends OSDAnnotationLayer {
 
   constructor(props) {
-    super();
-
-    this.viewer = props.viewer;
-
-    this.readOnly = props.config.readOnly;
-    this.headless = props.config.headless;
-    this.formatter = props.config.formatter;
-
+    super(props);
     this.env = props.env;
-
-    this.disableSelect = false;
-
-    this.svg = document.createElementNS(SVG_NAMESPACE, 'svg');
-
-    if (isTouchDevice()) {
-      this.svg.setAttribute('class', 'a9s-annotationlayer a9s-osd-annotationlayer touch');
-      enableTouchTranslation(this.svg);
-    } else {
-      this.svg.setAttribute('class', 'a9s-annotationlayer a9s-osd-annotationlayer');
-    }    
-
-    this.g = document.createElementNS(SVG_NAMESPACE, 'g');
-    this.svg.appendChild(this.g);
-    
-    this.viewer.canvas.appendChild(this.svg);
-
-    this.viewer.addHandler('animation', () => this.resize());
-    this.viewer.addHandler('rotate', () => this.resize());
-    this.viewer.addHandler('resize', () => this.resize());
-    this.viewer.addHandler('flip', () => this.resize());
-
-    const onLoad = () => {
-      const { x, y } = this.viewer.world.getItemAt(0).source.dimensions;
-
-      props.env.image = {
-        src: this.viewer.world.getItemAt(0).source['@id'] || 
-          new URL(this.viewer.world.getItemAt(0).source.url, document.baseURI).href,
-        naturalWidth: x,
-        naturalHeight: y
-      };
-
-      if (props.config.crosshair) {
-        this.crosshair = new Crosshair(this.g, x, y);
-        addClass(this.svg, 'has-crosshair');
-      }
-
-      this.resize();      
-    }
-
-    // Store image properties on open (incl. after page change) and on addTiledImage
-    this.viewer.addHandler('open', onLoad);
-    this.viewer.world.addHandler('add-item', onLoad);
-
-    this.selectedShape = null;
-
-    this.tools = new DrawingTools(this.g, props.config, props.env);
-    this._initDrawingMouseTracker();
   }
 
   /** Initializes the OSD MouseTracker used for drawing **/
@@ -129,15 +69,6 @@ export default class GigapixelAnnotationLayer extends EventEmitter {
         this.mouseTracker.setTracking(false);
       }
     });
-  }
-
-  _removeMouseListeners = shape => {
-    // Remove mouseLeave/mouseEnter listener - otherwise
-    // they'll fire when shapes are added/removed to the
-    // DOM (when the mouse is over them)
-    for (let listener in shape.listeners) {
-      shape.removeEventListener(listener, shape.listeners[listener]);
-    }
   }
 
   _attachMouseListeners = (shape, annotation) => {
@@ -201,85 +132,6 @@ export default class GigapixelAnnotationLayer extends EventEmitter {
     this.g.appendChild(shape);
 
     format(shape, annotation, this.formatter);
-
-    // this.scaleFormatterElements(shape);
-  }
-
-  addDrawingTool = plugin =>
-    this.tools.registerTool(plugin);
-
-  addOrUpdateAnnotation = (annotation, previous) => {
-    if (this.selectedShape?.annotation === annotation || this.selectedShape?.annotation == previous)
-      this.deselect();
-  
-    if (previous)
-      this.removeAnnotation(annotation);
-
-    this.removeAnnotation(annotation);
-    this.addAnnotation(annotation);
-
-    // Make sure rendering order is large-to-small
-    this.redraw();
-  }
-
-  currentScale = () => {
-    const containerWidth = this.viewer.viewport.getContainerSize().x;
-    const zoom = this.viewer.viewport.getZoom(true);
-    return zoom * containerWidth / this.viewer.world.getContentFactor();
-  }
-
-  deselect = skipRedraw => {
-    this.tools?.current.stop();
-    
-    if (this.selectedShape) {
-      const { annotation } = this.selectedShape;
-
-      if (this.selectedShape.destroy) {
-        // Modifiable shape: destroy and re-add the annotation
-        this.selectedShape.mouseTracker.destroy();
-        this.selectedShape.destroy();
-
-        if (!annotation.isSelection)
-          this.addAnnotation(annotation);
-
-          if (!skipRedraw)
-            this.redraw();
-      }
-      
-      this.selectedShape = null;
-    }
-  }
-
-  destroy = () => {
-    this.deselect();
-    this.mouseTracker.destroy();
-    this.svg.parentNode.removeChild(this.svg);
-  }
-
-  findShape = annotationOrId => {
-    const id = annotationOrId?.id ? annotationOrId.id : annotationOrId;
-    return this.g.querySelector(`.a9s-annotation[data-id="${id}"]`);
-  }
-
-  fitBounds = (annotationOrId, immediately) => {
-    const shape = this.findShape(annotationOrId);
-    if (shape) {
-      const { x, y, width, height } = shape.getBBox(); // SVG element bounds, image coordinates
-      const rect = this.viewer.viewport.imageToViewportRectangle(x, y, width, height);
-      this.viewer.viewport.fitBounds(rect, immediately);
-    }    
-  }
-
-  getAnnotations = () => {
-    const shapes = Array.from(this.g.querySelectorAll('.a9s-annotation'));
-    return shapes.map(s => s.annotation);
-  }
-
-  getSelectedImageSnippet = () => {
-    if (this.selectedShape) {
-      const shape = this.selectedShape.element ?? this.selectedShape;
-      return getSnippet(this.viewer, shape);
-    }
   }
 
   init = annotations => {
@@ -292,36 +144,6 @@ export default class GigapixelAnnotationLayer extends EventEmitter {
     // Add
     // annotations.sort((a, b) => shapeArea(b) - shapeArea(a));
     annotations.forEach(this.addAnnotation);
-  }
-
-  listDrawingTools = () =>
-    this.tools.listTools();
-
-  overrideId = (originalId, forcedId) => {
-    // Update SVG shape data attribute
-    const shape = this.findShape(originalId);
-    shape.setAttribute('data-id', forcedId);
-
-    // Update annotation
-    const { annotation } = shape;
-
-    const updated = annotation.clone({ id : forcedId });
-    shape.annotation = updated;
-
-    return updated;
-  }
-
-  panTo = (annotationOrId, immediately) => {
-    const shape = this.findShape(annotationOrId);
-    if (shape) {
-      const { top, left, width, height } = shape.getBoundingClientRect();
-
-      const x = left + width / 2 + window.scrollX;
-      const y = top + height / 2 + window.scrollY;
-      const center = this.viewer.viewport.windowToViewportCoordinates(new OpenSeadragon.Point(x, y));
-
-      this.viewer.viewport.panTo(center, immediately);
-    }    
   }
 
   redraw = () => {
@@ -353,23 +175,6 @@ export default class GigapixelAnnotationLayer extends EventEmitter {
 
     this.resize();
   }
-  
-  removeAnnotation = annotationOrId => {
-    // Removal won't work if the annotation is currently selected - deselect!
-    const id = annotationOrId.type ? annotationOrId.id : annotationOrId;
-
-    if (this.selectedShape?.annotation.id === id)
-      this.deselect();
-      
-    const toRemove = this.findShape(annotationOrId);
-
-    if (toRemove) {
-      if (this.selectedShape?.annotation === toRemove.annotation)
-        this.deselect();
-
-      toRemove.parentNode.removeChild(toRemove);
-    }
-  }
 
   resize() {
     // Update positions for all anntations except selected (will be handled separately)
@@ -388,66 +193,6 @@ export default class GigapixelAnnotationLayer extends EventEmitter {
       } else {
         this.emit('viewportChange', this.selectedShape); 
       }       
-    }
-  }
-
-  resize_orig() {
-    const flipped = this.viewer.viewport.getFlip();
-
-    const p = this.viewer.viewport.pixelFromPoint(new OpenSeadragon.Point(0, 0), true);
-    if (flipped)
-      p.x = this.viewer.viewport._containerInnerSize.x - p.x;
-
-    const scaleY = this.currentScale();
-    const scaleX = flipped ? - scaleY : scaleY;
-    const rotation = this.viewer.viewport.getRotation();
-
-    this.g.setAttribute('transform', `translate(${p.x}, ${p.y}) scale(${scaleX}, ${scaleY}) rotate(${rotation})`);
-
-    this.scaleFormatterElements();
-
-    if (this.selectedShape) {
-      if (this.selectedShape.element) { // Editable shape
-        this.selectedShape.scaleHandles(1 / scaleY);
-        this.emit('viewportChange', this.selectedShape.element);
-      } else {
-        this.emit('viewportChange', this.selectedShape); 
-      }       
-    }
-
-    if (this.tools?.current.isDrawing)
-      this.tools.current.scaleHandles(1 / scaleY);
-  }
-  
-  scaleFormatterElements = opt_shape => {
-    const scale = 1 / this.currentScale();
-
-    if (opt_shape) {
-      const el = opt_shape.querySelector('.a9s-formatter-el');
-      if (el)
-        el.firstChild.setAttribute('transform', `scale(${scale})`);
-    } else {
-      const elements = Array.from(this.g.querySelectorAll('.a9s-formatter-el'));
-      elements.forEach(el =>
-        el.firstChild.setAttribute('transform', `scale(${scale})`));
-    }
-  }
-
-  selectAnnotation = (annotationOrId, skipEvent) => {
-    if (this.selectedShape)
-      this.deselect();
-
-    const selected = this.findShape(annotationOrId);
-
-    if (selected) {
-      this.selectShape(selected, skipEvent);
-
-      const element = this.selectedShape.element ? 
-        this.selectedShape.element : this.selectedShape;
-
-      return { annotation: selected.annotation, element };
-    } else {
-      this.deselect();
     }
   }
 
@@ -527,25 +272,6 @@ export default class GigapixelAnnotationLayer extends EventEmitter {
 
       if (!skipEvent)
         this.emit('select', { annotation, element: shape, skipEvent });   
-    }
-  }
-
-  setDrawingEnabled = enable =>
-    this.mouseTracker?.setTracking(enable && !this.readOnly);
-
-  setDrawingTool = shape => {
-    if (this.tools) {
-      this.tools.current?.stop();
-      this.tools.setCurrent(shape);
-    }
-  }
-
-  setVisible = visible => {
-    if (visible) {
-      this.svg.style.display = null;
-    } else {
-      this.deselect();
-      this.svg.style.display = 'none';
     }
   }
 
