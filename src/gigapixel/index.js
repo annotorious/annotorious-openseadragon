@@ -1,5 +1,10 @@
 import { WebAnnotation } from '@recogito/recogito-client-core';
-import { toRectFragment, parseRectFragment } from '@recogito/annotorious/src/selectors';
+import { SVG_NAMESPACE } from '@recogito/annotorious/src/util/SVG';
+import { 
+  parseRectFragment,
+  svgFragmentToShape,
+  toRectFragment, 
+} from '@recogito/annotorious/src/selectors';
 
 const currentTransform = viewer => {
   const extent = viewer.viewport.viewportToImageRectangle(viewer.viewport.getBounds(true));
@@ -9,6 +14,17 @@ const currentTransform = viewer => {
   const scale = zoom * containerWidth / viewer.world.getContentFactor();
 
   return { extent, scale };
+}
+
+/**
+ * 'FragmentSelector' or 'SvgSelector'
+ */
+const getSelectorType = annotation => {
+  const firstTarget = annotation.targets[0];
+
+  return firstTarget ? (
+    Array.isArray(firstTarget.selector) ? firstTarget.selector[0].type : firstTarget.selector?.type
+  ) : null;
 }
 
 /**
@@ -37,8 +53,31 @@ export const imageAnnotationToViewport = (viewer, annotation) => {
 
   const fragmentSelector = annotation.selector('FragmentSelector');
   const svgSelector = annotation.selector('SvgSelector');
+  
+  if (svgSelector) {
+    const shape = svgFragmentToShape(annotation);
+    const nodeName = shape.nodeName.toLowerCase();
 
-  if (fragmentSelector) {
+    let transformed = null;
+
+    if (nodeName === 'polygon')
+      transformed = polygonAnnotationToViewport(shape, extent, scale);
+    else
+      throw `Unsupported SVG shape type: ${nodeName}`;
+
+    let serialized = transformed.outerHTML || new XMLSerializer().serializeToString(transformed);
+    serialized = serialized.replace(` xmlns="${SVG_NAMESPACE}"`, '');
+  
+    const target = {
+      selector: {
+        type: "SvgSelector",
+        value: `<svg>${serialized}</svg>`
+      }
+    }
+
+    return annotation.clone({ target });
+
+  } else if (fragmentSelector) {
     const { x, y, w, h } = parseRectFragment(annotation);
 
     const updatedX = (x - extent.x) * scale;
@@ -50,10 +89,21 @@ export const imageAnnotationToViewport = (viewer, annotation) => {
     );
 
     return annotation.clone({ target });
-  } else if (svgSelector) {
-    const shape = svgFragmentToShape(annotation);
-
   }
+}
+
+const polygonAnnotationToViewport = (shape, extent, scale) => {
+  const points = Array.from(shape.points);
+
+  const transformed = points.map(pt => {
+    const x = scale * (pt.x - extent.x);
+    const y = scale * (pt.y - extent.y);
+
+    return x + ',' + y;
+  }).join(' ');
+
+  shape.setAttribute('points', transformed);
+  return shape;
 }
 
 /**
@@ -63,18 +113,14 @@ export const imageAnnotationToViewport = (viewer, annotation) => {
 export const refreshViewportPosition = (viewer, shape) => {
   const { extent, scale } = currentTransform(viewer);
 
-  const firstTarget = shape.annotation.targets[0];
-
-  if (firstTarget) {
-    const firstSelector = Array.isArray(firstTarget.selector) ? firstTarget.selector[0] : firstTarget.selector;
-
-    if (firstSelector.type === 'FragmentSelector')
-      refreshRectFragment(shape, extent, scale);
-    else if (firstSelector.type === 'SvgSelector') 
-      refreshSvg(shape, extent, scale);
-    else
-      throw `Unsupported selector type type: ${firstSelector.type}`;
-  }
+  const selectorType = getSelectorType(shape.annotation);
+  
+  if (selectorType === 'FragmentSelector')
+    refreshRectFragment(shape, extent, scale);
+  else if (selectorType === 'SvgSelector') 
+    refreshSvg(shape, extent, scale);
+  else
+    throw `Unsupported selector type type: ${selectorType}`;
 }
 
 const refreshRectFragment = (shape, extent, scale) => {
@@ -86,24 +132,38 @@ const refreshRectFragment = (shape, extent, scale) => {
   const offsetX = scale * (x - extent.x);
   const offsetY = scale * (y - extent.y);
 
-  outer.setAttribute('x', offsetX);
-  outer.setAttribute('y', offsetY);
-  outer.setAttribute('width', w * scale);
-  outer.setAttribute('height', h * scale);
-
-  inner.setAttribute('x', offsetX);
-  inner.setAttribute('y', offsetY);
-  inner.setAttribute('width', w * scale);
-  inner.setAttribute('height', h * scale);
-} 
+  [ outer, inner ].forEach(elem => {
+    elem.setAttribute('x', offsetX);
+    elem.setAttribute('y', offsetY);
+    elem.setAttribute('width', w * scale);
+    elem.setAttribute('height', h * scale);
+  });
+}
 
 const refreshSvg = (shape, extent, scale) => {
   const parsedShape = svgFragmentToShape(shape.annotation);
   const nodeName = parsedShape.nodeName.toLowerCase();
 
   if (nodeName === 'polygon') {
-    renderPolygon(shape, parsedShape, extent, scale);
+    refreshPolygon(shape, parsedShape, extent, scale);
   } else {
     throw `Unsupported SVG shape type: ${nodeName}`;
   }
+}
+
+const refreshPolygon = (shape, imageShape, extent, scale) => {
+  const points = Array.from(imageShape.points);
+
+  const transformed = points.map(pt => {
+    const x = scale * (pt.x - extent.x);
+    const y = scale * (pt.y - extent.y);
+
+    return x + ',' + y;
+  }).join(' ');
+
+  const outer = shape.querySelector('.a9s-outer');
+  outer.setAttribute('points', transformed);
+
+  const inner = shape.querySelector('.a9s-inner');
+  inner.setAttribute('points', transformed);
 }

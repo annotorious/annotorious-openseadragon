@@ -42,5 +42,30 @@
         "value": "xywh=540,240,180,340"
       }
     }
+  },
+  {
+    "type": "Annotation",
+    "body": [
+      {
+        "type": "TextualBody",
+        "value": "A comment...",
+        "purpose": "commenting",
+        "creator": {
+          "id": "http://www.example.com/rainer",
+          "name": "rainer"
+        },
+        "created": "2021-08-14T08:13:12.514Z",
+        "modified": "2021-08-14T08:13:12.557Z"
+      }
+    ],
+    "target": {
+      "source": "http://localhost:3000/640px-Hallstatt.jpg",
+      "selector": {
+        "type": "SvgSelector",
+        "value": "<svg><polygon points=\"447,213 560,140 563,259\"></polygon></svg>"
+      }
+    },
+    "@context": "http://www.w3.org/ns/anno.jsonld",
+    "id": "#9df313be-4ded-4d0f-b7f6-f6b1a19e733b"
   }
 ]
