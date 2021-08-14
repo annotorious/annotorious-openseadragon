@@ -421,34 +421,23 @@ export default class OSDAnnotationLayer extends EventEmitter {
   }
 
   resize() {
+    // Update positions for all anntations except selected (will be handled separately)
     const shapes = Array.from(this.g.querySelectorAll('.a9s-annotation:not(.selected)'));
     shapes.forEach(this._projectToViewport);
 
-
     if (this.selectedShape) {
-      if (this.selectedShape.element) { // Editable shape
-        this._projectToViewport(this.selectedShape);
-
-        /*
-        const { x, y, width, height } = this.selectedShape.element.getBBox();
-        const target = toRectFragment(x, y, width, height, this.env.image);
-
-        const projected = this.selectedShape.element.annotation.clone({
-          target
-        });
-
-        console.log(projected.underlying.target.selector);
-
-        // console.log(this.selectedShape.element.annotation.underlying.target.selector);
-        // const projected = this._annotationToViewport(this.selectedShape.element.annotation);
-        */
-        this.selectedShape.update && this.selectedShape.update();
+      if (this.selectedShape.element) {
+        // Update the viewport position of the editable shape by transforming
+        // this.selectedShape.element.annotation -> this always holds the current
+        // position in image coordinates (including after drag/resize)
+        const projected = this._annotationToViewport(this.selectedShape.element.annotation);
+        this.selectedShape.updateState && this.selectedShape.updateState(projected);
+        
         this.emit('viewportChange', this.selectedShape.element);
       } else {
         this.emit('viewportChange', this.selectedShape); 
       }       
     }
-
   }
 
   resize_orig() {
@@ -541,15 +530,14 @@ export default class OSDAnnotationLayer extends EventEmitter {
           this.emit('select', { annotation, element: this.selectedShape.element });
       }, 1);
 
+      // Init the EditableShape (with the original annotation in image coordinates)
       const toolForAnnotation = this.tools.forAnnotation(annotation);
-      // const projected = this._annotationToViewport(annotation);
-
       this.selectedShape = toolForAnnotation.createEditableShape(annotation);
       this.selectedShape.element.annotation = annotation;     
 
-      this._projectToViewport(this.selectedShape);
-
-      this.selectedShape.update();
+      // Instantly reproject the original annotation to viewport coorods
+      const projected = this._annotationToViewport(annotation);
+      this.selectedShape.updateState(projected);
 
       // If we attach immediately 'mouseEnter' will fire when the editable shape
       // is added to the DOM!
@@ -574,21 +562,12 @@ export default class OSDAnnotationLayer extends EventEmitter {
       this.selectedShape.mouseTracker = editableShapeMouseTracker;
 
       this.selectedShape.on('update', fragment => {
-        // Fragment is in viewport coordinates - project to image coords
+        // Fragment is in viewport coordinates - project back to image coords...
         const projectedTarget = this._projectToImage(fragment);
 
-        const merged = this.selectedShape.annotation.clone({ target: fragment });
-        this.selectedShape.element.annotation = this.selectedShape.annotation.clone({ target: projectedTarget });
-
-        
-        // this.selectedShape.annotation = merged;
-        // this.selectedShape.element.annotation = merged;
-        
-        /*
-        const updatedAnnotation = annotation.clone({ target: projected });
-        
-        this.selectedShape.annotation = updatedAnnotation;
-        */
+        // ...and update element.annotation, so everything stays in sync
+        this.selectedShape.element.annotation =
+          this.selectedShape.annotation.clone({ target: projectedTarget });
 
         this.emit('updateTarget', this.selectedShape.element, projectedTarget)
       });
