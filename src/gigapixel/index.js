@@ -33,15 +33,60 @@ const getSelectorType = annotation => {
  */
 export const viewportTargetToImage = (viewer, target) => {
   const { extent, scale } = currentTransform(viewer);
+  const { selector } = target;
 
-  const { x, y, w, h } = parseRectFragment(WebAnnotation.create({ target }));
+  // Create an empty annotation wrapper so we can use the
+  // standard parse functions
+  const annotation = WebAnnotation.create({ target });
 
-  const xP = extent.x + x / scale;
-  const yP = extent.y + y / scale; 
-  const wP = w / scale;
-  const hP = h / scale;
+  if (selector.type === 'SvgSelector') {
+    const shape = svgFragmentToShape(annotation);
+    const nodeName = shape.nodeName.toLowerCase();
 
-  return toRectFragment(xP, yP, wP, hP);
+    let transformed = null;
+
+    if (nodeName === 'polygon') {
+      transformed = polygonTargetToImage(shape, extent, scale)
+    } else {
+      throw `Unsupported SVG shape type: ${nodeName}`;
+    }
+
+    // TODO refactor to avoid code duplication!
+    let serialized = transformed.outerHTML || new XMLSerializer().serializeToString(transformed);
+    serialized = serialized.replace(` xmlns="${SVG_NAMESPACE}"`, '');
+  
+    return {
+      selector: {
+        type: "SvgSelector",
+        value: `<svg>${serialized}</svg>`
+      }
+    }
+  } else if (selector.type === 'FragmentSelector') {
+    const { x, y, w, h } = parseRectFragment(annotation);
+
+    const xP = extent.x + x / scale;
+    const yP = extent.y + y / scale; 
+    const wP = w / scale;
+    const hP = h / scale;
+
+    return toRectFragment(xP, yP, wP, hP);
+  } else {
+    throw `Unsupported selector type: ${selector.type}`;
+  }
+}
+
+const polygonTargetToImage = (shape, extent, scale) => {
+  const points = Array.from(shape.points);
+
+  const transformed = points.map(pt => {
+    const x = extent.x + pt.x / scale;
+    const y = extent.y + pt.y / scale;
+
+    return x + ',' + y;
+  }).join(' ');
+
+  shape.setAttribute('points', transformed);
+  return shape;
 }
 
 /**
