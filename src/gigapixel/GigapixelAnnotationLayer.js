@@ -1,14 +1,15 @@
 import EventEmitter from 'tiny-emitter';
 import OpenSeadragon from 'openseadragon';
-import { SVG_NAMESPACE, addClass } from '@recogito/annotorious/src/util/SVG';
 import DrawingTools from '@recogito/annotorious/src/tools/ToolsRegistry';
 import Crosshair from '@recogito/annotorious/src/Crosshair';
+import { SVG_NAMESPACE, addClass } from '@recogito/annotorious/src/util/SVG';
 import { drawShape, shapeArea } from '@recogito/annotorious/src/selectors';
 import { format } from '@recogito/annotorious/src/util/Formatting';
 import { isTouchDevice, enableTouchTranslation } from '@recogito/annotorious/src/util/Touch';
-import { getSnippet } from './util/ImageSnippet';
+import { getSnippet } from '../util/ImageSnippet';
+import { viewportTargetToImage, imageAnnotationToViewport, refreshViewportPosition } from '.';
 
-export default class OSDAnnotationLayer extends EventEmitter {
+export default class GigapixelAnnotationLayer extends EventEmitter {
 
   constructor(props) {
     super();
@@ -18,6 +19,8 @@ export default class OSDAnnotationLayer extends EventEmitter {
     this.readOnly = props.config.readOnly;
     this.headless = props.config.headless;
     this.formatter = props.config.formatter;
+
+    this.env = props.env;
 
     this.disableSelect = false;
 
@@ -104,7 +107,11 @@ export default class OSDAnnotationLayer extends EventEmitter {
       }
     }).setTracking(false);
 
-    this.tools.on('complete', shape => { 
+    this.tools.on('complete', shape => {     
+      // Annotation is in SVG coordinates - project to image coordinates  
+      const reprojected = shape.annotation.clone({ target: viewportTargetToImage(this.viewer, shape.annotation.target) });
+      shape.annotation = reprojected;
+
       this.selectShape(shape);
       this.emit('createSelection', shape.annotation);
       this.mouseTracker.setTracking(false);
@@ -158,7 +165,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
       // selection action!
       const isSelection = this.selectedShape?.annotation.isSelection;
 
-      if (!isSelection && !this.disableSelect)
+      if (!isSelection && !this.disableSelect && this.selectedShape?.element !== shape)
         this.selectShape(shape);
       
       if (this.disableSelect)
@@ -181,10 +188,13 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
   addAnnotation = annotation => {
     const shape = drawShape(annotation);
+
     shape.setAttribute('class', 'a9s-annotation');
 
     shape.setAttribute('data-id', annotation.id);
     shape.annotation = annotation;
+
+    refreshViewportPosition(this.viewer, shape);
 
     this._attachMouseListeners(shape, annotation);
 
@@ -192,7 +202,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
     format(shape, annotation, this.formatter);
 
-    this.scaleFormatterElements(shape);
+    // this.scaleFormatterElements(shape);
   }
 
   addDrawingTool = plugin =>
@@ -280,7 +290,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
     shapes.forEach(s => this.g.removeChild(s));
 
     // Add
-    annotations.sort((a, b) => shapeArea(b) - shapeArea(a));
+    // annotations.sort((a, b) => shapeArea(b) - shapeArea(a));
     annotations.forEach(this.addAnnotation);
   }
 
@@ -340,6 +350,8 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
       this.g.appendChild(toRedraw);
     } 
+
+    this.resize();
   }
   
   removeAnnotation = annotationOrId => {
@@ -360,6 +372,26 @@ export default class OSDAnnotationLayer extends EventEmitter {
   }
 
   resize() {
+    // Update positions for all anntations except selected (will be handled separately)
+    const shapes = Array.from(this.g.querySelectorAll('.a9s-annotation:not(.selected)'));
+    shapes.forEach(s => refreshViewportPosition(this.viewer, s));
+
+    if (this.selectedShape) {
+      if (this.selectedShape.element) {
+        // Update the viewport position of the editable shape by transforming
+        // this.selectedShape.element.annotation -> this always holds the current
+        // position in image coordinates (including after drag/resize)
+        const projected = imageAnnotationToViewport(this.viewer, this.selectedShape.element.annotation);
+        this.selectedShape.updateState && this.selectedShape.updateState(projected);
+        
+        this.emit('viewportChange', this.selectedShape.element);
+      } else {
+        this.emit('viewportChange', this.selectedShape); 
+      }       
+    }
+  }
+
+  resize_orig() {
     const flipped = this.viewer.viewport.getFlip();
 
     const p = this.viewer.viewport.pixelFromPoint(new OpenSeadragon.Point(0, 0), true);
@@ -449,13 +481,14 @@ export default class OSDAnnotationLayer extends EventEmitter {
           this.emit('select', { annotation, element: this.selectedShape.element });
       }, 1);
 
+      // Init the EditableShape (with the original annotation in image coordinates)
       const toolForAnnotation = this.tools.forAnnotation(annotation);
       this.selectedShape = toolForAnnotation.createEditableShape(annotation);
-      this.selectedShape.scaleHandles(1 / this.currentScale());
-
-      this.scaleFormatterElements(this.selectedShape.element);
-
       this.selectedShape.element.annotation = annotation;     
+
+      // Instantly reproject the original annotation to viewport coorods
+      const projected = imageAnnotationToViewport(this.viewer, annotation);
+      this.selectedShape.updateState(projected);
 
       // If we attach immediately 'mouseEnter' will fire when the editable shape
       // is added to the DOM!
@@ -479,8 +512,16 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
       this.selectedShape.mouseTracker = editableShapeMouseTracker;
 
-      this.selectedShape.on('update', fragment =>
-        this.emit('updateTarget', this.selectedShape.element, fragment));
+      this.selectedShape.on('update', fragment => {
+        // Fragment is in viewport coordinates - project back to image coords...
+        const projectedTarget = viewportTargetToImage(this.viewer, fragment);
+
+        // ...and update element.annotation, so everything stays in sync
+        this.selectedShape.element.annotation =
+          this.selectedShape.annotation.clone({ target: projectedTarget });
+
+        this.emit('updateTarget', this.selectedShape.element, projectedTarget)
+      });
     } else {
       this.selectedShape = shape;
 

@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Editor } from '@recogito/recogito-client-core';
 import OSDAnnotationLayer from './OSDAnnotationLayer';
+import GigapixelAnnotationLayer from './gigapixel/GigapixelAnnotationLayer';
 
 export default class OpenSeadragonAnnotator extends Component {
 
@@ -39,7 +40,9 @@ export default class OpenSeadragonAnnotator extends Component {
   }, opt_callback);
 
   componentDidMount() {
-    this.annotationLayer = new OSDAnnotationLayer(this.props);
+    this.annotationLayer = this.props.config.gigapixelMode ? 
+      new GigapixelAnnotationLayer(this.props) :
+      new OSDAnnotationLayer(this.props);
 
     this.annotationLayer.on('startSelection', this.handleStartSelect);
     this.annotationLayer.on('select', this.handleSelect);
