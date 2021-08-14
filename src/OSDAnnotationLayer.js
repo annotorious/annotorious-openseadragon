@@ -1,15 +1,13 @@
 import EventEmitter from 'tiny-emitter';
 import OpenSeadragon from 'openseadragon';
-import { SVG_NAMESPACE, addClass } from '@recogito/annotorious/src/util/SVG';
 import DrawingTools from '@recogito/annotorious/src/tools/ToolsRegistry';
 import Crosshair from '@recogito/annotorious/src/Crosshair';
+import { SVG_NAMESPACE, addClass } from '@recogito/annotorious/src/util/SVG';
 import { drawShape, shapeArea } from '@recogito/annotorious/src/selectors';
 import { format } from '@recogito/annotorious/src/util/Formatting';
 import { isTouchDevice, enableTouchTranslation } from '@recogito/annotorious/src/util/Touch';
 import { getSnippet } from './util/ImageSnippet';
-import { parseRectFragment, toRectFragment } from '@recogito/annotorious/src/selectors';
-import { renderPrecise } from './rendering';
-import { WebAnnotation } from '@recogito/recogito-client-core';
+import { viewportTargetToImage, imageAnnotationToViewport, refreshViewportPosition } from './gigapixel';
 
 export default class OSDAnnotationLayer extends EventEmitter {
 
@@ -111,7 +109,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
     this.tools.on('complete', shape => {     
       // Annotation is in SVG coordinates - project to image coordinates  
-      const reprojected = shape.annotation.clone({ target: this._projectToImage(shape.annotation.target) });
+      const reprojected = shape.annotation.clone({ target: viewportTargetToImage(this.viewer, shape.annotation.target) });
       shape.annotation = reprojected;
 
       this.selectShape(shape);
@@ -196,7 +194,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
     shape.setAttribute('data-id', annotation.id);
     shape.annotation = annotation;
 
-    this._projectToViewport(shape);
+    refreshViewportPosition(this.viewer, shape);
 
     this._attachMouseListeners(shape, annotation);
 
@@ -373,64 +371,17 @@ export default class OSDAnnotationLayer extends EventEmitter {
     }
   }
 
-  _projectToImage = target => {
-    const extent = this.viewer.viewport.viewportToImageRectangle(this.viewer.viewport.getBounds(true));
-    const scale = this.currentScale();
-
-    const { x, y, w, h } = parseRectFragment(WebAnnotation.create({ target }));
-
-    const xP = extent.x + x / scale;
-    const yP = extent.y + y / scale; 
-    const wP = w / scale;
-    const hP = h / scale;
-
-    return toRectFragment(xP, yP, wP, hP, this.env.image);
-  }
-
-  _projectToViewport = shape => {
-    const extent = this.viewer.viewport.viewportToImageRectangle(this.viewer.viewport.getBounds(true));
-    const scale = this.currentScale();
-    renderPrecise(shape, extent, scale);
-  }
-
-
-  _annotationToViewport = annotation => {
-    const extent = this.viewer.viewport.viewportToImageRectangle(this.viewer.viewport.getBounds(true));
-    const scale = this.currentScale();
-  
-    const fragmentSelector = annotation.selector('FragmentSelector');
-    const svgSelector = annotation.selector('SvgSelector');
-
-    if (fragmentSelector) {
-      const { x, y, w, h } = parseRectFragment(annotation);
-
-      const updatedX = (x - extent.x) * scale;
-      const updatedY = (y - extent.y) * scale;
-
-      const target = toRectFragment(
-        updatedX, updatedY, 
-        w * scale, h * scale, 
-        this.env.image
-      );
-
-      return annotation.clone({ target });
-    } else if (svgSelector) {
-      const shape = svgFragmentToShape(annotation);
-
-    }
-  }
-
   resize() {
     // Update positions for all anntations except selected (will be handled separately)
     const shapes = Array.from(this.g.querySelectorAll('.a9s-annotation:not(.selected)'));
-    shapes.forEach(this._projectToViewport);
+    shapes.forEach(s => refreshViewportPosition(this.viewer, s));
 
     if (this.selectedShape) {
       if (this.selectedShape.element) {
         // Update the viewport position of the editable shape by transforming
         // this.selectedShape.element.annotation -> this always holds the current
         // position in image coordinates (including after drag/resize)
-        const projected = this._annotationToViewport(this.selectedShape.element.annotation);
+        const projected = imageAnnotationToViewport(this.viewer, this.selectedShape.element.annotation);
         this.selectedShape.updateState && this.selectedShape.updateState(projected);
         
         this.emit('viewportChange', this.selectedShape.element);
@@ -536,7 +487,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
       this.selectedShape.element.annotation = annotation;     
 
       // Instantly reproject the original annotation to viewport coorods
-      const projected = this._annotationToViewport(annotation);
+      const projected = imageAnnotationToViewport(this.viewer, annotation);
       this.selectedShape.updateState(projected);
 
       // If we attach immediately 'mouseEnter' will fire when the editable shape
@@ -563,7 +514,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
 
       this.selectedShape.on('update', fragment => {
         // Fragment is in viewport coordinates - project back to image coords...
-        const projectedTarget = this._projectToImage(fragment);
+        const projectedTarget = viewportTargetToImage(this.viewer, fragment);
 
         // ...and update element.annotation, so everything stays in sync
         this.selectedShape.element.annotation =
