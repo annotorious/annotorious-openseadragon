@@ -2,16 +2,14 @@ import OpenSeadragon from 'openseadragon';
 import { drawShape, shapeArea } from '@recogito/annotorious/src/selectors';
 import { format } from '@recogito/annotorious/src/util/Formatting';
 import { viewportTargetToImage, imageAnnotationToViewport, refreshViewportPosition } from '.';
-import OSDAnnotationLayer from '../OSDAnnotationLayer';
+import { AnnotationLayer } from '../OSDAnnotationLayer';
 
-export default class GigapixelAnnotationLayer extends OSDAnnotationLayer {
+export default class GigapixelAnnotationLayer extends AnnotationLayer {
 
   constructor(props) {
     super(props);
-    
-    this.env = props.env;
 
-    this._initDrawingMouseTracker();
+    this.env = props.env;
 
     this.tools.on('complete', shape => {     
       // Annotation is in SVG coordinates - project to image coordinates  

@@ -8,7 +8,11 @@ import { format } from '@recogito/annotorious/src/util/Formatting';
 import { isTouchDevice, enableTouchTranslation } from '@recogito/annotorious/src/util/Touch';
 import { getSnippet } from './util/ImageSnippet';
 
-class AnnotationLayer extends EventEmitter {
+/**
+ * Code shared between (normal) OSDAnnotationLayer and
+ * GigapixelAnnotationLayer
+ */
+export class AnnotationLayer extends EventEmitter {
 
   constructor(props) {
     super();
@@ -65,7 +69,8 @@ class AnnotationLayer extends EventEmitter {
     this.selectedShape = null;
 
     this.tools = new DrawingTools(this.g, props.config, props.env);
-    // this._initDrawingMouseTracker();
+    
+    this._initDrawingMouseTracker();
   }
 
   /** Initializes the OSD MouseTracker used for drawing **/
