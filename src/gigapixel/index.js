@@ -94,9 +94,9 @@ const polygonTargetToImage = (shape, extent, scale) => {
 }
 
 const circleTargetToImage = (shape, extent, scale) => {
-  const cx = shape.getAttribute('cx');
-  const cy = shape.getAttribute('cy');
-  const r = shape.getAttribute('r');
+  const cx = parseFloat(shape.getAttribute('cx'));
+  const cy = parseFloat(shape.getAttribute('cy'));
+  const r =  parseFloat(shape.getAttribute('r'));
 
   shape.setAttribute('cx', extent.x + cx / scale);
   shape.setAttribute('cy', extent.y + cy / scale);
@@ -106,10 +106,10 @@ const circleTargetToImage = (shape, extent, scale) => {
 }
 
 const ellipseTargetToImage = (shape, extent, scale) => {
-  const cx = shape.getAttribute('cx');
-  const cy = shape.getAttribute('cy');
-  const rx = shape.getAttribute('rx');
-  const ry = shape.getAttribute('ry');
+  const cx = parseFloat(shape.getAttribute('cx'));
+  const cy = parseFloat(shape.getAttribute('cy'));
+  const rx = parseFloat(shape.getAttribute('rx'));
+  const ry = parseFloat(shape.getAttribute('ry'));
 
   shape.setAttribute('cx', extent.x + cx / scale);
   shape.setAttribute('cy', extent.y + cy / scale);
@@ -280,7 +280,7 @@ const refreshPolygon = (shape, imageShape, extent, scale) => {
 const refreshCircle = (shape, imageShape, extent, scale) => {
   const cx = scale * (imageShape.getAttribute('cx') - extent.x);
   const cy = scale * (imageShape.getAttribute('cy') - extent.y);
-  const r = scale * imageShape.getAttribute('r');
+  const r =  scale * imageShape.getAttribute('r');
 
   const outer = shape.querySelector('.a9s-outer');
   outer.setAttribute('cx', cx);
