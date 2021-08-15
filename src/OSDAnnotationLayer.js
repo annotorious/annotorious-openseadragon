@@ -8,7 +8,7 @@ import { format } from '@recogito/annotorious/src/util/Formatting';
 import { isTouchDevice, enableTouchTranslation } from '@recogito/annotorious/src/util/Touch';
 import { getSnippet } from './util/ImageSnippet';
 
-export default class OSDAnnotationLayer extends EventEmitter {
+class AnnotationLayer extends EventEmitter {
 
   constructor(props) {
     super();
@@ -65,7 +65,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
     this.selectedShape = null;
 
     this.tools = new DrawingTools(this.g, props.config, props.env);
-    this._initDrawingMouseTracker();
+    // this._initDrawingMouseTracker();
   }
 
   /** Initializes the OSD MouseTracker used for drawing **/
@@ -77,9 +77,10 @@ export default class OSDAnnotationLayer extends EventEmitter {
       element: this.svg,
 
       pressHandler: evt => {
-        if (!this.tools.current.isDrawing)
+        if (!this.tools.current.isDrawing) {
           this.tools.current.start(evt.originalEvent);
           this.tools.current.scaleHandles(1 / this.currentScale());
+        }
       },
 
       moveHandler: evt => {
@@ -104,12 +105,6 @@ export default class OSDAnnotationLayer extends EventEmitter {
       }
     }).setTracking(false);
 
-    this.tools.on('complete', shape => { 
-      this.selectShape(shape);
-      this.emit('createSelection', shape.annotation);
-      this.mouseTracker.setTracking(false);
-    });
-
     // Keep tracker disabled until Shift is held
     document.addEventListener('keydown', evt => {
       if (evt.which === 16 && !this.selectedShape) { // Shift
@@ -122,6 +117,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
         this.mouseTracker.setTracking(false);
       }
     });
+
   }
 
   _removeMouseListeners = shape => {
@@ -158,7 +154,7 @@ export default class OSDAnnotationLayer extends EventEmitter {
       // selection action!
       const isSelection = this.selectedShape?.annotation.isSelection;
 
-      if (!isSelection && !this.disableSelect)
+      if (!isSelection && !this.disableSelect && this.selectedShape?.element !== shape)
         this.selectShape(shape);
       
       if (this.disableSelect)
@@ -506,6 +502,20 @@ export default class OSDAnnotationLayer extends EventEmitter {
       this.deselect();
       this.svg.style.display = 'none';
     }
+  }
+
+}
+
+export default class OSDAnnotationLayer extends AnnotationLayer {
+
+  constructor(props) {
+    super(props);
+
+    this.tools.on('complete', shape => { 
+      this.selectShape(shape);
+      this.emit('createSelection', shape.annotation);
+      this.mouseTracker.setTracking(false);
+    });
   }
 
 }

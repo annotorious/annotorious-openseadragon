@@ -8,44 +8,10 @@ export default class GigapixelAnnotationLayer extends OSDAnnotationLayer {
 
   constructor(props) {
     super(props);
+    
     this.env = props.env;
-  }
 
-  /** Initializes the OSD MouseTracker used for drawing **/
-  _initDrawingMouseTracker = () => {
-
-    let started = false;
-
-    this.mouseTracker = new OpenSeadragon.MouseTracker({
-      element: this.svg,
-
-      pressHandler: evt => {
-        if (!this.tools.current.isDrawing)
-          this.tools.current.start(evt.originalEvent);
-          this.tools.current.scaleHandles(1 / this.currentScale());
-      },
-
-      moveHandler: evt => {
-        if (this.tools.current.isDrawing) {
-          const { x , y } = this.tools.current.getSVGPoint(evt.originalEvent);
-          this.tools.current.onMouseMove(x, y, evt.originalEvent);
-
-          if (!started) {
-            this.emit('startSelection', { x , y });
-            started = true;
-          }
-        }
-      },
-
-      releaseHandler: evt => {
-        if (this.tools.current.isDrawing) {
-          const { x , y } = this.tools.current.getSVGPoint(evt.originalEvent);
-          this.tools.current.onMouseUp(x, y, evt.originalEvent);
-        }
-
-        started = false;
-      }
-    }).setTracking(false);
+    this._initDrawingMouseTracker();
 
     this.tools.on('complete', shape => {     
       // Annotation is in SVG coordinates - project to image coordinates  
@@ -56,65 +22,6 @@ export default class GigapixelAnnotationLayer extends OSDAnnotationLayer {
       this.emit('createSelection', shape.annotation);
       this.mouseTracker.setTracking(false);
     });
-
-    // Keep tracker disabled until Shift is held
-    document.addEventListener('keydown', evt => {
-      if (evt.which === 16 && !this.selectedShape) { // Shift
-        this.mouseTracker.setTracking(!this.readOnly);
-      }
-    });
-
-    document.addEventListener('keyup', evt => {
-      if (evt.which === 16 && !this.tools.current.isDrawing) {
-        this.mouseTracker.setTracking(false);
-      }
-    });
-  }
-
-  _attachMouseListeners = (shape, annotation) => {
-    const onMouseEnter = () => {
-      this.viewer.gestureSettingsByDeviceType('mouse').clickToZoom = false;
-
-      if (!this.tools?.current.isDrawing)
-        this.emit('mouseEnterAnnotation', annotation, shape);
-    };
-
-    const onMouseLeave = () => {
-      this.viewer.gestureSettingsByDeviceType('mouse').clickToZoom = true;
-
-      if (!this.tools?.current.isDrawing)
-        this.emit('mouseLeaveAnnotation', annotation, shape);
-    };
-
-    // Common click/tap handler
-    const onClick = () => {
-      this.viewer.gestureSettingsByDeviceType('mouse').clickToZoom = false;
-
-      // Unfortunately, click also fires after drag, which means
-      // a new selection on top of this shape will be interpreted 
-      // as click. Identify this case and prevent the default
-      // selection action!
-      const isSelection = this.selectedShape?.annotation.isSelection;
-
-      if (!isSelection && !this.disableSelect && this.selectedShape?.element !== shape)
-        this.selectShape(shape);
-      
-      if (this.disableSelect)
-        this.emit('clickAnnotation', shape.annotation, shape);
-    }
-
-    shape.addEventListener('mouseenter', onMouseEnter);
-    shape.addEventListener('mouseleave', onMouseLeave);
-    shape.addEventListener('click', onClick);
-    shape.addEventListener('touchend', onClick);
-
-    // Store, so we can remove later
-    shape.listeners = {
-      mouseenter: onMouseEnter,
-      mouseleave: onMouseLeave,
-      click: onClick,
-      touchend: onClick
-    }
   }
 
   addAnnotation = annotation => {
