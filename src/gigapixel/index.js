@@ -46,7 +46,11 @@ export const viewportTargetToImage = (viewer, target) => {
     let transformed = null;
 
     if (nodeName === 'polygon') {
-      transformed = polygonTargetToImage(shape, extent, scale)
+      transformed = polygonTargetToImage(shape, extent, scale);
+    } else if (nodeName === 'circle') {
+      transformed = circleTargetToImage(shape, extent, scale);
+    } else if (nodeName === 'ellipse') {
+      transformed = ellipseTargetToImage(shape, extent, scale);
     } else {
       throw `Unsupported SVG shape type: ${nodeName}`;
     }
@@ -89,6 +93,32 @@ const polygonTargetToImage = (shape, extent, scale) => {
   return shape;
 }
 
+const circleTargetToImage = (shape, extent, scale) => {
+  const cx = shape.getAttribute('cx');
+  const cy = shape.getAttribute('cy');
+  const r = shape.getAttribute('r');
+
+  shape.setAttribute('cx', extent.x + cx / scale);
+  shape.setAttribute('cy', extent.y + cy / scale);
+  shape.setAttribute('r', r / scale);
+
+  return shape;
+}
+
+const ellipseTargetToImage = (shape, extent, scale) => {
+  const cx = shape.getAttribute('cx');
+  const cy = shape.getAttribute('cy');
+  const rx = shape.getAttribute('rx');
+  const ry = shape.getAttribute('ry');
+
+  shape.setAttribute('cx', extent.x + cx / scale);
+  shape.setAttribute('cy', extent.y + cy / scale);
+  shape.setAttribute('rx', rx / scale);
+  shape.setAttribute('ry', ry / scale);
+
+  return shape;
+}
+
 /**
  * Converts an annotation in base image coordinates to 
  * gigapixel viewport coordinates.
@@ -107,6 +137,10 @@ export const imageAnnotationToViewport = (viewer, annotation) => {
 
     if (nodeName === 'polygon')
       transformed = polygonAnnotationToViewport(shape, extent, scale);
+    else if (nodeName === 'circle')
+      transformed = circleAnnotationToViewport(shape, extent, scale);
+    else if (nodeName === 'ellipse')
+      transformed = ellipseAnnotationToViewport(shape, extent, scale);
     else
       throw `Unsupported SVG shape type: ${nodeName}`;
 
@@ -151,6 +185,32 @@ const polygonAnnotationToViewport = (shape, extent, scale) => {
   return shape;
 }
 
+const circleAnnotationToViewport = (shape, extent, scale) => {
+  const cx = shape.getAttribute('cx');
+  const cy = shape.getAttribute('cy');
+  const r = shape.getAttribute('r');
+
+  shape.setAttribute('cx', scale * (cx - extent.x));
+  shape.setAttribute('cy', scale * (cy - extent.y));
+  shape.setAttribute('r', r * scale);
+
+  return shape;
+}
+
+const ellipseAnnotationToViewport = (shape, extent, scale) => {
+  const cx = shape.getAttribute('cx');
+  const cy = shape.getAttribute('cy');
+  const rx = shape.getAttribute('rx');
+  const ry = shape.getAttribute('ry');
+
+  shape.setAttribute('cx', scale * (cx - extent.x));
+  shape.setAttribute('cy', scale * (cy - extent.y));
+  shape.setAttribute('rx', rx * scale);
+  shape.setAttribute('ry', ry * scale);
+
+  return shape;
+}
+
 /**
  * Updates the position of the shape to match the current viewport
  * transform.
@@ -191,6 +251,10 @@ const refreshSvg = (shape, extent, scale) => {
 
   if (nodeName === 'polygon') {
     refreshPolygon(shape, parsedShape, extent, scale);
+  } else if (nodeName === 'circle') {
+    refreshCircle(shape, parsedShape, extent, scale);
+  } else if (nodeName === 'ellipse') {
+    refreshEllipse(shape, parsedShape, extent, scale);
   } else {
     throw `Unsupported SVG shape type: ${nodeName}`;
   }
@@ -211,4 +275,39 @@ const refreshPolygon = (shape, imageShape, extent, scale) => {
 
   const inner = shape.querySelector('.a9s-inner');
   inner.setAttribute('points', transformed);
+}
+
+const refreshCircle = (shape, imageShape, extent, scale) => {
+  const cx = scale * (imageShape.getAttribute('cx') - extent.x);
+  const cy = scale * (imageShape.getAttribute('cy') - extent.y);
+  const r = scale * imageShape.getAttribute('r');
+
+  const outer = shape.querySelector('.a9s-outer');
+  outer.setAttribute('cx', cx);
+  outer.setAttribute('cy', cy);
+  outer.setAttribute('r', r);
+
+  const inner = shape.querySelector('.a9s-inner');
+  inner.setAttribute('cx', cx);
+  inner.setAttribute('cy', cy);
+  inner.setAttribute('r', r);
+} 
+
+const refreshEllipse = (shape, imageShape, extent, scale) => {
+  const cx = scale * (imageShape.getAttribute('cx') - extent.x);
+  const cy = scale * (imageShape.getAttribute('cy') - extent.y);
+  const rx = scale * imageShape.getAttribute('rx');
+  const ry = scale * imageShape.getAttribute('ry');
+
+  const outer = shape.querySelector('.a9s-outer');
+  outer.setAttribute('cx', cx);
+  outer.setAttribute('cy', cy);
+  outer.setAttribute('rx', rx);
+  outer.setAttribute('ry', ry);
+
+  const inner = shape.querySelector('.a9s-inner');
+  inner.setAttribute('cx', cx);
+  inner.setAttribute('cy', cy);
+  inner.setAttribute('rx', rx);
+  inner.setAttribute('ry', ry);
 }
