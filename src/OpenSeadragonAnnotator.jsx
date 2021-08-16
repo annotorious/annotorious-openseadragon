@@ -357,9 +357,6 @@ export default class OpenSeadragonAnnotator extends Component {
       this.clearState();
   }
 
-  setWidgets = widgets =>
-    this.setState({ widgets });
-
   updateSelected = (annotation, saveImmediately) =>
     new Promise(resolve => {
       if (this.state.selectedAnnotation) {
@@ -376,7 +373,15 @@ export default class OpenSeadragonAnnotator extends Component {
           }, resolve);
         }
       }
-    })
+    });
+
+  get widgets() {
+    return this.state.widgets;
+  }
+
+  set widgets(widgets) {
+    this.setState({ widgets });
+  }
 
   render() {
     // The editor should open under normal conditions - annotation was selected, no headless mode

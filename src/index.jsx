@@ -207,14 +207,11 @@ class OSDAnnotorious {
   setDrawingTool = shape =>
     this._app.current.setDrawingTool(shape);
 
-  setVisible = visible =>
-    this._app.current.setVisible(visible); 
-
-  setWidgets = widgets =>
-    this._app.current.setWidgets(widgets);
-
   setServerTime = timestamp => 
     this._env.setServerTime(timestamp);
+
+  setVisible = visible =>
+    this._app.current.setVisible(visible); 
 
   updateSelected = annotation => {
     let updated = null;
@@ -227,6 +224,14 @@ class OSDAnnotorious {
     
     if (updated)
       this._app.current.updateSelected(updated);
+  }
+
+  get widgets() {
+    return this._app.current.widgets;
+  }
+
+  set widgets(widgets) {
+    this._app.current.widgets = widgets;
   }
 
 }
