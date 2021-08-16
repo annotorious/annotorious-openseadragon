@@ -23,7 +23,7 @@ export class AnnotationLayer extends EventEmitter {
     this.headless = props.config.headless;
     this.formatter = props.config.formatter;
 
-    this.disableSelect = false;
+    this.disableSelect = props.disableSelect;
 
     this.svg = document.createElementNS(SVG_NAMESPACE, 'svg');
 
