@@ -84,7 +84,7 @@ export class AnnotationLayer extends EventEmitter {
       pressHandler: evt => {
         if (!this.tools.current.isDrawing) {
           this.tools.current.start(evt.originalEvent);
-          this.tools.current.scaleHandles(1 / this.currentScale());
+          // this.tools.current.scaleHandles(1 / this.currentScale());
         }
       },
 
