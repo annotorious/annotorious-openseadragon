@@ -51,6 +51,8 @@ export const viewportTargetToImage = (viewer, target) => {
       transformed = circleTargetToImage(shape, extent, scale);
     } else if (nodeName === 'ellipse') {
       transformed = ellipseTargetToImage(shape, extent, scale);
+    } else if (nodeName === 'path') {
+      transformed = pathTargetToImage(shape, extent, scale);
     } else {
       throw `Unsupported SVG shape type: ${nodeName}`;
     }
@@ -119,6 +121,29 @@ const ellipseTargetToImage = (shape, extent, scale) => {
   return shape;
 }
 
+const pathTargetToImage = (shape, extent, scale) => {
+  const commands = shape.getAttribute('d')
+    .split(/(?=M|m|L|l|H|h|V|v|Z|z)/g)
+    .map(str => str.trim());
+
+  const transformed = commands.map(cmd => {
+    const op = cmd.substring(0, 1);
+    const xy = cmd.substring(1).split(' ')
+      .map(str => parseFloat(str.trim()));
+
+    // Uppercase ops are absolute coords -> transform
+    const isUppercase = op === op.toUpperCase();
+
+    const x = isUppercase ? extent.x + xy[0] / scale : xy[0];
+    const y = isUppercase ? extent.y + xy[1] / scale : xy[1];
+
+    return op + ' ' + x + ' ' + y;
+  }).join(' ');
+
+  shape.setAttribute('d', transformed);
+  return shape;
+}
+
 /**
  * Converts an annotation in base image coordinates to 
  * gigapixel viewport coordinates.
@@ -141,6 +166,8 @@ export const imageAnnotationToViewport = (viewer, annotation) => {
       transformed = circleAnnotationToViewport(shape, extent, scale);
     else if (nodeName === 'ellipse')
       transformed = ellipseAnnotationToViewport(shape, extent, scale);
+    else if (nodeName === 'path')
+      transformed = pathAnnotationToViewport(shape, extent, scale);
     else
       throw `Unsupported SVG shape type: ${nodeName}`;
 
@@ -211,6 +238,29 @@ const ellipseAnnotationToViewport = (shape, extent, scale) => {
   return shape;
 }
 
+const pathAnnotationToViewport = (shape, extent, scale) => {
+  const commands = shape.getAttribute('d')
+    .split(/(?=M|m|L|l|H|h|V|v|Z|z)/g)
+    .map(str => str.trim());
+
+  const transformed = commands.map(cmd => {
+    const op = cmd.substring(0, 1);
+    const xy = cmd.substring(1).split(' ')
+      .filter(str => str) // Remove leading empty strings
+      .map(str => parseFloat(str.trim()));
+
+    // Uppercase ops are absolute coords -> transform
+    const isUppercase = op === op.toUpperCase();
+    const x = isUppercase ? scale * (xy[0] - extent.x) : xy[0];
+    const y = isUppercase ? scale * (xy[1] - extent.y) : xy[1];
+
+    return op + ' ' + x + ' ' + y;
+  }).join(' ');
+
+  shape.setAttribute('d', transformed);
+  return shape;
+}
+
 /**
  * Updates the position of the shape to match the current viewport
  * transform.
@@ -255,6 +305,8 @@ const refreshSvg = (shape, extent, scale) => {
     refreshCircle(shape, parsedShape, extent, scale);
   } else if (nodeName === 'ellipse') {
     refreshEllipse(shape, parsedShape, extent, scale);
+  } else if (nodeName === 'path') {
+    refreshPath(shape, parsedShape, extent, scale);
   } else {
     throw `Unsupported SVG shape type: ${nodeName}`;
   }
@@ -310,4 +362,27 @@ const refreshEllipse = (shape, imageShape, extent, scale) => {
   inner.setAttribute('cy', cy);
   inner.setAttribute('rx', rx);
   inner.setAttribute('ry', ry);
+}
+
+const refreshPath = (shape, imageShape, extent, scale) => {
+  const commands = imageShape.getAttribute('d')
+    .split(/(?=M|m|L|l|H|h|V|v|Z|z)/g)
+    .map(str => str.trim());
+
+  const transformed = commands.map(cmd => {
+    const op = cmd.substring(0, 1);
+    const xy = cmd.substring(1).split(' ')
+      .filter(str => str) // Remove leading empty strings
+      .map(str => parseFloat(str.trim()));
+
+    // Uppercase ops are absolute coords -> transform
+    const isUppercase = op === op.toUpperCase();
+    const x = isUppercase ? scale * (xy[0] - extent.x) : xy[0];
+    const y = isUppercase ? scale * (xy[1] - extent.y) : xy[1];
+
+    return op + ' ' + x + ' ' + y;
+  }).join(' ');
+
+  shape.querySelector('.a9s-inner').setAttribute('d', transformed);
+  shape.querySelector('.a9s-outer').setAttribute('d', transformed);
 }
