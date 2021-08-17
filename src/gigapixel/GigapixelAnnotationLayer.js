@@ -47,7 +47,7 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
     shapes.forEach(s => this.g.removeChild(s));
 
     // Add
-    // annotations.sort((a, b) => shapeArea(b) - shapeArea(a));
+    annotations.sort((a, b) => shapeArea(b) - shapeArea(a));
     annotations.forEach(this.addAnnotation);
   }
 
