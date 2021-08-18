@@ -134,8 +134,8 @@ const pathTargetToImage = (shape, extent, scale) => {
     // Uppercase ops are absolute coords -> transform
     const isUppercase = op === op.toUpperCase();
 
-    const x = isUppercase ? extent.x + xy[0] / scale : xy[0];
-    const y = isUppercase ? extent.y + xy[1] / scale : xy[1];
+    const x = isUppercase ? extent.x + xy[0] / scale : xy[0] / scale;
+    const y = isUppercase ? extent.y + xy[1] / scale : xy[1] / scale;
 
     return op + ' ' + x + ' ' + y;
   }).join(' ');
@@ -251,8 +251,8 @@ const pathAnnotationToViewport = (shape, extent, scale) => {
 
     // Uppercase ops are absolute coords -> transform
     const isUppercase = op === op.toUpperCase();
-    const x = isUppercase ? scale * (xy[0] - extent.x) : xy[0];
-    const y = isUppercase ? scale * (xy[1] - extent.y) : xy[1];
+    const x = isUppercase ? scale * (xy[0] - extent.x) : scale * xy[0];
+    const y = isUppercase ? scale * (xy[1] - extent.y) : scale * xy[1];
 
     return op + ' ' + x + ' ' + y;
   }).join(' ');
@@ -377,8 +377,8 @@ const refreshPath = (shape, imageShape, extent, scale) => {
 
     // Uppercase ops are absolute coords -> transform
     const isUppercase = op === op.toUpperCase();
-    const x = isUppercase ? scale * (xy[0] - extent.x) : xy[0];
-    const y = isUppercase ? scale * (xy[1] - extent.y) : xy[1];
+    const x = isUppercase ? scale * (xy[0] - extent.x) : scale * xy[0];
+    const y = isUppercase ? scale * (xy[1] - extent.y) : scale * xy[1];
 
     return op + ' ' + x + ' ' + y;
   }).join(' ');
