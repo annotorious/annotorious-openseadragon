@@ -128,16 +128,21 @@ const pathTargetToImage = (shape, extent, scale) => {
 
   const transformed = commands.map(cmd => {
     const op = cmd.substring(0, 1);
-    const xy = cmd.substring(1).split(' ')
-      .map(str => parseFloat(str.trim()));
 
-    // Uppercase ops are absolute coords -> transform
-    const isUppercase = op === op.toUpperCase();
+    if (op.toLowerCase() === 'z') {
+      return op;
+    } else {
+      const xy = cmd.substring(1).split(' ')
+        .map(str => parseFloat(str.trim()));
 
-    const x = isUppercase ? extent.x + xy[0] / scale : xy[0] / scale;
-    const y = isUppercase ? extent.y + xy[1] / scale : xy[1] / scale;
+      // Uppercase ops are absolute coords -> transform
+      const isUppercase = op === op.toUpperCase();
 
-    return op + ' ' + x + ' ' + y;
+      const x = isUppercase ? extent.x + xy[0] / scale : xy[0] / scale;
+      const y = isUppercase ? extent.y + xy[1] / scale : xy[1] / scale;
+
+      return op + ' ' + x + ' ' + y;
+    }
   }).join(' ');
 
   shape.setAttribute('d', transformed);
@@ -245,16 +250,21 @@ const pathAnnotationToViewport = (shape, extent, scale) => {
 
   const transformed = commands.map(cmd => {
     const op = cmd.substring(0, 1);
-    const xy = cmd.substring(1).split(' ')
-      .filter(str => str) // Remove leading empty strings
-      .map(str => parseFloat(str.trim()));
 
-    // Uppercase ops are absolute coords -> transform
-    const isUppercase = op === op.toUpperCase();
-    const x = isUppercase ? scale * (xy[0] - extent.x) : scale * xy[0];
-    const y = isUppercase ? scale * (xy[1] - extent.y) : scale * xy[1];
+    if (op.toLowerCase() === 'z') {
+      return op;
+    } else {
+      const xy = cmd.substring(1).split(' ')
+        .filter(str => str) // Remove leading empty strings
+        .map(str => parseFloat(str.trim()));
 
-    return op + ' ' + x + ' ' + y;
+      // Uppercase ops are absolute coords -> transform
+      const isUppercase = op === op.toUpperCase();
+      const x = isUppercase ? scale * (xy[0] - extent.x) : scale * xy[0];
+      const y = isUppercase ? scale * (xy[1] - extent.y) : scale * xy[1];
+
+      return op + ' ' + x + ' ' + y;
+    }
   }).join(' ');
 
   shape.setAttribute('d', transformed);
@@ -371,16 +381,21 @@ const refreshPath = (shape, imageShape, extent, scale) => {
 
   const transformed = commands.map(cmd => {
     const op = cmd.substring(0, 1);
-    const xy = cmd.substring(1).split(' ')
-      .filter(str => str) // Remove leading empty strings
-      .map(str => parseFloat(str.trim()));
 
-    // Uppercase ops are absolute coords -> transform
-    const isUppercase = op === op.toUpperCase();
-    const x = isUppercase ? scale * (xy[0] - extent.x) : scale * xy[0];
-    const y = isUppercase ? scale * (xy[1] - extent.y) : scale * xy[1];
+    if (op.toLowerCase() === 'z') {
+      return op;
+    } else {
+      const xy = cmd.substring(1).split(' ')
+        .filter(str => str) // Remove leading empty strings
+        .map(str => parseFloat(str.trim()));
 
-    return op + ' ' + x + ' ' + y;
+      // Uppercase ops are absolute coords -> transform
+      const isUppercase = op === op.toUpperCase();
+      const x = isUppercase ? scale * (xy[0] - extent.x) : scale * xy[0];
+      const y = isUppercase ? scale * (xy[1] - extent.y) : scale * xy[1];
+
+      return op + ' ' + x + ' ' + y;
+    }
   }).join(' ');
 
   shape.querySelector('.a9s-inner').setAttribute('d', transformed);
