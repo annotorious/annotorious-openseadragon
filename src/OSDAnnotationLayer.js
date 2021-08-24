@@ -18,6 +18,7 @@ export class AnnotationLayer extends EventEmitter {
     super();
 
     this.viewer = props.viewer;
+    this.zoomGesture = this.viewer.gestureSettingsByDeviceType('mouse').clickToZoom;
 
     this.readOnly = props.config.readOnly;
     this.headless = props.config.headless;
@@ -143,7 +144,7 @@ export class AnnotationLayer extends EventEmitter {
     };
 
     const onMouseLeave = () => {
-      this.viewer.gestureSettingsByDeviceType('mouse').clickToZoom = true;
+      this.viewer.gestureSettingsByDeviceType('mouse').clickToZoom = this.zoomGesture;
 
       if (!this.tools?.current.isDrawing)
         this.emit('mouseLeaveAnnotation', annotation, shape);
