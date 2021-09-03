@@ -239,12 +239,18 @@ export default class OpenSeadragonAnnotator extends Component {
   addDrawingTool = plugin =>
     this.annotationLayer.addDrawingTool(plugin);
 
-  cancelSelected = () => {
+  /** Cancel is an async op, return promise **/
+  cancelSelected = () => new Promise(resolve => {
     this.annotationLayer.deselect();
 
-    if (this.state.selectedAnnotation)
-      this.clearState();
-  }
+    if (this.state.selectedAnnotation) {
+      // Clear state and resolve afterwards
+      this.clearState(resolve);
+    } else { 
+      // Nothing to clear - resolve now
+      resolve();
+    }
+  });
 
   get disableEditor() {
     return this.state.editorDisabled;
@@ -275,7 +281,8 @@ export default class OpenSeadragonAnnotator extends Component {
     this.annotationLayer.getAnnotations().map(a => a.clone());
 
   getSelected = () => {
-    return this._editor.current?.getCurrentAnnotation();
+    if (this.state.selectedAnnotation)
+      return this._editor.current?.getCurrentAnnotation();
   }
 
   getSelectedImageSnippet = () =>
