@@ -9,8 +9,6 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
   constructor(props) {
     super(props);
 
-    this.env = props.env;
-
     this.tools.on('complete', shape => {     
       // Annotation is in SVG coordinates - project to image coordinates  
       const reprojected = shape.annotation.clone({ target: viewportTargetToImage(this.viewer, shape.annotation.target) });
@@ -23,7 +21,7 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
   }
 
   addAnnotation = annotation => {
-    const shape = drawShape(annotation);
+    const shape = drawShape(annotation, this.env.image);
 
     shape.setAttribute('class', 'a9s-annotation');
 
@@ -47,7 +45,7 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
     shapes.forEach(s => this.g.removeChild(s));
 
     // Add
-    annotations.sort((a, b) => shapeArea(b) - shapeArea(a));
+    annotations.sort((a, b) => shapeArea(b, this.env.image) - shapeArea(a, this.env.image));
     annotations.forEach(this.addAnnotation);
   }
 
@@ -58,7 +56,7 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
     // All other shapes and annotations
     const unselected = Array.from(this.g.querySelectorAll('.a9s-annotation:not(.selected)'));
     const annotations = unselected.map(s => s.annotation);
-    annotations.sort((a, b) => shapeArea(b) - shapeArea(a));
+    annotations.sort((a, b) => shapeArea(b, this.env.image) - shapeArea(a, this.env.image));
 
     // Clear unselected annotations and redraw
     unselected.forEach(s => this.g.removeChild(s));

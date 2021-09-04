@@ -19,6 +19,8 @@ export class AnnotationLayer extends EventEmitter {
 
     this.viewer = props.viewer;
 
+    this.env = props.env;
+
     this.readOnly = props.config.readOnly;
     this.headless = props.config.headless;
     this.formatter = props.config.formatter;
@@ -183,7 +185,7 @@ export class AnnotationLayer extends EventEmitter {
   }
 
   addAnnotation = annotation => {
-    const shape = drawShape(annotation);
+    const shape = drawShape(annotation, this.env.image);
     shape.setAttribute('class', 'a9s-annotation');
 
     shape.setAttribute('data-id', annotation.id);
@@ -283,7 +285,7 @@ export class AnnotationLayer extends EventEmitter {
     shapes.forEach(s => this.g.removeChild(s));
 
     // Add
-    annotations.sort((a, b) => shapeArea(b) - shapeArea(a));
+    annotations.sort((a, b) => shapeArea(b, this.env.image) - shapeArea(a, this.env.image));
     annotations.forEach(this.addAnnotation);
   }
 
@@ -324,7 +326,7 @@ export class AnnotationLayer extends EventEmitter {
     // All other shapes and annotations
     const unselected = Array.from(this.g.querySelectorAll('.a9s-annotation:not(.selected)'));
     const annotations = unselected.map(s => s.annotation);
-    annotations.sort((a, b) => shapeArea(b) - shapeArea(a));
+    annotations.sort((a, b) => shapeArea(b, this.env.image) - shapeArea(a, this.env.image));
 
     // Clear unselected annotations and redraw
     unselected.forEach(s => this.g.removeChild(s));
