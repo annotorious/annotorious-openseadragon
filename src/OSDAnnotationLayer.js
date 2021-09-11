@@ -68,6 +68,10 @@ export class AnnotationLayer extends EventEmitter {
     this.viewer.addHandler('open', onLoad);
     this.viewer.world.addHandler('add-item', onLoad);
 
+    // Or: if Annotorious gets initialized on a loaded image
+    if (this.viewer.world.getItemAt(0))
+      onLoad();
+
     this.selectedShape = null;
 
     this.tools = new DrawingTools(this.g, props.config, props.env);
@@ -247,7 +251,6 @@ export class AnnotationLayer extends EventEmitter {
 
   destroy = () => {
     this.deselect();
-    this.mouseTracker.destroy();
     this.svg.parentNode.removeChild(this.svg);
   }
 
