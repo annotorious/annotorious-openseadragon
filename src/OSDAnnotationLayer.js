@@ -76,7 +76,34 @@ export class AnnotationLayer extends EventEmitter {
 
     this.tools = new DrawingTools(this.g, props.config, props.env);
     
+    this._deselectOnClickOutside();
     this._initDrawingMouseTracker();
+  }
+
+  /** Adds handler logic to deselect when clicking outside a shape **/
+  _deselectOnClickOutside = () => {
+    // Unfortunately, creating a selection (=drag) ALSO 
+    // creates a click event - ignore in this case.
+    let completedSelection = false;
+
+    this.tools.on('complete', () => {
+      completedSelection = true;
+      setTimeout(() => completedSelection = false, 10);
+    });
+
+    this.svg.addEventListener('click', evt => {
+      const annotation = evt.target.closest('.a9s-annotation');
+      
+      // Click outside, no drawing in progress
+      if (!annotation && !this.tools.current?.isDrawing) {
+
+        // Not a new selection - deselect
+        if (!completedSelection) {
+          this.deselect();
+          this.emit('select', {});
+        } 
+      }
+    });
   }
 
   /** Initializes the OSD MouseTracker used for drawing **/
@@ -158,14 +185,15 @@ export class AnnotationLayer extends EventEmitter {
     };
 
     // Common click/tap handler
-    const onClick = () => {
+    const onClick = evt => {
       this.viewer.gestureSettingsByDeviceType('mouse').clickToZoom = false;
 
       // Unfortunately, click also fires after drag, which means
       // a new selection on top of this shape will be interpreted 
       // as click. Identify this case and prevent the default
       // selection action!
-      const isSelection = this.selectedShape?.annotation.isSelection;
+      const isSelection = this.selectedShape?.annotation.isSelection &&
+        this.selectedShape === evt.target.closest('.a9s-selection');
 
       if (!isSelection && !this.disableSelect && this.selectedShape?.element !== shape)
         this.selectShape(shape);
