@@ -28,7 +28,11 @@ class OSDAnnotorious {
 
     this._element = viewer.element;
 
-    if (!this._element.style.position)
+    // Set position to 'relative' if there's no position yet. This
+    // ensures that the viewer element provides the reference frame
+    // for the editor position.
+    const elPosition = window.getComputedStyle(this._element).getPropertyValue('position');
+    if (elPosition === 'static')
       this._element.style.position = 'relative';
 
     setLocale(config.locale, config.messages);
