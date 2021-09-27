@@ -1,5 +1,6 @@
 import EventEmitter from 'tiny-emitter';
 import OpenSeadragon from 'openseadragon';
+import RBush from 'rbush';
 import { SVG_NAMESPACE, addClass } from '@recogito/annotorious/src/util/SVG';
 import DrawingTools from '@recogito/annotorious/src/tools/ToolsRegistry';
 import Crosshair from '@recogito/annotorious/src/Crosshair';
@@ -71,6 +72,8 @@ export class AnnotationLayer extends EventEmitter {
     // Or: if Annotorious gets initialized on a loaded image
     if (this.viewer.world.getItemAt(0))
       onLoad();
+
+    this.spatial_index = new RBush();
 
     this.selectedShape = null;
 
@@ -227,9 +230,21 @@ export class AnnotationLayer extends EventEmitter {
 
     this.g.appendChild(shape);
 
+    // Insert bounds in spatial index
+    const { x, y, width, height } = shape.getBBox();
+
+    const bounds = {
+      minX: x,
+      minY: y,
+      maxX: x + width,
+      maxY: y + height
+    };
+    
     format(shape, annotation, this.formatter);
 
     this.scaleFormatterElements(shape);
+
+    return bounds;
   }
 
   addDrawingTool = plugin =>
@@ -243,10 +258,15 @@ export class AnnotationLayer extends EventEmitter {
       this.removeAnnotation(annotation);
 
     this.removeAnnotation(annotation);
-    this.addAnnotation(annotation);
 
     // Make sure rendering order is large-to-small
-    this.redraw();
+    const bounds = this.addAnnotation(annotation);
+
+    this.spatial_index.insert({
+      ...bounds, annotation
+    });
+
+    this.redraw(bounds);
   }
 
   currentScale = () => {
@@ -262,6 +282,15 @@ export class AnnotationLayer extends EventEmitter {
       const { annotation } = this.selectedShape;
 
       if (this.selectedShape.destroy) {
+        const { x, y, width, height } = this.selectedShape.element.getBBox();
+        
+        const bounds = {
+          minX: x,
+          minY: y,
+          maxX: x + width,
+          maxY: y + height
+        }
+
         // Modifiable shape: destroy and re-add the annotation
         this.selectedShape.mouseTracker.destroy();
         this.selectedShape.destroy();
@@ -269,8 +298,8 @@ export class AnnotationLayer extends EventEmitter {
         if (!annotation.isSelection)
           this.addAnnotation(annotation);
 
-          if (!skipRedraw)
-            this.redraw();
+        if (!skipRedraw)
+          this.redraw(bounds);
       }
       
       this.selectedShape = null;
@@ -317,7 +346,12 @@ export class AnnotationLayer extends EventEmitter {
 
     // Add
     annotations.sort((a, b) => shapeArea(b, this.env.image) - shapeArea(a, this.env.image));
-    annotations.forEach(this.addAnnotation);
+    const bounds = annotations.map(annotation => ({ annotation, bounds: this.addAnnotation(annotation) }));
+
+    // Insert into spatial index
+    bounds.forEach(({ annotation, bounds }) =>  this.spatial_index.insert({
+      ...bounds, annotation
+    }));
   }
 
   listDrawingTools = () =>
@@ -350,7 +384,12 @@ export class AnnotationLayer extends EventEmitter {
     }    
   }
 
-  redraw = () => {
+  redraw = bounds => {
+
+    // TODO for later!
+    const result = this.spatial_index.search(bounds);
+    console.log('Redrawing', result);
+
     // The selected annotation shape
     const selected = this.g.querySelector('.a9s-annotation.selected');
 
@@ -379,6 +418,8 @@ export class AnnotationLayer extends EventEmitter {
   }
   
   removeAnnotation = annotationOrId => {
+    // TODO remove from spatial tree!
+
     // Removal won't work if the annotation is currently selected - deselect!
     const id = annotationOrId.type ? annotationOrId.id : annotationOrId;
 
