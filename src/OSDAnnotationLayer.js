@@ -385,19 +385,17 @@ export class AnnotationLayer extends EventEmitter {
   }
 
   redraw = bounds => {
-
-    // TODO for later!
-    const result = this.spatial_index.search(bounds);
-    console.log('Redrawing', result);
+    const overlapping = this.spatial_index.search(bounds);
+    const toRedraw = overlapping.map(item => `.a9s-annotation[data-id="${item.annotation.id}"]`).join(', ');
 
     // The selected annotation shape
     const selected = this.g.querySelector('.a9s-annotation.selected');
 
     // All other shapes and annotations
-    const unselected = Array.from(this.g.querySelectorAll('.a9s-annotation:not(.selected)'));
+    const unselected = Array.from(this.g.querySelectorAll(toRedraw));
     const annotations = unselected.map(s => s.annotation);
-    annotations.sort((a, b) => shapeArea(b, this.env.image) - shapeArea(a, this.env.image));
-
+    annotations.sort((a, b) => shapeArea(b, this.env.image) - shapeArea(a, this.env.image)); 
+    
     // Clear unselected annotations and redraw
     unselected.forEach(s => this.g.removeChild(s));
     annotations.forEach(this.addAnnotation);
@@ -418,8 +416,6 @@ export class AnnotationLayer extends EventEmitter {
   }
   
   removeAnnotation = annotationOrId => {
-    // TODO remove from spatial tree!
-
     // Removal won't work if the annotation is currently selected - deselect!
     const id = annotationOrId.type ? annotationOrId.id : annotationOrId;
 
@@ -429,10 +425,16 @@ export class AnnotationLayer extends EventEmitter {
     const toRemove = this.findShape(annotationOrId);
 
     if (toRemove) {
-      if (this.selectedShape?.annotation === toRemove.annotation)
+      const { annotation } = toRemove;
+
+      if (this.selectedShape?.annotation === annotation)
         this.deselect();
 
       toRemove.parentNode.removeChild(toRemove);
+
+      // Remove from spatial tree!
+      this.spatial_index.remove(annotation, (a, b) =>
+        a.id === b.id);
     }
   }
 
