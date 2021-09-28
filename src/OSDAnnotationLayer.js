@@ -85,13 +85,15 @@ export class AnnotationLayer extends EventEmitter {
 
   /** Adds handler logic to deselect when clicking outside a shape **/
   _deselectOnClickOutside = () => {
-    // Unfortunately, creating a selection (=drag) ALSO 
-    // creates a click event - ignore in this case.
-    let completedSelection = false;
+    // Unfortunately, drag ALSO creates a click 
+    // event - ignore in this case.
+    let lastMouseDown = null;
 
-    this.tools.on('complete', () => {
-      completedSelection = true;
-      setTimeout(() => completedSelection = false, 10);
+    new OpenSeadragon.MouseTracker({
+      element: this.viewer.canvas,
+
+      pressHandler: () =>
+        lastMouseDown = new Date().getTime()
     });
 
     this.svg.addEventListener('click', evt => {
@@ -99,9 +101,11 @@ export class AnnotationLayer extends EventEmitter {
       
       // Click outside, no drawing in progress
       if (!annotation && !this.tools.current?.isDrawing) {
+        // Don't deselect on drag!
+        const timeSinceMouseDown = new Date().getTime() - lastMouseDown;
 
         // Not a new selection - deselect
-        if (!completedSelection) {
+        if (timeSinceMouseDown < 100) {
           this.deselect();
           this.emit('select', {});
         } 
