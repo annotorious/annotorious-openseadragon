@@ -384,15 +384,17 @@ export class AnnotationLayer extends EventEmitter {
     }    
   }
 
-  redraw = bounds => {
-    const overlapping = this.spatial_index.search(bounds);
-    const toRedraw = overlapping.map(item => `.a9s-annotation[data-id="${item.annotation.id}"]`).join(', ');
-
+  redraw = bounds => {    
     // The selected annotation shape
     const selected = this.g.querySelector('.a9s-annotation.selected');
 
+    // Overlapping annotations (if any) - these need redrawing
+    // to keep correct stacking order!
+    const overlapping = this.spatial_index.search(bounds);
+    const toRedraw = overlapping.map(item => `.a9s-annotation[data-id="${item.annotation.id}"]`).join(', ');
+
     // All other shapes and annotations
-    const unselected = Array.from(this.g.querySelectorAll(toRedraw));
+    const unselected = overlapping.length > 0 ? Array.from(this.g.querySelectorAll(toRedraw)) : [];
     const annotations = unselected.map(s => s.annotation);
     annotations.sort((a, b) => shapeArea(b, this.env.image) - shapeArea(a, this.env.image)); 
     
