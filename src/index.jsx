@@ -217,7 +217,7 @@ class OSDAnnotorious {
   setVisible = visible =>
     this._app.current.setVisible(visible); 
 
-  updateSelected = annotation => {
+  updateSelected = (annotation, saveImmediately) => {
     let updated = null;
 
     if (annotation.type === 'Annotation') {
@@ -227,7 +227,7 @@ class OSDAnnotorious {
     }
     
     if (updated)
-      this._app.current.updateSelected(updated);
+      this._app.current.updateSelected(updated, saveImmediately);
   }
 
   get widgets() {
