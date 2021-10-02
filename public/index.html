@@ -83,7 +83,8 @@
         });
         
         var anno = OpenSeadragon.Annotorious(viewer, {
-          locale: 'auto'
+          locale: 'auto',
+          disableEditor: true
         });
 
         anno.setAuthInfo({
@@ -104,6 +105,12 @@
 
         var modeBtn = document.getElementById('mode');
         modeBtn.addEventListener('click', function() {
+          const selected = anno.getSelected();
+          console.log(selected);
+
+          // anno.updateSelected()
+          
+          /*
           if (modeBtn.innerHTML == 'MODE: VIEW') {
             modeBtn.innerHTML = 'MODE: ANNOTATE';
             anno.setDrawingEnabled(true);
@@ -111,6 +118,7 @@
             modeBtn.innerHTML = 'MODE: VIEW';
             anno.setDrawingEnabled(false);
           }
+          */
         });
 
         anno.on('startSelection', function(a) {
