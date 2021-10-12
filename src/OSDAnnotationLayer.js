@@ -98,7 +98,8 @@ export class AnnotationLayer extends EventEmitter {
 
     this.svg.addEventListener('click', evt => {
       const annotation = evt.target.closest('.a9s-annotation');
-      
+
+
       // Click outside, no drawing in progress
       if (!annotation && !this.tools.current?.isDrawing) {
         // Don't deselect on drag!
@@ -109,7 +110,7 @@ export class AnnotationLayer extends EventEmitter {
           this.deselect();
           this.emit('select', {});
         } 
-      }
+      } 
     });
   }
 
@@ -199,8 +200,7 @@ export class AnnotationLayer extends EventEmitter {
       // a new selection on top of this shape will be interpreted 
       // as click. Identify this case and prevent the default
       // selection action!
-      const isSelection = this.selectedShape?.annotation.isSelection &&
-        this.selectedShape === evt.target.closest('.a9s-selection');
+      const isSelection = this.selectedShape?.annotation.isSelection;
 
       if (!isSelection && !this.disableSelect && this.selectedShape?.element !== shape)
         this.selectShape(shape);
