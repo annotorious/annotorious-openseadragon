@@ -372,6 +372,22 @@ export class AnnotationLayer extends EventEmitter {
     const updated = annotation.clone({ id : forcedId });
     shape.annotation = updated;
 
+    // Update in spatial tree
+    const { x, y, width, height } = shape.getBBox();
+    const bounds = {
+      minX: x,
+      minY: y,
+      maxX: x + width,
+      maxY: y + height
+    };
+
+    this.spatial_index.remove(annotation, (a, b) =>
+      a.id === b.id);
+
+    this.spatial_index.insert({
+      ...bounds, annotation: updated
+    });
+
     return updated;
   }
 
