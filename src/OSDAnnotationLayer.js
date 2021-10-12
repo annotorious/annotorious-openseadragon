@@ -9,6 +9,18 @@ import { format } from '@recogito/annotorious/src/util/Formatting';
 import { isTouchDevice, enableTouchTranslation } from '@recogito/annotorious/src/util/Touch';
 import { getSnippet } from './util/ImageSnippet';
 
+/** Shorthand **/
+export const getBounds = shape => {
+  const { x, y, width, height } = shape.getBBox();
+
+  return {
+    minX: x,
+    minY: y,
+    maxX: x + width,
+    maxY: y + height
+  };
+}
+
 /**
  * Code shared between (normal) OSDAnnotationLayer and
  * GigapixelAnnotationLayer
@@ -223,6 +235,10 @@ export class AnnotationLayer extends EventEmitter {
     }
   }
 
+  /** 
+   * Adds an annotation to the annotation layer.
+   * Returns the shape for convenience. 
+   */
   addAnnotation = annotation => {
     const shape = drawShape(annotation, this.env.image);
     shape.setAttribute('class', 'a9s-annotation');
@@ -233,22 +249,11 @@ export class AnnotationLayer extends EventEmitter {
     this._attachMouseListeners(shape, annotation);
 
     this.g.appendChild(shape);
-
-    // Insert bounds in spatial index
-    const { x, y, width, height } = shape.getBBox();
-
-    const bounds = {
-      minX: x,
-      minY: y,
-      maxX: x + width,
-      maxY: y + height
-    };
     
     format(shape, annotation, this.formatter);
-
     this.scaleFormatterElements(shape);
 
-    return bounds;
+    return shape;
   }
 
   addDrawingTool = plugin =>
@@ -264,7 +269,8 @@ export class AnnotationLayer extends EventEmitter {
     this.removeAnnotation(annotation);
 
     // Make sure rendering order is large-to-small
-    const bounds = this.addAnnotation(annotation);
+    const shape = this.addAnnotation(annotation);
+    const bounds = getBounds(shape);
 
     this.spatial_index.insert({
       ...bounds, annotation
@@ -286,14 +292,7 @@ export class AnnotationLayer extends EventEmitter {
       const { annotation } = this.selectedShape;
 
       if (this.selectedShape.destroy) {
-        const { x, y, width, height } = this.selectedShape.element.getBBox();
-        
-        const bounds = {
-          minX: x,
-          minY: y,
-          maxX: x + width,
-          maxY: y + height
-        }
+        const bounds = getBounds(this.selectedShape.element);
 
         // Modifiable shape: destroy and re-add the annotation
         this.selectedShape.mouseTracker.destroy();
@@ -350,7 +349,8 @@ export class AnnotationLayer extends EventEmitter {
 
     // Add
     annotations.sort((a, b) => shapeArea(b, this.env.image) - shapeArea(a, this.env.image));
-    const bounds = annotations.map(annotation => ({ annotation, bounds: this.addAnnotation(annotation) }));
+    const bounds = annotations.map(annotation => 
+      ({ annotation, bounds: getBounds(this.addAnnotation(annotation)) }));
 
     // Insert into spatial index
     bounds.forEach(({ annotation, bounds }) =>  this.spatial_index.insert({
@@ -372,14 +372,8 @@ export class AnnotationLayer extends EventEmitter {
     const updated = annotation.clone({ id : forcedId });
     shape.annotation = updated;
 
-    // Update in spatial tree
-    const { x, y, width, height } = shape.getBBox();
-    const bounds = {
-      minX: x,
-      minY: y,
-      maxX: x + width,
-      maxY: y + height
-    };
+    // Update spatial index
+    const bounds = getBounds(shape);
 
     this.spatial_index.remove(annotation, (a, b) =>
       a.id === b.id);
