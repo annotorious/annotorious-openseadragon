@@ -408,8 +408,8 @@ export class AnnotationLayer extends EventEmitter {
       console.time('Took');
       const buffer = document.createElementNS(SVG_NAMESPACE, 'g');
 
-      console.log('Sorting annotations...')
-      annotations.sort((a, b) => shapeArea(b, this.env.image) - shapeArea(a, this.env.image));
+      // console.log('Sorting annotations...')
+      // annotations.sort((a, b) => shapeArea(b, this.env.image) - shapeArea(a, this.env.image));
 
       console.log('Drawing...');
       const shapes = annotations.map(annotation => 
