@@ -8,16 +8,17 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
 
   constructor(props) {
     super(props);
+    this._initDrawingTools();
+  }
 
-    this.tools.on('complete', shape => {     
-      // Annotation is in SVG coordinates - project to image coordinates  
-      const reprojected = shape.annotation.clone({ target: viewportTargetToImage(this.viewer, shape.annotation.target) });
-      shape.annotation = reprojected;
+  onDrawingComplete = shape => {
+    // Annotation is in SVG coordinates - project to image coordinates  
+    const reprojected = shape.annotation.clone({ target: viewportTargetToImage(this.viewer, shape.annotation.target) });
+    shape.annotation = reprojected;
 
-      this.selectShape(shape);
-      this.emit('createSelection', shape.annotation);
-      this.mouseTracker.setTracking(false);
-    });
+    this.selectShape(shape);
+    this.emit('createSelection', shape.annotation);
+    this.mouseTracker.setTracking(false);
   }
 
   addAnnotation = annotation => {
@@ -35,6 +36,8 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
     this.g.appendChild(shape);
 
     format(shape, annotation, this.formatter);
+
+    return shape;
   }
 
   init = annotations => {

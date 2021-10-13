@@ -9,6 +9,8 @@ import { format } from '@recogito/annotorious/src/util/Formatting';
 import { isTouchDevice, enableTouchTranslation } from '@recogito/annotorious/src/util/Touch';
 import { getSnippet } from './util/ImageSnippet';
 
+const isTouch = isTouchDevice();
+
 /** Shorthand **/
 export const getBounds = shape => {
   const { x, y, width, height } = shape.getBBox();
@@ -43,7 +45,7 @@ export class AnnotationLayer extends EventEmitter {
 
     this.svg = document.createElementNS(SVG_NAMESPACE, 'svg');
 
-    if (isTouchDevice()) {
+    if (isTouch) {
       this.svg.setAttribute('class', 'a9s-annotationlayer a9s-osd-annotationlayer touch');
       enableTouchTranslation(this.svg);
     } else {
@@ -91,7 +93,6 @@ export class AnnotationLayer extends EventEmitter {
     this.selectedShape = null;
 
     this._deselectOnClickOutside();
-    this._initDrawingTools();
   }
 
   /** Adds handler logic to deselect when clicking outside a shape **/
@@ -128,6 +129,7 @@ export class AnnotationLayer extends EventEmitter {
   /** Initializes the OSD MouseTracker used for drawing **/
   _initDrawingTools = () => {
     this.tools = new DrawingTools(this.g, this.config, this.env);
+    this.tools.on('complete', this.onDrawingComplete);
 
     let started = false;
     
@@ -162,7 +164,6 @@ export class AnnotationLayer extends EventEmitter {
         started = false;
       }
     }).setTracking(false);
-
 
     // Keep tracker disabled until Shift is held
     if (this.onKeyDown)
@@ -223,8 +224,10 @@ export class AnnotationLayer extends EventEmitter {
       // selection action!
       const isSelection = this.selectedShape?.annotation.isSelection;
 
-      if (!isSelection && !this.disableSelect && this.selectedShape?.element !== shape)
-        this.selectShape(shape);
+      if (!isSelection && !this.disableSelect && this.selectedShape?.element !== shape) {
+        const smallest = this.getShapeAt(evt);
+        this.selectShape(smallest);
+      }
       
       if (this.disableSelect)
         this.emit('clickAnnotation', shape.annotation, shape);
@@ -241,6 +244,48 @@ export class AnnotationLayer extends EventEmitter {
       mouseleave: onMouseLeave,
       click: onClick,
       touchend: onClick
+    }
+  }
+
+  getShapeAt = evt => {
+
+    const getSVGPoint = evt => {
+      const pt = this.svg.createSVGPoint();
+  
+      if (isTouch) {
+        const bbox = this.svg.getBoundingClientRect();
+  
+        const x = evt.clientX - bbox.x;
+        const y = evt.clientY - bbox.y;
+  
+        const { left, top } = this.svg.getBoundingClientRect();
+        pt.x = x + left;
+        pt.y = y + top;
+  
+        return pt.matrixTransform(this.g.getScreenCTM().inverse());
+      } else {
+        pt.x = evt.offsetX;
+        pt.y = evt.offsetY;
+  
+        return pt.matrixTransform(this.g.getCTM().inverse());
+      }
+    }
+
+    const { x, y } = getSVGPoint(evt);
+
+    const hits = this.spatial_index.search({
+      minX: x,
+      minY: y,
+      maxX: x,
+      maxY: y
+    }).map(item => item.annotation);
+
+    // Get smallest annotation
+    if (hits.length > 0) {
+      hits.sort((a, b) => shapeArea(a, this.env.image) - shapeArea(b, this.env.image));
+
+      const smallest = hits[0];
+      return this.findShape(smallest);
     }
   }
 
@@ -358,7 +403,7 @@ export class AnnotationLayer extends EventEmitter {
     const shapes = Array.from(this.g.querySelectorAll('.a9s-annotation'));
     shapes.forEach(s => this.g.removeChild(s));
 
-    // Drawin annotations
+    // Draw annotations
     requestAnimationFrame(() => {
       console.time('Took');
       const buffer = document.createElementNS(SVG_NAMESPACE, 'g');
@@ -367,21 +412,22 @@ export class AnnotationLayer extends EventEmitter {
       annotations.sort((a, b) => shapeArea(b, this.env.image) - shapeArea(a, this.env.image));
 
       console.log('Drawing...');
-      const bounds = annotations.map(annotation => 
-        ({ annotation, bounds: getBounds(this.addAnnotation(annotation, buffer)) }));
+      const shapes = annotations.map(annotation => 
+        ({ annotation, shape: this.addAnnotation(annotation, buffer) }));
 
       this.svg.removeChild(this.g);
       this.svg.appendChild(buffer);
       this.g = buffer;
 
+      // Re-wire drawing tools on new canvas
       this._initDrawingTools();
-      
+
       this.resize(); 
 
       // Insert into spatial index
       console.log('Indexing...')
-      bounds.forEach(({ annotation, bounds }) =>  this.spatial_index.insert({
-        ...bounds, annotation
+      shapes.forEach(({ annotation, shape }) =>  this.spatial_index.insert({
+        ...getBounds(shape), annotation
       }));
 
       console.timeEnd('Took');
@@ -444,7 +490,7 @@ export class AnnotationLayer extends EventEmitter {
     
     // Clear unselected annotations and redraw
     unselected.forEach(s => this.g.removeChild(s));
-    annotations.forEach(this.addAnnotation);
+    annotations.forEach(a => this.addAnnotation(a));
 
     // Then re-draw the selected on top, if any
     if (selected) {
@@ -639,12 +685,13 @@ export default class OSDAnnotationLayer extends AnnotationLayer {
 
   constructor(props) {
     super(props);
+    this._initDrawingTools();
+  }
 
-    this.tools.on('complete', shape => { 
-      this.selectShape(shape);
-      this.emit('createSelection', shape.annotation);
-      this.mouseTracker.setTracking(false);
-    });
+  onDrawingComplete = shape => {
+    this.selectShape(shape);
+    this.emit('createSelection', shape.annotation);
+    this.mouseTracker.setTracking(false);
   }
 
 }
