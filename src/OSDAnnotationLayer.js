@@ -32,6 +32,7 @@ export class AnnotationLayer extends EventEmitter {
 
     this.viewer = props.viewer;
 
+    this.config = props.config;
     this.env = props.env;
 
     this.readOnly = props.config.readOnly;
@@ -89,10 +90,8 @@ export class AnnotationLayer extends EventEmitter {
 
     this.selectedShape = null;
 
-    this.tools = new DrawingTools(this.g, props.config, props.env);
-    
     this._deselectOnClickOutside();
-    this._initDrawingMouseTracker();
+    this._initDrawingTools();
   }
 
   /** Adds handler logic to deselect when clicking outside a shape **/
@@ -127,10 +126,11 @@ export class AnnotationLayer extends EventEmitter {
   }
 
   /** Initializes the OSD MouseTracker used for drawing **/
-  _initDrawingMouseTracker = () => {
+  _initDrawingTools = () => {
+    this.tools = new DrawingTools(this.g, this.config, this.env);
 
     let started = false;
-
+    
     this.mouseTracker = new OpenSeadragon.MouseTracker({
       element: this.svg,
 
@@ -163,19 +163,28 @@ export class AnnotationLayer extends EventEmitter {
       }
     }).setTracking(false);
 
+
     // Keep tracker disabled until Shift is held
-    document.addEventListener('keydown', evt => {
+    if (this.onKeyDown)
+      document.removeEventListener('keydown', this.onKeyDown);
+    
+    if (this.onKeyUp)
+      document.removeEventListener('keydown', this.onKeyDown);
+
+    this.onKeyDown = evt => {
       if (evt.which === 16 && !this.selectedShape) { // Shift
         this.mouseTracker.setTracking(!this.readOnly);
       }
-    });
+    };
 
-    document.addEventListener('keyup', evt => {
+    this.onKeyUp = evt => {
       if (evt.which === 16 && !this.tools.current.isDrawing) {
         this.mouseTracker.setTracking(false);
       }
-    });
-
+    };
+    
+    document.addEventListener('keydown', this.onKeyDown);
+    document.addEventListener('keyup', this.onKeyUp);
   }
 
   _removeMouseListeners = shape => {
@@ -364,6 +373,9 @@ export class AnnotationLayer extends EventEmitter {
       this.svg.removeChild(this.g);
       this.svg.appendChild(buffer);
       this.g = buffer;
+
+      this._initDrawingTools();
+      
       this.resize(); 
 
       // Insert into spatial index
