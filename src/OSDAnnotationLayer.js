@@ -239,7 +239,9 @@ export class AnnotationLayer extends EventEmitter {
    * Adds an annotation to the annotation layer.
    * Returns the shape for convenience. 
    */
-  addAnnotation = annotation => {
+  addAnnotation = (annotation, optBuffer) => {
+    const g = optBuffer || this.g;
+
     const shape = drawShape(annotation, this.env.image);
     shape.setAttribute('class', 'a9s-annotation');
 
@@ -248,11 +250,11 @@ export class AnnotationLayer extends EventEmitter {
 
     this._attachMouseListeners(shape, annotation);
 
-    this.g.appendChild(shape);
+    g.appendChild(shape);
     
     format(shape, annotation, this.formatter);
     this.scaleFormatterElements(shape);
-
+    
     return shape;
   }
 
@@ -347,15 +349,31 @@ export class AnnotationLayer extends EventEmitter {
     const shapes = Array.from(this.g.querySelectorAll('.a9s-annotation'));
     shapes.forEach(s => this.g.removeChild(s));
 
-    // Add
-    annotations.sort((a, b) => shapeArea(b, this.env.image) - shapeArea(a, this.env.image));
-    const bounds = annotations.map(annotation => 
-      ({ annotation, bounds: getBounds(this.addAnnotation(annotation)) }));
+    // Drawin annotations
+    requestAnimationFrame(() => {
+      console.time('Took');
+      const buffer = document.createElementNS(SVG_NAMESPACE, 'g');
 
-    // Insert into spatial index
-    bounds.forEach(({ annotation, bounds }) =>  this.spatial_index.insert({
-      ...bounds, annotation
-    }));
+      console.log('Sorting annotations...')
+      annotations.sort((a, b) => shapeArea(b, this.env.image) - shapeArea(a, this.env.image));
+
+      console.log('Drawing...');
+      const bounds = annotations.map(annotation => 
+        ({ annotation, bounds: getBounds(this.addAnnotation(annotation, buffer)) }));
+
+      this.svg.removeChild(this.g);
+      this.svg.appendChild(buffer);
+      this.g = buffer;
+      this.resize(); 
+
+      // Insert into spatial index
+      console.log('Indexing...')
+      bounds.forEach(({ annotation, bounds }) =>  this.spatial_index.insert({
+        ...bounds, annotation
+      }));
+
+      console.timeEnd('Took');
+    });
   }
 
   listDrawingTools = () =>
