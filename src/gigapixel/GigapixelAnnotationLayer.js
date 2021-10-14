@@ -1,5 +1,5 @@
 import OpenSeadragon from 'openseadragon';
-import { drawShape, shapeArea, shapeBounds } from '@recogito/annotorious/src/selectors';
+import { drawShape, shapeArea } from '@recogito/annotorious/src/selectors';
 import { format } from '@recogito/annotorious/src/util/Formatting';
 import { isTouchDevice } from '@recogito/annotorious/src/util/Touch';
 import { viewportTargetToImage, imageAnnotationToViewport, refreshViewportPosition } from '.';
