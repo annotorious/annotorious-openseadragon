@@ -1,8 +1,11 @@
 import OpenSeadragon from 'openseadragon';
-import { drawShape, shapeArea } from '@recogito/annotorious/src/selectors';
+import { drawShape, shapeArea, shapeBounds } from '@recogito/annotorious/src/selectors';
 import { format } from '@recogito/annotorious/src/util/Formatting';
+import { isTouchDevice } from '@recogito/annotorious/src/util/Touch';
 import { viewportTargetToImage, imageAnnotationToViewport, refreshViewportPosition } from '.';
 import { AnnotationLayer } from '../OSDAnnotationLayer';
+
+const isTouch = isTouchDevice();
 
 export default class GigapixelAnnotationLayer extends AnnotationLayer {
 
@@ -21,7 +24,9 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
     this.mouseTracker.setTracking(false);
   }
 
-  addAnnotation = annotation => {
+  addAnnotation = (annotation, optBuffer) => {
+    const g = optBuffer || this.g;
+
     const shape = drawShape(annotation, this.env.image);
 
     shape.setAttribute('class', 'a9s-annotation');
@@ -33,23 +38,46 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
 
     this._attachMouseListeners(shape, annotation);
 
-    this.g.appendChild(shape);
+    g.appendChild(shape);
 
     format(shape, annotation, this.formatter);
 
     return shape;
   }
 
-  init = annotations => {
-    // Clear existing
-    this.deselect();
+  getShapeAt = evt => {
 
-    const shapes = Array.from(this.g.querySelectorAll('.a9s-annotation'));
-    shapes.forEach(s => this.g.removeChild(s));
+    const getXY = evt => {
+      if (isTouch) {
+        const bbox = this.svg.getBoundingClientRect();
+  
+        const x = evt.clientX - bbox.x;
+        const y = evt.clientY - bbox.y;
+        
+        return { x, y };
+      } else {
+        return { x: evt.offsetX, y: evt.offsetY };
+      }
+    }
 
-    // Add
-    annotations.sort((a, b) => shapeArea(b, this.env.image) - shapeArea(a, this.env.image));
-    annotations.forEach(this.addAnnotation);
+    const { x, y } = getXY(evt);
+
+    const imagePoint = this.viewer.viewport.viewerElementToImageCoordinates(new OpenSeadragon.Point(x, y));
+
+    const hits = this.spatial_index.search({
+      minX: imagePoint.x,
+      minY: imagePoint.y,
+      maxX: imagePoint.x,
+      maxY: imagePoint.y
+    }).map(item => item.annotation);
+
+    // Get smallest annotation
+    if (hits.length > 0) {
+      hits.sort((a, b) => shapeArea(a, this.env.image) - shapeArea(b, this.env.image));
+      
+      const smallest = hits[0];
+      return this.findShape(smallest);
+    }
   }
 
   redraw = () => {
@@ -63,7 +91,7 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
 
     // Clear unselected annotations and redraw
     unselected.forEach(s => this.g.removeChild(s));
-    annotations.forEach(this.addAnnotation);
+    annotations.forEach(a => this.addAnnotation(a));
 
     // Then re-draw the selected on top, if any
     if (selected) {
@@ -83,9 +111,33 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
   }
 
   resize() {
+    const viewportBounds = this.viewer.viewport.getBounds(true);
+    const { x, y, width, height } = this.viewer.viewport.viewportToImageRectangle(viewportBounds);
+
+    const imageBounds = {
+      minX: x, 
+      minY: y, 
+      maxX: x + width,
+      maxY: y + height
+    };
+
+    // Only update shapes inside viewport
+    const visible = new Set(this.spatial_index.search(imageBounds).map(item => item.annotation.id));
+
+    if (visible.length === 0)
+      return;
+
     // Update positions for all anntations except selected (will be handled separately)
     const shapes = Array.from(this.g.querySelectorAll('.a9s-annotation:not(.selected)'));
-    shapes.forEach(s => refreshViewportPosition(this.viewer, s));
+    shapes.forEach(s => {
+      if (visible.has(s.annotation.id)) {
+        s.removeAttribute('visibility');
+        refreshViewportPosition(this.viewer, s);
+      } else {
+        if (!s.hasAttribute('visibility'))
+          s.setAttribute('visibility', 'hidden');
+      }
+    });
 
     if (this.selectedShape) {
       if (this.selectedShape.element) {

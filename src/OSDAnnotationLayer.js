@@ -4,7 +4,7 @@ import RBush from 'rbush';
 import { SVG_NAMESPACE, addClass } from '@recogito/annotorious/src/util/SVG';
 import DrawingTools from '@recogito/annotorious/src/tools/ToolsRegistry';
 import Crosshair from '@recogito/annotorious/src/Crosshair';
-import { drawShape, shapeArea } from '@recogito/annotorious/src/selectors';
+import { drawShape, shapeArea, shapeBounds } from '@recogito/annotorious/src/selectors';
 import { format } from '@recogito/annotorious/src/util/Formatting';
 import { isTouchDevice, enableTouchTranslation } from '@recogito/annotorious/src/util/Touch';
 import { getSnippet } from './util/ImageSnippet';
@@ -12,16 +12,7 @@ import { getSnippet } from './util/ImageSnippet';
 const isTouch = isTouchDevice();
 
 /** Shorthand **/
-export const getBounds = shape => {
-  const { x, y, width, height } = shape.getBBox();
-
-  return {
-    minX: x,
-    minY: y,
-    maxX: x + width,
-    maxY: y + height
-  };
-}
+export const getBounds = annotation => shapeBounds(annotation);
 
 /**
  * Code shared between (normal) OSDAnnotationLayer and
@@ -280,6 +271,8 @@ export class AnnotationLayer extends EventEmitter {
       maxY: y
     }).map(item => item.annotation);
 
+    console.log('hits at', x, y, hits);
+
     // Get smallest annotation
     if (hits.length > 0) {
       hits.sort((a, b) => shapeArea(a, this.env.image) - shapeArea(b, this.env.image));
@@ -325,8 +318,8 @@ export class AnnotationLayer extends EventEmitter {
     this.removeAnnotation(annotation);
 
     // Make sure rendering order is large-to-small
-    const shape = this.addAnnotation(annotation);
-    const bounds = getBounds(shape);
+    this.addAnnotation(annotation);
+    const bounds = getBounds(annotation);
 
     this.spatial_index.insert({
       ...bounds, annotation
@@ -348,7 +341,7 @@ export class AnnotationLayer extends EventEmitter {
       const { annotation } = this.selectedShape;
 
       if (this.selectedShape.destroy) {
-        const bounds = getBounds(this.selectedShape.element);
+        const bounds = getBounds(annotation);
 
         // Modifiable shape: destroy and re-add the annotation
         this.selectedShape.mouseTracker.destroy();
@@ -412,8 +405,7 @@ export class AnnotationLayer extends EventEmitter {
       // annotations.sort((a, b) => shapeArea(b, this.env.image) - shapeArea(a, this.env.image));
 
       console.log('Drawing...');
-      const shapes = annotations.map(annotation => 
-        ({ annotation, shape: this.addAnnotation(annotation, buffer) }));
+      annotations.forEach(annotation => this.addAnnotation(annotation, buffer));
 
       this.svg.removeChild(this.g);
       this.svg.appendChild(buffer);
@@ -426,9 +418,10 @@ export class AnnotationLayer extends EventEmitter {
 
       // Insert into spatial index
       console.log('Indexing...')
-      shapes.forEach(({ annotation, shape }) =>  this.spatial_index.insert({
-        ...getBounds(shape), annotation
-      }));
+      annotations.forEach(annotation => 
+        this.spatial_index.insert({
+          ...getBounds(annotation), annotation
+        }));
 
       console.timeEnd('Took');
     });
@@ -449,7 +442,7 @@ export class AnnotationLayer extends EventEmitter {
     shape.annotation = updated;
 
     // Update spatial index
-    const bounds = getBounds(shape);
+    const bounds = getBounds(updated);
 
     this.spatial_index.remove(annotation, (a, b) =>
       a.id === b.id);
