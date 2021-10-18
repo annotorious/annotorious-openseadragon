@@ -59,7 +59,9 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
       }
     }
 
-    const { x, y } = this.viewer.viewport.viewerElementToImageCoordinates(getXY(evt));
+    // For some reason, this doesn't seem to work in one step...
+    const pt = this.viewer.viewport.viewerElementToViewportCoordinates(getXY(evt));
+    const { x, y } = this.viewer.viewport.viewportToImageCoordinates(pt.x, pt.y);
 
     const annotation = this.store.getAnnotationAt(x, y);
     if (annotation)
@@ -79,7 +81,7 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
 
     // Only update shapes inside viewport
     const visible = new Set(this.store.getAnnotationsIntersecting(imageBounds).map(a => a.id));
-    if (visible.length === 0)
+    if (visible.size === 0)
       return;
 
     // Update positions for all anntations except selected (will be handled separately)

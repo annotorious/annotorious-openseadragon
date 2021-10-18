@@ -53,7 +53,7 @@ export class AnnotationLayer extends EventEmitter {
     const onLoad = () => {
       const { x, y } = this.viewer.world.getItemAt(0).source.dimensions;
 
-      props.env.image = {
+      this.env.image = {
         src: this.viewer.world.getItemAt(0).source['@id'] || 
           new URL(this.viewer.world.getItemAt(0).source.url, document.baseURI).href,
         naturalWidth: x,
@@ -65,7 +65,7 @@ export class AnnotationLayer extends EventEmitter {
         addClass(this.svg, 'has-crosshair');
       }
 
-      requestAnimationFrame(() => this.resize());      
+      this.resize();      
     }
 
     // Store image properties on open (incl. after page change) and on addTiledImage
@@ -367,27 +367,25 @@ export class AnnotationLayer extends EventEmitter {
     shapes.forEach(s => this.g.removeChild(s));
 
     // Draw annotations
-    requestAnimationFrame(() => {
-      console.time('Took');
-      const buffer = document.createElementNS(SVG_NAMESPACE, 'g');
+    console.time('Took');
+    const buffer = document.createElementNS(SVG_NAMESPACE, 'g');
 
-      console.log('Drawing...');
-      annotations.forEach(annotation => this.addAnnotation(annotation, buffer));
+    console.log('Drawing...');
+    annotations.forEach(annotation => this.addAnnotation(annotation, buffer));
 
-      this.svg.removeChild(this.g);
-      this.svg.appendChild(buffer);
-      this.g = buffer;
+    this.svg.removeChild(this.g);
+    this.svg.appendChild(buffer);
+    this.g = buffer;
 
-      // Re-wire drawing tools on new canvas
-      this._initDrawingTools();
+    // Re-wire drawing tools on new canvas
+    this._initDrawingTools();
 
-      this.resize(); 
+    // Insert into store (and spatial index)
+    console.log('Indexing...')
+    this.store.insert(annotations);
+    console.timeEnd('Took');
 
-      // Insert into store (and spatial index)
-      console.log('Indexing...')
-      this.store.insert(annotations);
-      console.timeEnd('Took');
-    });
+    setTimeout(() => this.resize(), 10); 
   }
 
   listDrawingTools = () =>
