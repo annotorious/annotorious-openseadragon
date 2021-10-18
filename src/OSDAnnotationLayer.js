@@ -65,7 +65,7 @@ export class AnnotationLayer extends EventEmitter {
         addClass(this.svg, 'has-crosshair');
       }
 
-      this.resize();      
+      requestAnimationFrame(() => this.resize());      
     }
 
     // Store image properties on open (incl. after page change) and on addTiledImage
