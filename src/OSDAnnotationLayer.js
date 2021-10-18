@@ -99,7 +99,6 @@ export class AnnotationLayer extends EventEmitter {
     this.svg.addEventListener('click', evt => {
       const annotation = evt.target.closest('.a9s-annotation');
 
-
       // Click outside, no drawing in progress
       if (!annotation && !this.tools.current?.isDrawing) {
         // Don't deselect on drag!
