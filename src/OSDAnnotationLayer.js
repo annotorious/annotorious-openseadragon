@@ -1,18 +1,15 @@
 import EventEmitter from 'tiny-emitter';
 import OpenSeadragon from 'openseadragon';
-import RBush from 'rbush';
 import { SVG_NAMESPACE, addClass } from '@recogito/annotorious/src/util/SVG';
 import DrawingTools from '@recogito/annotorious/src/tools/ToolsRegistry';
 import Crosshair from '@recogito/annotorious/src/Crosshair';
-import { drawShape, shapeArea, shapeBounds } from '@recogito/annotorious/src/selectors';
+import { drawShape } from '@recogito/annotorious/src/selectors';
 import { format } from '@recogito/annotorious/src/util/Formatting';
 import { isTouchDevice, enableTouchTranslation } from '@recogito/annotorious/src/util/Touch';
+import AnnotationStore from './AnnotationStore';
 import { getSnippet } from './util/ImageSnippet';
 
 const isTouch = isTouchDevice();
-
-/** Shorthand **/
-export const getBounds = annotation => shapeBounds(annotation);
 
 /**
  * Code shared between (normal) OSDAnnotationLayer and
@@ -79,7 +76,7 @@ export class AnnotationLayer extends EventEmitter {
     if (this.viewer.world.getItemAt(0))
       onLoad();
 
-    this.spatial_index = new RBush();
+    this.store = new AnnotationStore(this.env);
 
     this.selectedShape = null;
 
@@ -216,7 +213,7 @@ export class AnnotationLayer extends EventEmitter {
       const isSelection = this.selectedShape?.annotation.isSelection;
 
       if (!isSelection && !this.disableSelect && this.selectedShape?.element !== shape) {
-        const smallest = this.getShapeAt(evt);
+        const smallest = this._getShapeAt(evt);
         this.selectShape(smallest);
       }
       
@@ -238,8 +235,7 @@ export class AnnotationLayer extends EventEmitter {
     }
   }
 
-  getShapeAt = evt => {
-
+  _getShapeAt = evt => {
     const getSVGPoint = evt => {
       const pt = this.svg.createSVGPoint();
   
@@ -264,22 +260,9 @@ export class AnnotationLayer extends EventEmitter {
 
     const { x, y } = getSVGPoint(evt);
 
-    const hits = this.spatial_index.search({
-      minX: x,
-      minY: y,
-      maxX: x,
-      maxY: y
-    }).map(item => item.annotation);
-
-    console.log('hits at', x, y, hits);
-
-    // Get smallest annotation
-    if (hits.length > 0) {
-      hits.sort((a, b) => shapeArea(a, this.env.image) - shapeArea(b, this.env.image));
-
-      const smallest = hits[0];
-      return this.findShape(smallest);
-    }
+    const annotation = this.store.getAnnotationAt(x, y);
+    if (annotation)
+      return this.findShape(annotation);
   }
 
   /** 
@@ -316,16 +299,9 @@ export class AnnotationLayer extends EventEmitter {
       this.removeAnnotation(annotation);
 
     this.removeAnnotation(annotation);
-
-    // Make sure rendering order is large-to-small
     this.addAnnotation(annotation);
-    const bounds = getBounds(annotation);
 
-    this.spatial_index.insert({
-      ...bounds, annotation
-    });
-
-    this.redraw(bounds);
+    this.store.insert(annotation);
   }
 
   currentScale = () => {
@@ -334,24 +310,19 @@ export class AnnotationLayer extends EventEmitter {
     return zoom * containerWidth / this.viewer.world.getContentFactor();
   }
 
-  deselect = skipRedraw => {
+  deselect = () => {
     this.tools?.current.stop();
     
     if (this.selectedShape) {
       const { annotation } = this.selectedShape;
 
       if (this.selectedShape.destroy) {
-        const bounds = getBounds(annotation);
-
         // Modifiable shape: destroy and re-add the annotation
         this.selectedShape.mouseTracker.destroy();
         this.selectedShape.destroy();
 
         if (!annotation.isSelection)
           this.addAnnotation(annotation);
-
-        if (!skipRedraw)
-          this.redraw(bounds);
       }
       
       this.selectedShape = null;
@@ -401,9 +372,6 @@ export class AnnotationLayer extends EventEmitter {
       console.time('Took');
       const buffer = document.createElementNS(SVG_NAMESPACE, 'g');
 
-      // console.log('Sorting annotations...')
-      // annotations.sort((a, b) => shapeArea(b, this.env.image) - shapeArea(a, this.env.image));
-
       console.log('Drawing...');
       annotations.forEach(annotation => this.addAnnotation(annotation, buffer));
 
@@ -416,13 +384,9 @@ export class AnnotationLayer extends EventEmitter {
 
       this.resize(); 
 
-      // Insert into spatial index
+      // Insert into store (and spatial index)
       console.log('Indexing...')
-      annotations.forEach(annotation => 
-        this.spatial_index.insert({
-          ...getBounds(annotation), annotation
-        }));
-
+      this.store.insert(annotations);
       console.timeEnd('Took');
     });
   }
@@ -442,14 +406,8 @@ export class AnnotationLayer extends EventEmitter {
     shape.annotation = updated;
 
     // Update spatial index
-    const bounds = getBounds(updated);
-
-    this.spatial_index.remove(annotation, (a, b) =>
-      a.id === b.id);
-
-    this.spatial_index.insert({
-      ...bounds, annotation: updated
-    });
+    this.store.remove(annotation);
+    this.store.insert(updated);
 
     return updated;
   }
@@ -467,39 +425,6 @@ export class AnnotationLayer extends EventEmitter {
     }    
   }
 
-  redraw = bounds => {    
-    // The selected annotation shape
-    const selected = this.g.querySelector('.a9s-annotation.selected');
-
-    // Overlapping annotations (if any) - these need redrawing
-    // to keep correct stacking order!
-    const overlapping = this.spatial_index.search(bounds);
-    const toRedraw = overlapping.map(item => `.a9s-annotation[data-id="${item.annotation.id}"]`).join(', ');
-
-    // All other shapes and annotations
-    const unselected = overlapping.length > 0 ? Array.from(this.g.querySelectorAll(toRedraw)) : [];
-    const annotations = unselected.map(s => s.annotation);
-    annotations.sort((a, b) => shapeArea(b, this.env.image) - shapeArea(a, this.env.image)); 
-    
-    // Clear unselected annotations and redraw
-    unselected.forEach(s => this.g.removeChild(s));
-    annotations.forEach(a => this.addAnnotation(a));
-
-    // Then re-draw the selected on top, if any
-    if (selected) {
-      // Editable shapes might be wrapped in additional group
-      // elements (mask!), we need to get the top-level wrapper 
-      // of .a9s-annotation.selected that sits directly 
-      // beneath this.g
-      let toRedraw = selected;
-      
-      while (toRedraw.parentNode !== this.g)
-        toRedraw = toRedraw.parentNode;
-
-      this.g.appendChild(toRedraw);
-    } 
-  }
-  
   removeAnnotation = annotationOrId => {
     // Removal won't work if the annotation is currently selected - deselect!
     const id = annotationOrId.type ? annotationOrId.id : annotationOrId;
@@ -518,8 +443,7 @@ export class AnnotationLayer extends EventEmitter {
       toRemove.parentNode.removeChild(toRemove);
 
       // Remove from spatial tree!
-      this.spatial_index.remove(annotation, (a, b) =>
-        a.id === b.id);
+      this.store.remove(annotation);
     }
   }
 

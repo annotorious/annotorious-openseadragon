@@ -45,8 +45,7 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
     return shape;
   }
 
-  getShapeAt = evt => {
-
+  _getShapeAt = evt => {
     const getXY = evt => {
       if (isTouch) {
         const bbox = this.svg.getBoundingClientRect();
@@ -54,32 +53,20 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
         const x = evt.clientX - bbox.x;
         const y = evt.clientY - bbox.y;
         
-        return { x, y };
+        return new OpenSeadragon.Point(x, y);
       } else {
-        return { x: evt.offsetX, y: evt.offsetY };
+        return new OpenSeadragon.Point(evt.offsetX, evt.offsetY);
       }
     }
 
-    const { x, y } = getXY(evt);
+    const { x, y } = this.viewer.viewport.viewerElementToImageCoordinates(getXY(evt));
 
-    const imagePoint = this.viewer.viewport.viewerElementToImageCoordinates(new OpenSeadragon.Point(x, y));
-
-    const hits = this.spatial_index.search({
-      minX: imagePoint.x,
-      minY: imagePoint.y,
-      maxX: imagePoint.x,
-      maxY: imagePoint.y
-    }).map(item => item.annotation);
-
-    // Get smallest annotation
-    if (hits.length > 0) {
-      hits.sort((a, b) => shapeArea(a, this.env.image) - shapeArea(b, this.env.image));
-      
-      const smallest = hits[0];
-      return this.findShape(smallest);
-    }
+    const annotation = this.store.getAnnotationAt(x, y);
+    if (annotation)
+      return this.findShape(annotation);
   }
 
+  /*
   redraw = () => {
     // The selected annotation shape
     const selected = this.g.querySelector('.a9s-annotation.selected');
@@ -109,6 +96,7 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
 
     this.resize();
   }
+  */
 
   resize() {
     const viewportBounds = this.viewer.viewport.getBounds(true);
@@ -122,8 +110,7 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
     };
 
     // Only update shapes inside viewport
-    const visible = new Set(this.spatial_index.search(imageBounds).map(item => item.annotation.id));
-
+    const visible = new Set(this.store.getAnnotationsIntersecting(imageBounds).map(a => a.id));
     if (visible.length === 0)
       return;
 
