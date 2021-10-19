@@ -60,7 +60,6 @@ export default class AnnotationStore {
     this.spatial_index.search(bounds).map(item => item.annotation);
 
   insert = arg => {
-    console.log('inserting');
     const annotations = Array.isArray(arg) ? arg : [ arg ];
     annotations.forEach(annotation => {
       this.spatial_index.insert({
@@ -70,8 +69,8 @@ export default class AnnotationStore {
   }
 
   remove = annotation => {
-    this.spatial_index.remove(annotation, (a, b) =>
-      a.id === b.id);
+    this.spatial_index.remove(({ annotation }), (a, b) =>
+      a.annotation.id === b.annotation.id);
   }
 
 }
