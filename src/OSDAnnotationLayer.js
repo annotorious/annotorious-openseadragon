@@ -33,6 +33,8 @@ export class AnnotationLayer extends EventEmitter {
 
     this.svg = document.createElementNS(SVG_NAMESPACE, 'svg');
 
+    this.loaded = false;
+
     if (isTouch) {
       this.svg.setAttribute('class', 'a9s-annotationlayer a9s-osd-annotationlayer touch');
       enableTouchTranslation(this.svg);
@@ -65,6 +67,9 @@ export class AnnotationLayer extends EventEmitter {
         addClass(this.svg, 'has-crosshair');
       }
 
+      this.loaded = true;
+
+      this.g.style.display = 'inline';
       this.resize();      
     }
 
@@ -368,24 +373,19 @@ export class AnnotationLayer extends EventEmitter {
 
     // Draw annotations
     console.time('Took');
-    const buffer = document.createElementNS(SVG_NAMESPACE, 'g');
-
     console.log('Drawing...');
-    annotations.forEach(annotation => this.addAnnotation(annotation, buffer));
 
-    this.svg.removeChild(this.g);
-    this.svg.appendChild(buffer);
-    this.g = buffer;
+    if (!this.loaded)
+      this.g.style.display = 'none';
 
-    // Re-wire drawing tools on new canvas
-    this._initDrawingTools();
+    annotations.forEach(annotation => this.addAnnotation(annotation));
 
     // Insert into store (and spatial index)
     console.log('Indexing...')
     this.store.insert(annotations);
     console.timeEnd('Took');
 
-    setTimeout(() => this.resize(), 10); 
+    this.resize(); 
   }
 
   listDrawingTools = () =>
