@@ -85,6 +85,33 @@ export class AnnotationLayer extends EventEmitter {
 
     this.selectedShape = null;
 
+    this.hoveredShape = null;
+
+    let zoomGesture = this.viewer.gestureSettingsByDeviceType('mouse').clickToZoom;
+
+    this.svg.addEventListener('mousemove', evt => {
+      // Don't track mouseEnter/mouseLeave while drawing
+      if (!this.tools?.current.isDrawing) {
+        const shape = this._getShapeAt(evt);
+
+        // Hovered shape changed
+        if (shape !== this.hoveredShape) {
+          if (this.hoveredShape) {
+            this.viewer.gestureSettingsByDeviceType('mouse').clickToZoom = zoomGesture;
+            this.emit('mouseLeaveAnnotation', this.hoveredShape.annotation, this.hoveredShape);
+          }
+
+          if (shape) {
+            zoomGesture = this.viewer.gestureSettingsByDeviceType('mouse').clickToZoom;
+            this.viewer.gestureSettingsByDeviceType('mouse').clickToZoom = false;
+            this.emit('mouseEnterAnnotation', shape.annotation, shape);
+          }
+        }
+
+        this.hoveredShape = shape;
+      }
+    });
+
     this._deselectOnClickOutside();
   }
 
@@ -97,24 +124,29 @@ export class AnnotationLayer extends EventEmitter {
     new OpenSeadragon.MouseTracker({
       element: this.viewer.canvas,
 
-      pressHandler: () =>
+      pressHandler: () => {
         lastMouseDown = new Date().getTime()
+      }
     });
 
     this.svg.addEventListener('click', evt => {
-      const annotation = evt.target.closest('.a9s-annotation');
+      // const annotation = evt.target.closest('.a9s-annotation');
 
-      // Click outside, no drawing in progress
-      if (!annotation && !this.tools.current?.isDrawing) {
-        // Don't deselect on drag!
+      // Click, no drawing in progress
+      if (!this.tools.current?.isDrawing) {
+        // Ignore "false click" after drag!
         const timeSinceMouseDown = new Date().getTime() - lastMouseDown;
-
-        // Not a new selection - deselect
+        
+        // Real click (no drag)
         if (timeSinceMouseDown < 100) {
-          this.deselect();
-          this.emit('select', {});
+          if (this.hoveredShape) {
+            this.selectShape(this.hoveredShape);
+          } else {
+            this.deselect();
+            this.emit('select', {});
+          }
         } 
-      } 
+      }
     });
   }
 
@@ -180,65 +212,6 @@ export class AnnotationLayer extends EventEmitter {
     document.addEventListener('keyup', this.onKeyUp);
   }
 
-  _removeMouseListeners = shape => {
-    // Remove mouseLeave/mouseEnter listener - otherwise
-    // they'll fire when shapes are added/removed to the
-    // DOM (when the mouse is over them)
-    for (let listener in shape.listeners) {
-      shape.removeEventListener(listener, shape.listeners[listener]);
-    }
-  }
-
-  _attachMouseListeners = (shape, annotation) => {
-    const zoomGesture = this.viewer.gestureSettingsByDeviceType('mouse').clickToZoom;
-
-    const onMouseEnter = () => {
-      this.viewer.gestureSettingsByDeviceType('mouse').clickToZoom = false;
-
-      if (!this.tools?.current.isDrawing)
-        this.emit('mouseEnterAnnotation', annotation, shape);
-    };
-
-    const onMouseLeave = () => {
-      this.viewer.gestureSettingsByDeviceType('mouse').clickToZoom = zoomGesture;
-
-      if (!this.tools?.current.isDrawing)
-        this.emit('mouseLeaveAnnotation', annotation, shape);
-    };
-
-    // Common click/tap handler
-    const onClick = evt => {
-      this.viewer.gestureSettingsByDeviceType('mouse').clickToZoom = false;
-
-      // Unfortunately, click also fires after drag, which means
-      // a new selection on top of this shape will be interpreted 
-      // as click. Identify this case and prevent the default
-      // selection action!
-      const isSelection = this.selectedShape?.annotation.isSelection;
-
-      if (!isSelection && !this.disableSelect && this.selectedShape?.element !== shape) {
-        const smallest = this._getShapeAt(evt);
-        this.selectShape(smallest);
-      }
-      
-      if (this.disableSelect)
-        this.emit('clickAnnotation', shape.annotation, shape);
-    }
-
-    shape.addEventListener('mouseenter', onMouseEnter);
-    shape.addEventListener('mouseleave', onMouseLeave);
-    shape.addEventListener('click', onClick);
-    shape.addEventListener('touchend', onClick);
-
-    // Store, so we can remove later
-    shape.listeners = {
-      mouseenter: onMouseEnter,
-      mouseleave: onMouseLeave,
-      click: onClick,
-      touchend: onClick
-    }
-  }
-
   _getShapeAt = evt => {
     const getSVGPoint = evt => {
       const pt = this.svg.createSVGPoint();
@@ -281,8 +254,6 @@ export class AnnotationLayer extends EventEmitter {
 
     shape.setAttribute('data-id', annotation.id);
     shape.annotation = annotation;
-
-    this._attachMouseListeners(shape, annotation);
 
     g.appendChild(shape);
     
@@ -521,8 +492,6 @@ export class AnnotationLayer extends EventEmitter {
     const readOnly = this.readOnly || annotation.readOnly;
 
     if (!(readOnly || this.headless)) {
-      this._removeMouseListeners(shape);
-
       setTimeout(() => {
         shape.parentNode.removeChild(shape);
 
@@ -541,14 +510,6 @@ export class AnnotationLayer extends EventEmitter {
       this.scaleFormatterElements(this.selectedShape.element);
 
       this.selectedShape.element.annotation = annotation;     
-
-      // If we attach immediately 'mouseEnter' will fire when the editable shape
-      // is added to the DOM!
-      setTimeout(() => {
-        // Can be undefined in headless mode, when saving immediately
-        if (this.selectedShape)
-          this._attachMouseListeners(this.selectedShape.element, annotation);
-      }, 10);
 
       // Disable normal OSD nav
       const editableShapeMouseTracker = new OpenSeadragon.MouseTracker({
