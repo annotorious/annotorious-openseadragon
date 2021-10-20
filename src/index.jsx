@@ -11,6 +11,7 @@ import {
 
 import '@recogito/annotorious/src/ImageAnnotator.scss';
 import '@recogito/recogito-client-core/themes/default';
+import './OpenSeadragonAnnotator.scss';
 
 class OSDAnnotorious {
 

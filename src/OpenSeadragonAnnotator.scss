@@ -1,0 +1,7 @@
+.a9s-annotation.hover .a9s-inner {
+  stroke:#fff000;
+}
+
+.a9s-annotation:not(.hover):hover .a9s-inner {
+  stroke:#fff;
+}

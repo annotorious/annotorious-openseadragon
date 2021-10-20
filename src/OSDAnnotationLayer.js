@@ -1,6 +1,6 @@
 import EventEmitter from 'tiny-emitter';
 import OpenSeadragon from 'openseadragon';
-import { SVG_NAMESPACE, addClass } from '@recogito/annotorious/src/util/SVG';
+import { SVG_NAMESPACE, addClass, removeClass } from '@recogito/annotorious/src/util/SVG';
 import DrawingTools from '@recogito/annotorious/src/tools/ToolsRegistry';
 import Crosshair from '@recogito/annotorious/src/Crosshair';
 import { drawShape } from '@recogito/annotorious/src/selectors';
@@ -110,12 +110,14 @@ export class AnnotationLayer extends EventEmitter {
         if (shape !== this.hoveredShape) {
           if (this.hoveredShape) {
             this.viewer.gestureSettingsByDeviceType('mouse').clickToZoom = zoomGesture;
+            removeClass(this.hoveredShape, 'hover');
             this.emit('mouseLeaveAnnotation', this.hoveredShape.annotation, this.hoveredShape);
           }
 
           if (shape) {
             zoomGesture = this.viewer.gestureSettingsByDeviceType('mouse').clickToZoom;
             this.viewer.gestureSettingsByDeviceType('mouse').clickToZoom = false;
+            addClass(shape, 'hover');
             this.emit('mouseEnterAnnotation', shape.annotation, shape);
           }
         }
