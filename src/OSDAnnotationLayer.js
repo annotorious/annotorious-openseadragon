@@ -33,8 +33,6 @@ export class AnnotationLayer extends EventEmitter {
 
     this.svg = document.createElementNS(SVG_NAMESPACE, 'svg');
 
-    this.loaded = false;
-
     if (isTouch) {
       this.svg.setAttribute('class', 'a9s-annotationlayer a9s-osd-annotationlayer touch');
       enableTouchTranslation(this.svg);
@@ -43,6 +41,7 @@ export class AnnotationLayer extends EventEmitter {
     }    
 
     this.g = document.createElementNS(SVG_NAMESPACE, 'g');
+
     this.svg.appendChild(this.g);
     
     this.viewer.canvas.appendChild(this.svg);
@@ -51,6 +50,8 @@ export class AnnotationLayer extends EventEmitter {
     this.viewer.addHandler('rotate', () => this.resize());
     this.viewer.addHandler('resize', () => this.resize());
     this.viewer.addHandler('flip', () => this.resize());
+
+    this.loaded = false;
 
     const onLoad = () => {
       const { x, y } = this.viewer.world.getItemAt(0).source.dimensions;
@@ -70,6 +71,7 @@ export class AnnotationLayer extends EventEmitter {
       this.loaded = true;
 
       this.g.style.display = 'inline';
+
       this.resize();      
     }
 
@@ -87,8 +89,18 @@ export class AnnotationLayer extends EventEmitter {
 
     this.hoveredShape = null;
 
+    this._initMouseEvents();
+  }
+
+  _initMouseEvents = () => {
+    // User-configured OSD zoom gesture setting
     let zoomGesture = this.viewer.gestureSettingsByDeviceType('mouse').clickToZoom;
 
+    // We use mouse-move to track which annotation is currently hovered on.
+    // Keep in mind that annotations are NOT automatically stacked from large
+    // to small. Therefore, smaller ones might be obscured underneath larger
+    // ones. That's the reason we can't use native mouseEnter/mouseLeave events
+    // on the SVG shapes! 
     this.svg.addEventListener('mousemove', evt => {
       // Don't track mouseEnter/mouseLeave while drawing
       if (!this.tools?.current.isDrawing) {
@@ -112,11 +124,6 @@ export class AnnotationLayer extends EventEmitter {
       }
     });
 
-    this._deselectOnClickOutside();
-  }
-
-  /** Adds handler logic to deselect when clicking outside a shape **/
-  _deselectOnClickOutside = () => {
     // Unfortunately, drag ALSO creates a click 
     // event - ignore in this case.
     let lastMouseDown = null;
@@ -130,9 +137,7 @@ export class AnnotationLayer extends EventEmitter {
     });
 
     this.svg.addEventListener('click', evt => {
-      // const annotation = evt.target.closest('.a9s-annotation');
-
-      // Click, no drawing in progress
+      // Click & no drawing in progress
       if (!this.tools.current?.isDrawing) {
         // Ignore "false click" after drag!
         const timeSinceMouseDown = new Date().getTime() - lastMouseDown;
@@ -485,7 +490,7 @@ export class AnnotationLayer extends EventEmitter {
 
     // If another shape is currently selected, deselect first
     if (this.selectedShape && this.selectedShape.annotation !== shape.annotation)
-      this.deselect(true);
+      this.deselect();
 
     const { annotation } = shape;
 

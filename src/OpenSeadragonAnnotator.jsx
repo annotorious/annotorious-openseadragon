@@ -229,7 +229,7 @@ export default class OpenSeadragonAnnotator extends Component {
   addAnnotation = annotation => {
     // Deselect first in case the annotation is currently selected
     if (annotation.id === this.state.selectedAnnotation?.id) {
-      this.annotationLayer.deselect(true);
+      this.annotationLayer.deselect();
       this.clearState();
     }
 
