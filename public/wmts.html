@@ -38,17 +38,11 @@
 
       .a9s-selection-mask {
         display:none;
-        // fill:rgba(0,0,0,0.6) !important;
-        // pointer-events:none;
       }
 
       .a9s-annotationlayer .a9s-annotation .a9s-inner {
         stroke:red !important;
         fill:rgba(255,0,0,0.4) !important;
-      }
-
-      * {
-        vector-effect:none;
       }
     </style>
     <script>
@@ -105,6 +99,14 @@
         
         anno.on('createAnnotation', function(annotation) {
           console.log(JSON.stringify(annotation));
+        });
+
+        anno.on('mouseEnterAnnotation', function(annotation, shape) {
+          // console.log('mouseEnter');
+        });
+
+        anno.on('mouseLeaveAnnotation', function(annotation, shape) {
+          // console.log('mouseLeave');
         });
 
         // The map object provides functions to convert OSD coordinates to WGS84

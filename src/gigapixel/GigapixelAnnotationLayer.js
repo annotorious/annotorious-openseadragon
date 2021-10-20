@@ -36,8 +36,6 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
 
     refreshViewportPosition(this.viewer, shape);
 
-    this._attachMouseListeners(shape, annotation);
-
     g.appendChild(shape);
 
     format(shape, annotation, this.formatter);
@@ -149,14 +147,6 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
       // Instantly reproject the original annotation to viewport coorods
       const projected = imageAnnotationToViewport(this.viewer, annotation);
       this.selectedShape.updateState(projected);
-
-      // If we attach immediately 'mouseEnter' will fire when the editable shape
-      // is added to the DOM!
-      setTimeout(() => {
-        // Can be undefined in headless mode, when saving immediately
-        if (this.selectedShape)
-          this._attachMouseListeners(this.selectedShape.element, annotation);
-      }, 10);
 
       // Disable normal OSD nav
       const editableShapeMouseTracker = new OpenSeadragon.MouseTracker({
