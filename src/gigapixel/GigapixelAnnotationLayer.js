@@ -126,8 +126,6 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
     const readOnly = this.readOnly || annotation.readOnly;
 
     if (!(readOnly || this.headless)) {
-      this._removeMouseListeners(shape);
-
       setTimeout(() => {
         shape.parentNode.removeChild(shape);
 
