@@ -142,13 +142,6 @@ export default class OpenSeadragonAnnotator extends Component {
     // acts as 'Cancel'.)
     this.saveSelected().then(() =>  {
       this.onNormalSelect(evt, skipEvent);
-
-      const { annotation } = evt;
-
-      if (annotation && !annotation.isSelection)  {
-        const selection = this.annotationLayer.selectAnnotation(evt.annotation, true);
-        this.setState({ selectedDOMElement: selection.element });
-      }
     });
   }
 

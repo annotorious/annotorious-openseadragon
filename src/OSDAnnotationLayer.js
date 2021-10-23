@@ -106,7 +106,7 @@ export class AnnotationLayer extends EventEmitter {
       if (!this.tools?.current.isDrawing) {
         const shape = this._getShapeAt(evt);
 
-        // Hovered shape changed
+        // Hovered annotation changed
         if (shape !== this.hoveredShape) {
           if (this.hoveredShape) {
             this.viewer.gestureSettingsByDeviceType('mouse').clickToZoom = zoomGesture;
@@ -134,11 +134,15 @@ export class AnnotationLayer extends EventEmitter {
       element: this.viewer.canvas,
 
       pressHandler: () => {
-        lastMouseDown = new Date().getTime()
+        lastMouseDown = new Date().getTime();
       }
     });
 
-    this.svg.addEventListener('click', evt => {
+    this.svg.addEventListener('mousedown', () => {
+      lastMouseDown = new Date().getTime();
+    });
+
+    this.svg.addEventListener('click', () => {
       // Click & no drawing in progress
       if (!this.tools.current?.isDrawing) {
         // Ignore "false click" after drag!
