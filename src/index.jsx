@@ -18,9 +18,6 @@ class OSDAnnotorious {
   constructor(viewer, conf) {
     const config = conf || {};
 
-    // TODO .headless option is deprecated!
-    config.disableEditor = config.disableEditor || config.headless;
-
     this._app = React.createRef();
     
     this._emitter = new Emitter();
