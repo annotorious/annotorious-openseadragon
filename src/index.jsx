@@ -145,6 +145,11 @@ class OSDAnnotorious {
     const annotations = this._app.current.getAnnotations();
     return annotations.map(a => a.underlying);
   }
+  
+  getAnnotationById = annotationId => {
+    const a = this._app.current.getAnnotationById(annotationId);
+    return a ? a.underlying : null;
+  }
 
   getSelected = () => {
     const selected = this._app.current.getSelected();
