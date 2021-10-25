@@ -142,14 +142,14 @@ export class AnnotationLayer extends EventEmitter {
       lastMouseDown = new Date().getTime();
     });
 
-    this.svg.addEventListener('click', () => {
+    const onClick = () => {
       // Click & no drawing in progress
       if (!this.tools.current?.isDrawing) {
         // Ignore "false click" after drag!
         const timeSinceMouseDown = new Date().getTime() - lastMouseDown;
         
         // Real click (no drag)
-        if (timeSinceMouseDown < 100) {
+        if (timeSinceMouseDown < 250) {
           if (this.hoveredShape) {
             this.selectShape(this.hoveredShape);
           } else {
@@ -158,7 +158,10 @@ export class AnnotationLayer extends EventEmitter {
           }
         } 
       }
-    });
+    };
+
+    this.svg.addEventListener('click', onClick);
+    this.svg.addEventListener('touchstart', onClick);
   }
 
   /** Initializes the OSD MouseTracker used for drawing **/
