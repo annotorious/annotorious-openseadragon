@@ -144,7 +144,7 @@ export class AnnotationLayer extends EventEmitter {
 
     const onClick = () => {
       // Click & no drawing in progress
-      if (!this.tools.current?.isDrawing) {
+      if (!(this.tools.current?.isDrawing || this.disableSelect)) {
         // Ignore "false click" after drag!
         const timeSinceMouseDown = new Date().getTime() - lastMouseDown;
         
@@ -158,6 +158,9 @@ export class AnnotationLayer extends EventEmitter {
           }
         } 
       }
+
+      if (this.disableSelect)
+        this.emit('clickAnnotation', this.hoveredShape.annotation, this.hoveredShape);
     };
 
     this.svg.addEventListener('click', onClick);
