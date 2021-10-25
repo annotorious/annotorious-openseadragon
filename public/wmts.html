@@ -98,7 +98,7 @@
         });
         
         anno.on('createAnnotation', function(annotation) {
-          console.log(JSON.stringify(annotation));
+          console.log(annotation);
         });
 
         anno.on('mouseEnterAnnotation', function(annotation, shape) {
@@ -126,7 +126,6 @@
         }
 
         anno.setAnnotations(annotations);
-        // anno.loadAnnotations('map-annotations.w3c.json');
       }
     </script>
   </head>
@@ -135,10 +134,6 @@
     <p class="instructions">
       Click the annotation to edit. Hold <strong>SHIFT</strong> while clicking and 
       dragging the mouse to create a new annotation. 
-    </p>
-    <p>
-      <button id="current-tool">TOOL: RECTANGLE</button>
-      <button id="mode">MODE: VIEW</button>
     </p>
     <div id="openseadragon"></div>    
     <div id="toolbar"></div>

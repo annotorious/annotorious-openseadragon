@@ -34,7 +34,7 @@ const getSelectorType = annotation => {
 export const viewportTargetToImage = (viewer, target) => {
   const { extent, scale } = currentTransform(viewer);
   const { selector } = target;
-
+  
   // Create an empty annotation wrapper so we can use the
   // standard parse functions
   const annotation = WebAnnotation.create({ target });
@@ -62,6 +62,7 @@ export const viewportTargetToImage = (viewer, target) => {
     serialized = serialized.replace(` xmlns="${SVG_NAMESPACE}"`, '');
   
     return {
+      ...target,
       selector: {
         type: "SvgSelector",
         value: `<svg>${serialized}</svg>`
