@@ -270,11 +270,11 @@ export default class OpenSeadragonAnnotator extends Component {
   fitBounds = (annotationOrId, immediately) =>
     this.annotationLayer.fitBounds(annotationOrId, immediately);
   
-  getAnnotations = () =>
-    this.annotationLayer.getAnnotations().map(a => a.clone());
-
   getAnnotationById = annotationId =>
     this.annotationLayer.findShape(annotationId)?.annotation;
+
+  getAnnotations = () =>
+    this.annotationLayer.getAnnotations().map(a => a.clone());
 
   getSelected = () => {
     if (this.state.selectedAnnotation) {
