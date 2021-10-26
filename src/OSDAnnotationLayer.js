@@ -509,41 +509,49 @@ export class AnnotationLayer extends EventEmitter {
     const readOnly = this.readOnly || annotation.readOnly;
 
     if (!(readOnly || this.headless)) {
-      setTimeout(() => {
-        shape.parentNode.removeChild(shape);
-
-        // Fire the event AFTER the original shape was removed. Otherwise,
-        // people calling `.getAnnotations()` in the `onSelectAnnotation` 
-        // handler will receive a duplicate annotation
-        // (See issue https://github.com/recogito/annotorious-openseadragon/issues/63)
-        if (!skipEvent)
-          this.emit('select', { annotation, element: this.selectedShape.element });
-      }, 1);
-
       const toolForAnnotation = this.tools.forAnnotation(annotation);
-      this.selectedShape = toolForAnnotation.createEditableShape(annotation);
-      this.selectedShape.scaleHandles(1 / this.currentScale());
 
-      this.scaleFormatterElements(this.selectedShape.element);
+      if (toolForAnnotation) {
+        setTimeout(() => {
+          shape.parentNode.removeChild(shape);
 
-      this.selectedShape.element.annotation = annotation;     
+          // Fire the event AFTER the original shape was removed. Otherwise,
+          // people calling `.getAnnotations()` in the `onSelectAnnotation` 
+          // handler will receive a duplicate annotation
+          // (See issue https://github.com/recogito/annotorious-openseadragon/issues/63)
+          if (!skipEvent)
+            this.emit('select', { annotation, element: this.selectedShape.element });
+        }, 1);
 
-      // Disable normal OSD nav
-      const editableShapeMouseTracker = new OpenSeadragon.MouseTracker({
-        element: this.svg
-      }).setTracking(true);
+        this.selectedShape = toolForAnnotation.createEditableShape(annotation);
+        this.selectedShape.scaleHandles(1 / this.currentScale());
 
-      // En-/disable OSD nav based on hover status
-      this.selectedShape.element.addEventListener('mouseenter', evt =>
-        editableShapeMouseTracker.setTracking(true));
+        this.scaleFormatterElements(this.selectedShape.element);
 
-      this.selectedShape.element.addEventListener('mouseleave', evt =>
-        editableShapeMouseTracker.setTracking(false));
+        this.selectedShape.element.annotation = annotation;     
 
-      this.selectedShape.mouseTracker = editableShapeMouseTracker;
+        // Disable normal OSD nav
+        const editableShapeMouseTracker = new OpenSeadragon.MouseTracker({
+          element: this.svg
+        }).setTracking(true);
 
-      this.selectedShape.on('update', fragment =>
-        this.emit('updateTarget', this.selectedShape.element, fragment));
+        // En-/disable OSD nav based on hover status
+        this.selectedShape.element.addEventListener('mouseenter', evt =>
+          editableShapeMouseTracker.setTracking(true));
+
+        this.selectedShape.element.addEventListener('mouseleave', evt =>
+          editableShapeMouseTracker.setTracking(false));
+
+        this.selectedShape.mouseTracker = editableShapeMouseTracker;
+
+        this.selectedShape.on('update', fragment =>
+          this.emit('updateTarget', this.selectedShape.element, fragment));
+      } else {
+        this.selectedShape = shape;
+
+        if (!skipEvent)
+          this.emit('select', { annotation, element: this.selectedShape });
+      }
     } else {
       this.selectedShape = shape;
 
