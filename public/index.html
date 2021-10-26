@@ -115,8 +115,8 @@
           // console.log('start selection', a);
         });
 
-        anno.on('createAnnotation', function(a) {
-          console.log('created', JSON.stringify(a));
+        anno.on('createAnnotation', function(a, overrideId) {
+          console.log('created', a);
         });
 
         anno.on('updateAnnotation', function(annotation, previous) {
