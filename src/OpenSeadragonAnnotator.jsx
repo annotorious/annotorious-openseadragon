@@ -305,6 +305,9 @@ export default class OpenSeadragonAnnotator extends Component {
   removeAnnotation = annotationOrId =>
     this.annotationLayer.removeAnnotation(annotationOrId);
 
+  removeDrawingTool = id =>
+    this.annotationLayer.removeDrawingTool(id);
+
   saveSelected = () =>
     new Promise(resolve => {
       const a = this.state.selectedAnnotation;

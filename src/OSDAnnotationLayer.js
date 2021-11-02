@@ -431,6 +431,9 @@ export class AnnotationLayer extends EventEmitter {
       this.store.remove(annotation);
     }
   }
+  
+  removeDrawingTool = id =>
+    this.tools?.unregisterTool(id);
 
   resize() {
     const flipped = this.viewer.viewport.getFlip();
