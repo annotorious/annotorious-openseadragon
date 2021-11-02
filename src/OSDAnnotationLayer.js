@@ -180,7 +180,7 @@ export class AnnotationLayer extends EventEmitter {
       pressHandler: evt => {
         if (!this.tools.current.isDrawing) {
           this.tools.current.start(evt.originalEvent);
-          // this.tools.current.scaleHandles(1 / this.currentScale());
+          this.scaleTool(this.tools.current);
         }
       },
 
@@ -449,7 +449,7 @@ export class AnnotationLayer extends EventEmitter {
 
     if (this.selectedShape) {
       if (this.selectedShape.element) { // Editable shape
-        this.selectedShape.scaleHandles(1 / scaleY);
+        this.scaleTool(this.selectedShape);
         this.emit('viewportChange', this.selectedShape.element);
       } else {
         this.emit('viewportChange', this.selectedShape); 
@@ -457,7 +457,7 @@ export class AnnotationLayer extends EventEmitter {
     }
 
     if (this.tools?.current.isDrawing)
-      this.tools.current.scaleHandles(1 / scaleY);
+      this.scaleTool(this.tools.current);
   }
   
   scaleFormatterElements = opt_shape => {
@@ -471,6 +471,16 @@ export class AnnotationLayer extends EventEmitter {
       const elements = Array.from(this.g.querySelectorAll('.a9s-formatter-el'));
       elements.forEach(el =>
         el.firstChild.setAttribute('transform', `scale(${scale})`));
+    }
+  }
+
+  scaleTool = tool => {
+    if (tool) {
+      const scale = 1 / this.currentScale();
+      tool.scale = scale;
+
+      if (tool.onScaleChanged)
+        tool.onScaleChanged(scale);
     }
   }
 
@@ -524,7 +534,7 @@ export class AnnotationLayer extends EventEmitter {
         }, 1);
 
         this.selectedShape = toolForAnnotation.createEditableShape(annotation);
-        this.selectedShape.scaleHandles(1 / this.currentScale());
+        this.scaleTool(this.selectedShape);
 
         this.scaleFormatterElements(this.selectedShape.element);
 
