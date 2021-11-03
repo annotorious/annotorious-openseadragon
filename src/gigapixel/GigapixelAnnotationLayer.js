@@ -11,7 +11,7 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
 
   constructor(props) {
     super(props);
-    this._initDrawingTools();
+    this._initDrawingTools(true);
   }
 
   onDrawingComplete = shape => {

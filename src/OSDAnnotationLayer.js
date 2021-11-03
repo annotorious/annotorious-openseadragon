@@ -169,7 +169,7 @@ export class AnnotationLayer extends EventEmitter {
   }
 
   /** Initializes the OSD MouseTracker used for drawing **/
-  _initDrawingTools = () => {
+  _initDrawingTools = gigapixelMode => {
     this.tools = new DrawingTools(this.g, this.config, this.env);
     this.tools.on('complete', this.onDrawingComplete);
 
@@ -181,7 +181,8 @@ export class AnnotationLayer extends EventEmitter {
       pressHandler: evt => {
         if (!this.tools.current.isDrawing) {
           this.tools.current.start(evt.originalEvent, this.drawOnSingleClick && !this.hoveredShape);
-          this.scaleTool(this.tools.current);
+          if (!gigapixelMode)
+            this.scaleTool(this.tools.current);
         }
       },
 
