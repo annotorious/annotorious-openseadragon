@@ -30,6 +30,7 @@ export class AnnotationLayer extends EventEmitter {
     this.formatter = props.config.formatter;
 
     this.disableSelect = props.disableSelect;
+    this.drawOnSingleClick = props.config.drawOnSingleClick;
 
     this.svg = document.createElementNS(SVG_NAMESPACE, 'svg');
 
@@ -179,7 +180,7 @@ export class AnnotationLayer extends EventEmitter {
 
       pressHandler: evt => {
         if (!this.tools.current.isDrawing) {
-          this.tools.current.start(evt.originalEvent);
+          this.tools.current.start(evt.originalEvent, this.drawOnSingleClick && !this.hoveredShape);
           this.scaleTool(this.tools.current);
         }
       },
