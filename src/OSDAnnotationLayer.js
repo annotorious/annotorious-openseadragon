@@ -592,6 +592,9 @@ export class AnnotationLayer extends EventEmitter {
     }
   }
 
+  stopDrawing = () =>
+    this.tools?.current?.stop();
+
 }
 
 export default class OSDAnnotationLayer extends AnnotationLayer {

@@ -73,6 +73,8 @@ export default class OpenSeadragonAnnotator extends Component {
 
   escapeKeyCancel = evt => {
     if (evt.which === 27) { // Escape
+      this.annotationLayer.stopDrawing();
+      
       const { selectedAnnotation } = this.state;
       if (selectedAnnotation) {
         this.cancelSelected();
