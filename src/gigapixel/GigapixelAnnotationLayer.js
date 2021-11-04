@@ -79,20 +79,20 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
 
     // Only update shapes inside viewport
     const visible = new Set(this.store.getAnnotationsIntersecting(imageBounds).map(a => a.id));
-    if (visible.size === 0)
-      return;
-
-    // Update positions for all anntations except selected (will be handled separately)
-    const shapes = Array.from(this.g.querySelectorAll('.a9s-annotation:not(.selected)'));
-    shapes.forEach(s => {
-      if (visible.has(s.annotation.id)) {
-        s.removeAttribute('visibility');
-        refreshViewportPosition(this.viewer, s);
-      } else {
-        if (!s.hasAttribute('visibility'))
-          s.setAttribute('visibility', 'hidden');
-      }
-    });
+    
+    if (visible.size > 0) {
+      // Update positions for all anntations except selected (will be handled separately)
+      const shapes = Array.from(this.g.querySelectorAll('.a9s-annotation:not(.selected)'));
+      shapes.forEach(s => {
+        if (visible.has(s.annotation.id)) {
+          s.removeAttribute('visibility');
+          refreshViewportPosition(this.viewer, s);
+        } else {
+          if (!s.hasAttribute('visibility'))
+            s.setAttribute('visibility', 'hidden');
+        }
+      });
+    }
 
     if (this.selectedShape) {
       if (this.selectedShape.element) {
@@ -100,6 +100,8 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
         // this.selectedShape.element.annotation -> this always holds the current
         // position in image coordinates (including after drag/resize)
         const projected = imageAnnotationToViewport(this.viewer, this.selectedShape.element.annotation);
+        console.log(projected);
+        
         this.selectedShape.updateState && this.selectedShape.updateState(projected);
         
         this.emit('viewportChange', this.selectedShape.element);
