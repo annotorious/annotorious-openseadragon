@@ -100,7 +100,6 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
         // this.selectedShape.element.annotation -> this always holds the current
         // position in image coordinates (including after drag/resize)
         const projected = imageAnnotationToViewport(this.viewer, this.selectedShape.element.annotation);
-        console.log(projected);
         
         this.selectedShape.updateState && this.selectedShape.updateState(projected);
         
