@@ -69,7 +69,15 @@ export default class AnnotationStore {
   }
 
   remove = annotation => {
-    this.spatial_index.remove(({ annotation }), (a, b) =>
+    // Unfortunately, .remove currently requires bounds,
+    // therefore we need to re-compute. See:
+    // https://github.com/mourner/rbush/issues/95
+    const item = {
+      ...getBounds(annotation),
+      annotation
+    };
+
+    this.spatial_index.remove(item, (a, b) =>
       a.annotation.id === b.annotation.id);
   }
 
