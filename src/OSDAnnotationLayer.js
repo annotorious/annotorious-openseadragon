@@ -150,7 +150,7 @@ export class AnnotationLayer extends EventEmitter {
         const timeSinceMouseDown = new Date().getTime() - lastMouseDown;
         
         // Real click (no drag)
-        if (timeSinceMouseDown < 250) {
+        if (timeSinceMouseDown < 250) {    
           if (this.hoveredShape) {
             this.selectShape(this.hoveredShape);
           } else {
@@ -551,11 +551,15 @@ export class AnnotationLayer extends EventEmitter {
         }).setTracking(true);
 
         // En-/disable OSD nav based on hover status
-        this.selectedShape.element.addEventListener('mouseenter', evt =>
-          editableShapeMouseTracker.setTracking(true));
+        this.selectedShape.element.addEventListener('mouseenter', evt => {
+          this.hoveredShape = this.selectedShape;
+          editableShapeMouseTracker.setTracking(true)
+        });
 
-        this.selectedShape.element.addEventListener('mouseleave', evt =>
-          editableShapeMouseTracker.setTracking(false));
+        this.selectedShape.element.addEventListener('mouseleave', evt => {
+          this.hoveredShape = null;
+          editableShapeMouseTracker.setTracking(false)
+        });
 
         this.selectedShape.mouseTracker = editableShapeMouseTracker;
 
