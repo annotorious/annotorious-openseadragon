@@ -204,7 +204,10 @@ export class AnnotationLayer extends EventEmitter {
         if (shape?.annotation !== this.hoveredShape?.annotation) {
           if (this.hoveredShape) {
             this.viewer.gestureSettingsByDeviceType('mouse').clickToZoom = zoomGesture;
-            removeClass(this.hoveredShape, 'hover');
+            
+            const element = this.hoveredShape.element || this.hoveredShape;
+            removeClass(element, 'hover');
+            
             this.emit('mouseLeaveAnnotation', this.hoveredShape.annotation, this.hoveredShape);
           }
 
