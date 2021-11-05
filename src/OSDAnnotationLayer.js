@@ -1,6 +1,6 @@
 import EventEmitter from 'tiny-emitter';
 import OpenSeadragon from 'openseadragon';
-import { SVG_NAMESPACE, addClass, removeClass } from '@recogito/annotorious/src/util/SVG';
+import { SVG_NAMESPACE, addClass, hasClass, removeClass } from '@recogito/annotorious/src/util/SVG';
 import DrawingTools from '@recogito/annotorious/src/tools/ToolsRegistry';
 import Crosshair from '@recogito/annotorious/src/Crosshair';
 import { drawShape } from '@recogito/annotorious/src/selectors';
