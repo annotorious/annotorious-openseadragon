@@ -15,7 +15,6 @@
       }
     ],
     "target": {
-      "source": "http://localhost:3000/1280px-Hallstatt.jpg",
       "selector": {
         "type": "FragmentSelector",
         "conformsTo": "http://www.w3.org/TR/media-frags/",
@@ -42,7 +41,8 @@
         "value": "xywh=540,240,180,340"
       }
     }
-  },{
+  },
+  {
     "type": "Annotation",
     "body": [
       {
@@ -58,7 +58,6 @@
       }
     ],
     "target": {
-      "source": "http://localhost:3000/640px-Hallstatt.jpg",
       "selector": {
         "type": "SvgSelector",
         "value": "<svg><polygon points=\"447,213 560,140 563,259\"></polygon></svg>"
@@ -66,5 +65,27 @@
     },
     "@context": "http://www.w3.org/ns/anno.jsonld",
     "id": "#9df313be-4ded-4d0f-b7f6-f6b1a19e733b"
+  },
+  {
+    "type": "Annotation",
+    "body": [
+      {
+        "type": "TextualBody",
+        "value": "A point!",
+        "purpose": "commenting"
+      }
+    ],
+    "target": {
+      "selector": {
+        "type": "FragmentSelector",
+        "conformsTo": "http://www.w3.org/TR/media-frags/",
+        "value": "xywh=pixel:632,296,0,0"
+      },
+      "renderedVia": {
+        "name": "point"
+      }
+    },
+    "@context": "http://www.w3.org/ns/anno.jsonld",
+    "id": "#9a4c10df-3c07-40c3-9108-672d1194bbf8"
   }
 ]

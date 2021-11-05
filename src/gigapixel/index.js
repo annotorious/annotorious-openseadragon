@@ -298,12 +298,20 @@ const refreshRectFragment = (shape, extent, scale) => {
   const offsetX = scale * (x - extent.x);
   const offsetY = scale * (y - extent.y);
 
-  [ outer, inner ].forEach(elem => {
-    elem.setAttribute('x', offsetX);
-    elem.setAttribute('y', offsetY);
-    elem.setAttribute('width', w * scale);
-    elem.setAttribute('height', h * scale);
-  });
+  if (w === 0 && h === 0) {
+    // Edge case: rendered as a point!
+    [ outer, inner ].forEach(elem => {
+      elem.setAttribute('cx', offsetX);
+      elem.setAttribute('cy', offsetY);
+    });
+  } else {
+    [ outer, inner ].forEach(elem => {
+      elem.setAttribute('x', offsetX);
+      elem.setAttribute('y', offsetY);
+      elem.setAttribute('width', w * scale);
+      elem.setAttribute('height', h * scale);
+    });
+  }
 }
 
 const refreshSvg = (shape, extent, scale) => {

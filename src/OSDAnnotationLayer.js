@@ -93,6 +93,99 @@ export class AnnotationLayer extends EventEmitter {
     this._initMouseEvents();
   }
 
+  _getShapeAt = evt => {
+    const getSVGPoint = evt => {
+      const pt = this.svg.createSVGPoint();
+  
+      if (isTouch) {
+        const bbox = this.svg.getBoundingClientRect();
+  
+        const x = evt.clientX - bbox.x;
+        const y = evt.clientY - bbox.y;
+  
+        const { left, top } = this.svg.getBoundingClientRect();
+        pt.x = x + left;
+        pt.y = y + top;
+  
+        return pt.matrixTransform(this.g.getScreenCTM().inverse());
+      } else {
+        pt.x = evt.offsetX;
+        pt.y = evt.offsetY;
+  
+        return pt.matrixTransform(this.g.getCTM().inverse());
+      }
+    }
+
+    const { x, y } = getSVGPoint(evt);
+
+    const annotation = this.store.getAnnotationAt(x, y);
+    if (annotation)
+      return this.findShape(annotation);
+  }
+
+  /** Initializes the OSD MouseTracker used for drawing **/
+  _initDrawingTools = gigapixelMode => {
+    this.tools = new DrawingTools(this.g, this.config, this.env);
+    this.tools.on('complete', this.onDrawingComplete);
+
+    let started = false;
+    
+    this.mouseTracker = new OpenSeadragon.MouseTracker({
+      element: this.svg,
+
+      pressHandler: evt => {
+        if (!this.tools.current.isDrawing) {
+          this.tools.current.start(evt.originalEvent, this.drawOnSingleClick && !this.hoveredShape);
+          if (!gigapixelMode)
+            this.scaleTool(this.tools.current);
+        }
+      },
+
+      moveHandler: evt => {
+        if (this.tools.current.isDrawing) {
+          const { x , y } = this.tools.current.getSVGPoint(evt.originalEvent);
+          this.tools.current.onMouseMove(x, y, evt.originalEvent);
+
+          if (!started) {
+            this.emit('startSelection', { x , y });
+            started = true;
+          }
+        }
+      },
+
+      releaseHandler: evt => {
+        if (this.tools.current.isDrawing) {
+          const { x , y } = this.tools.current.getSVGPoint(evt.originalEvent);
+          this.tools.current.onMouseUp(x, y, evt.originalEvent);
+        }
+
+        started = false;
+      }
+    }).setTracking(false);
+
+    // Keep tracker disabled until Shift is held
+    if (this.onKeyDown)
+      document.removeEventListener('keydown', this.onKeyDown);
+    
+    if (this.onKeyUp)
+      document.removeEventListener('keydown', this.onKeyDown);
+
+    this.onKeyDown = evt => {
+      if (evt.which === 16 && !this.selectedShape) { // Shift
+        this.mouseTracker.setTracking(!this.readOnly);
+      }
+    };
+
+    this.onKeyUp = evt => {
+      if (evt.which === 16 && !this.tools.current.isDrawing) {
+        this.mouseTracker.setTracking(false);
+      }
+    };
+    
+    document.addEventListener('keydown', this.onKeyDown);
+    document.addEventListener('keyup', this.onKeyUp);
+  }
+
   _initMouseEvents = () => {
     // User-configured OSD zoom gesture setting
     let zoomGesture = this.viewer.gestureSettingsByDeviceType('mouse').clickToZoom;
@@ -168,97 +261,15 @@ export class AnnotationLayer extends EventEmitter {
     this.svg.addEventListener('touchstart', onClick);
   }
 
-  /** Initializes the OSD MouseTracker used for drawing **/
-  _initDrawingTools = gigapixelMode => {
-    this.tools = new DrawingTools(this.g, this.config, this.env);
-    this.tools.on('complete', this.onDrawingComplete);
-
-    let started = false;
-    
-    this.mouseTracker = new OpenSeadragon.MouseTracker({
-      element: this.svg,
-
-      pressHandler: evt => {
-        if (!this.tools.current.isDrawing) {
-          this.tools.current.start(evt.originalEvent, this.drawOnSingleClick && !this.hoveredShape);
-          if (!gigapixelMode)
-            this.scaleTool(this.tools.current);
-        }
-      },
-
-      moveHandler: evt => {
-        if (this.tools.current.isDrawing) {
-          const { x , y } = this.tools.current.getSVGPoint(evt.originalEvent);
-          this.tools.current.onMouseMove(x, y, evt.originalEvent);
-
-          if (!started) {
-            this.emit('startSelection', { x , y });
-            started = true;
-          }
-        }
-      },
-
-      releaseHandler: evt => {
-        if (this.tools.current.isDrawing) {
-          const { x , y } = this.tools.current.getSVGPoint(evt.originalEvent);
-          this.tools.current.onMouseUp(x, y, evt.originalEvent);
-        }
-
-        started = false;
-      }
-    }).setTracking(false);
-
-    // Keep tracker disabled until Shift is held
-    if (this.onKeyDown)
-      document.removeEventListener('keydown', this.onKeyDown);
-    
-    if (this.onKeyUp)
-      document.removeEventListener('keydown', this.onKeyDown);
-
-    this.onKeyDown = evt => {
-      if (evt.which === 16 && !this.selectedShape) { // Shift
-        this.mouseTracker.setTracking(!this.readOnly);
-      }
-    };
-
-    this.onKeyUp = evt => {
-      if (evt.which === 16 && !this.tools.current.isDrawing) {
-        this.mouseTracker.setTracking(false);
-      }
-    };
-    
-    document.addEventListener('keydown', this.onKeyDown);
-    document.addEventListener('keyup', this.onKeyUp);
-  }
-
-  _getShapeAt = evt => {
-    const getSVGPoint = evt => {
-      const pt = this.svg.createSVGPoint();
-  
-      if (isTouch) {
-        const bbox = this.svg.getBoundingClientRect();
-  
-        const x = evt.clientX - bbox.x;
-        const y = evt.clientY - bbox.y;
-  
-        const { left, top } = this.svg.getBoundingClientRect();
-        pt.x = x + left;
-        pt.y = y + top;
-  
-        return pt.matrixTransform(this.g.getScreenCTM().inverse());
-      } else {
-        pt.x = evt.offsetX;
-        pt.y = evt.offsetY;
-  
-        return pt.matrixTransform(this.g.getCTM().inverse());
-      }
-    }
-
-    const { x, y } = getSVGPoint(evt);
-
-    const annotation = this.store.getAnnotationAt(x, y);
-    if (annotation)
-      return this.findShape(annotation);
+  _refreshNonScalingAnnotations = () => {
+    const scale = this.currentScale();
+    Array.from(this.svg.querySelectorAll('.a9s-non-scaling')).forEach(shape =>
+      // This could check if the shape is actually inside the viewport.
+      // However, the lookup might be just as costly as setting the attribute.
+      // Alternatively, a future implementation of the annotation store which caches 
+      // the bounds might be able to provide this info without a DOM lookup.
+      // Either way: this is for the future. No need to optimize prematurely.
+      shape.setAttribute('transform', `scale(${1 / scale})`));
   }
 
   /** 
@@ -269,7 +280,7 @@ export class AnnotationLayer extends EventEmitter {
     const g = optBuffer || this.g;
 
     const shape = drawShape(annotation, this.env.image);
-    shape.setAttribute('class', 'a9s-annotation');
+    addClass(shape, 'a9s-annotation');
 
     shape.setAttribute('data-id', annotation.id);
     shape.annotation = annotation;
@@ -293,7 +304,10 @@ export class AnnotationLayer extends EventEmitter {
       this.removeAnnotation(annotation);
 
     this.removeAnnotation(annotation);
-    this.addAnnotation(annotation);
+
+    const shape = this.addAnnotation(annotation);
+    if (hasClass(shape, 'a9s-non-scaling'))
+      shape.setAttribute('transform', `scale(${1 / this.currentScale()})`);
 
     this.store.insert(annotation);
   }
@@ -450,6 +464,7 @@ export class AnnotationLayer extends EventEmitter {
 
     this.g.setAttribute('transform', `translate(${p.x}, ${p.y}) scale(${scaleX}, ${scaleY}) rotate(${rotation})`);
 
+    this._refreshNonScalingAnnotations();
     this.scaleFormatterElements();
 
     if (this.selectedShape) {

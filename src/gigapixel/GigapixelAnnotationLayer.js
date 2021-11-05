@@ -1,6 +1,7 @@
 import OpenSeadragon from 'openseadragon';
 import { drawShape } from '@recogito/annotorious/src/selectors';
 import { format } from '@recogito/annotorious/src/util/Formatting';
+import { addClass } from '@recogito/annotorious/src/util/SVG';
 import { isTouchDevice } from '@recogito/annotorious/src/util/Touch';
 import { viewportTargetToImage, imageAnnotationToViewport, refreshViewportPosition } from '.';
 import { AnnotationLayer } from '../OSDAnnotationLayer';
@@ -28,8 +29,7 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
     const g = optBuffer || this.g;
 
     const shape = drawShape(annotation, this.env.image);
-
-    shape.setAttribute('class', 'a9s-annotation');
+    addClass(shape, 'a9s-annotation');
 
     shape.setAttribute('data-id', annotation.id);
     shape.annotation = annotation;
