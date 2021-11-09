@@ -576,10 +576,12 @@ export class AnnotationLayer extends EventEmitter {
 
         // En-/disable OSD nav based on hover status
         this.selectedShape.element.addEventListener('mouseenter', () => {
+          this.hoveredShape = this.selectedShape;
           editableShapeMouseTracker.setTracking(true)
         });
 
         this.selectedShape.element.addEventListener('mouseleave', () => {
+          this.hoveredShape = null;
           editableShapeMouseTracker.setTracking(false)
         });
 
