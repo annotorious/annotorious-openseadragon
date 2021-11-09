@@ -97,11 +97,12 @@ export class AnnotationLayer extends EventEmitter {
     const getSVGPoint = evt => {
       const pt = this.svg.createSVGPoint();
   
-      if (isTouch) {
+      if (evt instanceof TouchEvent) {
         const bbox = this.svg.getBoundingClientRect();
-  
-        const x = evt.clientX - bbox.x;
-        const y = evt.clientY - bbox.y;
+
+        const e = evt.touches[0];
+        const x = e.clientX - bbox.x;
+        const y = e.clientY - bbox.y;
   
         const { left, top } = this.svg.getBoundingClientRect();
         pt.x = x + left;
@@ -198,28 +199,33 @@ export class AnnotationLayer extends EventEmitter {
     this.svg.addEventListener('mousemove', evt => {
       // Don't track mouseEnter/mouseLeave while drawing
       if (!this.tools?.current.isDrawing) {
-        const shape = this._getShapeAt(evt);
+        // Don't do anything if the move happens over the current selection
+        const isMoveSelection = evt.target.closest('.a9s-annotation.editable.selected');
 
-        // Hovered annotation changed
-        if (shape?.annotation !== this.hoveredShape?.annotation) {
-          if (this.hoveredShape) {
-            this.viewer.gestureSettingsByDeviceType('mouse').clickToZoom = zoomGesture;
-            
-            const element = this.hoveredShape.element || this.hoveredShape;
-            removeClass(element, 'hover');
-            
-            this.emit('mouseLeaveAnnotation', this.hoveredShape.annotation, this.hoveredShape);
+        if (!isMoveSelection) {
+          const shape = this._getShapeAt(evt);
+
+          // Hovered annotation changed
+          if (shape?.annotation !== this.hoveredShape?.annotation) {
+            if (this.hoveredShape) {
+              this.viewer.gestureSettingsByDeviceType('mouse').clickToZoom = zoomGesture;
+              
+              const element = this.hoveredShape.element || this.hoveredShape;
+              removeClass(element, 'hover');
+              
+              this.emit('mouseLeaveAnnotation', this.hoveredShape.annotation, this.hoveredShape);
+            }
+
+            if (shape) {
+              zoomGesture = this.viewer.gestureSettingsByDeviceType('mouse').clickToZoom;
+              this.viewer.gestureSettingsByDeviceType('mouse').clickToZoom = false;
+              addClass(shape, 'hover');
+              this.emit('mouseEnterAnnotation', shape.annotation, shape);
+            }
           }
 
-          if (shape) {
-            zoomGesture = this.viewer.gestureSettingsByDeviceType('mouse').clickToZoom;
-            this.viewer.gestureSettingsByDeviceType('mouse').clickToZoom = false;
-            addClass(shape, 'hover');
-            this.emit('mouseEnterAnnotation', shape.annotation, shape);
-          }
+          this.hoveredShape = shape;
         }
-
-        this.hoveredShape = shape;
       }
     });
 
@@ -239,14 +245,14 @@ export class AnnotationLayer extends EventEmitter {
       lastMouseDown = new Date().getTime();
     });
 
-    const onClick = () => {
+    const onClick = evt => {
       // Click & no drawing in progress
       if (!(this.tools.current?.isDrawing || this.disableSelect)) {
         // Ignore "false click" after drag!
         const timeSinceMouseDown = new Date().getTime() - lastMouseDown;
         
         // Real click (no drag)
-        if (timeSinceMouseDown < 250) {    
+        if (timeSinceMouseDown < 250) {   
           if (this.hoveredShape) {
             this.selectShape(this.hoveredShape);
           } else {
@@ -569,13 +575,11 @@ export class AnnotationLayer extends EventEmitter {
         }).setTracking(true);
 
         // En-/disable OSD nav based on hover status
-        this.selectedShape.element.addEventListener('mouseenter', evt => {
-          this.hoveredShape = this.selectedShape;
+        this.selectedShape.element.addEventListener('mouseenter', () => {
           editableShapeMouseTracker.setTracking(true)
         });
 
-        this.selectedShape.element.addEventListener('mouseleave', evt => {
-          this.hoveredShape = null;
+        this.selectedShape.element.addEventListener('mouseleave', () => {
           editableShapeMouseTracker.setTracking(false)
         });
 
