@@ -253,9 +253,14 @@ export class AnnotationLayer extends EventEmitter {
         
         // Real click (no drag)
         if (timeSinceMouseDown < 250) {   
-          if (this.hoveredShape) {
-            this.selectShape(this.hoveredShape);
-          } else {
+          // Click happened on the current selection?
+          const isSelection = evt.target.closest('.a9s-annotation.editable.selected');
+          const hoveredShape = isSelection ? this.selectedShape : this._getShapeAt(evt);
+
+          // Ignore clicks on selection
+          if (hoveredShape) {
+            this.selectShape(hoveredShape);
+          } else if (!hoveredShape) {
             this.deselect();
             this.emit('select', {});
           }
