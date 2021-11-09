@@ -97,7 +97,7 @@ export class AnnotationLayer extends EventEmitter {
     const getSVGPoint = evt => {
       const pt = this.svg.createSVGPoint();
   
-      if (evt instanceof TouchEvent) {
+      if (window.TouchEvent && (evt instanceof TouchEvent)) {
         const bbox = this.svg.getBoundingClientRect();
 
         const e = evt.touches[0];
