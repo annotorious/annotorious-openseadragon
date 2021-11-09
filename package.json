@@ -1,6 +1,6 @@
 {
   "name": "@recogito/annotorious-openseadragon",
-  "version": "2.5.14",
+  "version": "2.5.15",
   "description": "Annotorious image annotation for OpenSeadragon",
   "main": "dist/openseadragon-annotorious.min.js",
   "scripts": {
