@@ -343,8 +343,11 @@ export class AnnotationLayer extends EventEmitter {
         this.selectedShape.mouseTracker.destroy();
         this.selectedShape.destroy();
 
-        if (!annotation.isSelection)
-          this.addAnnotation(annotation);
+        if (!annotation.isSelection) {
+          const shape = this.addAnnotation(annotation);
+          if (hasClass(shape, 'a9s-non-scaling'))
+            shape.setAttribute('transform', `scale(${1 / this.currentScale()})`);
+        }
       }
       
       this.selectedShape = null;
