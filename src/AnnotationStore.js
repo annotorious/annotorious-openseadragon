@@ -41,12 +41,16 @@ export default class AnnotationStore {
     this.spatial_index = new RBush();
   }
 
-  getAnnotationAt = (x, y) => {
+  getAnnotationAt = (x, y, scale) => {
+    // 5 pixel buffer, so we reliably catch point 
+    // annotations (optionally with scale applied)
+    const buffer = scale ? 5 / scale : 5;
+
     const hits = this.spatial_index.search({
-      minX: x,
-      minY: y,
-      maxX: x,
-      maxY: y
+      minX: x - buffer,
+      minY: y - buffer,
+      maxX: x + buffer,
+      maxY: y + buffer
     }).map(item => item.annotation);
 
     // Get smallest annotation

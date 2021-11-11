@@ -119,7 +119,7 @@ export class AnnotationLayer extends EventEmitter {
 
     const { x, y } = getSVGPoint(evt);
 
-    const annotation = this.store.getAnnotationAt(x, y);
+    const annotation = this.store.getAnnotationAt(x, y, this.currentScale());
     if (annotation)
       return this.findShape(annotation);
   }

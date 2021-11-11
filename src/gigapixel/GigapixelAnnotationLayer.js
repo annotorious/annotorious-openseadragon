@@ -61,7 +61,7 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
     const pt = this.viewer.viewport.viewerElementToViewportCoordinates(getXY(evt));
     const { x, y } = this.viewer.viewport.viewportToImageCoordinates(pt.x, pt.y);
 
-    const annotation = this.store.getAnnotationAt(x, y);
+    const annotation = this.store.getAnnotationAt(x, y, this.currentScale());
     if (annotation)
       return this.findShape(annotation);
   }
