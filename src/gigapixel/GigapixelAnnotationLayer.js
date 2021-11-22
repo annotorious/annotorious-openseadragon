@@ -15,34 +15,6 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
     this._initDrawingTools(true);
   }
 
-  onDrawingComplete = shape => {
-    // Annotation is in SVG coordinates - project to image coordinates  
-    const reprojected = shape.annotation.clone({ target: viewportTargetToImage(this.viewer, shape.annotation.target) });
-    shape.annotation = reprojected;
-
-    this.selectShape(shape);
-    this.emit('createSelection', shape.annotation);
-    this.mouseTracker.setTracking(false);
-  }
-
-  addAnnotation = (annotation, optBuffer) => {
-    const g = optBuffer || this.g;
-
-    const shape = drawShape(annotation, this.env.image);
-    addClass(shape, 'a9s-annotation');
-
-    shape.setAttribute('data-id', annotation.id);
-    shape.annotation = annotation;
-
-    refreshViewportPosition(this.viewer, shape);
-
-    g.appendChild(shape);
-
-    format(shape, annotation, this.formatter);
-
-    return shape;
-  }
-
   _getShapeAt = evt => {
     const getXY = evt => {
       if (isTouch) {
@@ -64,6 +36,77 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
     const annotation = this.store.getAnnotationAt(x, y, this.currentScale());
     if (annotation)
       return this.findShape(annotation);
+  }
+
+  _refreshNonScalingAnnotations = () => {
+    // No scaling needed in gigapixel mode!
+  }
+
+  addAnnotation = (annotation, optBuffer) => {
+    const g = optBuffer || this.g;
+
+    const shape = drawShape(annotation, this.env.image);
+    addClass(shape, 'a9s-annotation');
+
+    shape.setAttribute('data-id', annotation.id);
+    shape.annotation = annotation;
+
+    refreshViewportPosition(this.viewer, shape);
+
+    g.appendChild(shape);
+
+    format(shape, annotation, this.formatter);
+
+    return shape;
+  }
+
+  /**
+   * Differs from non-gigapixel implementation only onsofar as 
+   * non-scaling shapes need no scaling!
+   */
+  addOrUpdateAnnotation = (annotation, previous) => {
+    if (this.selectedShape?.annotation === annotation || this.selectedShape?.annotation == previous)
+      this.deselect();
+  
+    if (previous)
+      this.removeAnnotation(annotation);
+
+    this.removeAnnotation(annotation);
+
+    this.addAnnotation(annotation);
+    this.store.insert(annotation);
+  }
+
+  /** Same: no counter-scaling for non-scaling shapes needed **/
+  deselect = () => {
+    this.tools?.current.stop();
+    
+    if (this.selectedShape) {
+      const { annotation } = this.selectedShape;
+
+      if (this.selectedShape.destroy) {
+        // Modifiable shape: destroy and re-add the annotation
+        this.selectedShape.mouseTracker.destroy();
+        this.selectedShape.destroy();
+
+        if (!annotation.isSelection)
+          this.addAnnotation(annotation);
+      }
+      
+      this.selectedShape = null;
+    }
+  }
+
+  onDrawingComplete = shape => {
+    // Annotation is in SVG coordinates - project to image coordinates  
+    const reprojected = shape.annotation.clone({ target: viewportTargetToImage(this.viewer, shape.annotation.target) });
+    shape.annotation = reprojected;
+
+    console.log('reprojected', reprojected);  
+
+    this.selectShape(shape);
+    this.emit('createSelection', shape.annotation);
+    this.mouseTracker.setTracking(false);
   }
 
   resize() {
