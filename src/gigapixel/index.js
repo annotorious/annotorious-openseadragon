@@ -76,7 +76,10 @@ export const viewportTargetToImage = (viewer, target) => {
     const wP = w / scale;
     const hP = h / scale;
 
-    return toRectFragment(xP, yP, wP, hP);
+    return w === 0 && h === 0 ?
+      // Edge case/hack - handle via point tool
+      { ...toRectFragment(xP, yP, wP, hP), renderedVia: { name: 'point' } } :
+      toRectFragment(xP, yP, wP, hP);
   } else {
     throw `Unsupported selector type: ${selector.type}`;
   }
