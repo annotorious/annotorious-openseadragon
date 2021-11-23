@@ -357,6 +357,9 @@ export default class OpenSeadragonAnnotator extends Component {
 
   setDrawingEnabled = enable =>
     this.annotationLayer.setDrawingEnabled(enable);
+
+  setInvertDrawingMode = enable => 
+    this.annotationLayer.setInvertDrawingMode(enable);
   
   setDrawingTool = shape =>
     this.annotationLayer.setDrawingTool(shape);

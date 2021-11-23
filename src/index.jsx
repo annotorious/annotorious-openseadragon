@@ -214,6 +214,9 @@ class OSDAnnotorious {
   setDrawingEnabled = enable =>
     this._app.current.setDrawingEnabled(enable);
 
+  setInvertDrawingMode = enable =>
+    this._app.current.setInvertDrawingMode(enable);
+
   setDrawingTool = shape =>
     this._app.current.setDrawingTool(shape);
 

@@ -28,11 +28,16 @@ export class AnnotationLayer extends EventEmitter {
     this.readOnly = props.config.readOnly;
     this.headless = props.config.headless;
     this.formatter = props.config.formatter;
+    this.invertDrawingMode = props.config.invertDrawingMode;
 
     this.disableSelect = props.disableSelect;
     this.drawOnSingleClick = props.config.drawOnSingleClick;
 
     this.svg = document.createElementNS(SVG_NAMESPACE, 'svg');
+
+    // Unfortunately, drag ALSO creates a click 
+    // event - ignore in this case.
+    let lastMouseDown = null;
 
     if (isTouch) {
       this.svg.setAttribute('class', 'a9s-annotationlayer a9s-osd-annotationlayer touch');
@@ -137,6 +142,7 @@ export class AnnotationLayer extends EventEmitter {
       pressHandler: evt => {
         if (!this.tools.current.isDrawing) {
           this.tools.current.start(evt.originalEvent, this.drawOnSingleClick && !this.hoveredShape);
+          this.lastMouseDown = new Date().getTime();
           if (!gigapixelMode)
             this.scaleTool(this.tools.current);
         }
@@ -162,9 +168,9 @@ export class AnnotationLayer extends EventEmitter {
 
         started = false;
       }
-    }).setTracking(false);
+    }).setTracking(this.invertDrawingMode);
 
-    // Keep tracker disabled until Shift is held
+    // Enable or disable tracker depending on the shift key's position and drawing mode
     if (this.onKeyDown)
       document.removeEventListener('keydown', this.onKeyDown);
     
@@ -173,13 +179,13 @@ export class AnnotationLayer extends EventEmitter {
 
     this.onKeyDown = evt => {
       if (evt.which === 16 && !this.selectedShape) { // Shift
-        this.mouseTracker.setTracking(!this.readOnly);
+        this.mouseTracker.setTracking(!this.readOnly && !this.invertDrawingMode);
       }
     };
 
     this.onKeyUp = evt => {
       if (evt.which === 16 && !this.tools.current.isDrawing) {
-        this.mouseTracker.setTracking(false);
+        this.mouseTracker.setTracking(this.invertDrawingMode);
       }
     };
     
@@ -229,28 +235,24 @@ export class AnnotationLayer extends EventEmitter {
       }
     });
 
-    // Unfortunately, drag ALSO creates a click 
-    // event - ignore in this case.
-    let lastMouseDown = null;
-
     new OpenSeadragon.MouseTracker({
       element: this.viewer.canvas,
 
       pressHandler: () => {
-        lastMouseDown = new Date().getTime();
+        this.lastMouseDown = new Date().getTime();
       }
     });
 
     this.svg.addEventListener('mousedown', () => {
-      lastMouseDown = new Date().getTime();
+      this.lastMouseDown = new Date().getTime();
     });
 
     const onClick = evt => {
       // Click & no drawing in progress
       if (!(this.tools.current?.isDrawing || this.disableSelect)) {
         // Ignore "false click" after drag!
-        const timeSinceMouseDown = new Date().getTime() - lastMouseDown;
-        
+        const timeSinceMouseDown = new Date().getTime() - this.lastMouseDown;
+
         // Real click (no drag)
         if (timeSinceMouseDown < 250) {   
           // Click happened on the current selection?
@@ -351,6 +353,7 @@ export class AnnotationLayer extends EventEmitter {
       }
       
       this.selectedShape = null;
+      this.mouseTracker.setTracking(this.invertDrawingMode && !this.readOnly);
     }
   }
 
@@ -555,6 +558,8 @@ export class AnnotationLayer extends EventEmitter {
 
     const readOnly = this.readOnly || annotation.readOnly;
 
+    this.mouseTracker.setTracking(false);
+
     if (!(readOnly || this.headless)) {
       const toolForAnnotation = this.tools.forAnnotation(annotation);
 
@@ -614,6 +619,11 @@ export class AnnotationLayer extends EventEmitter {
   setDrawingEnabled = enable =>
     this.mouseTracker?.setTracking(enable && !this.readOnly);
 
+  setInvertDrawingMode = enable => {
+    this.invertDrawingMode = enable;
+    this.mouseTracker.setTracking(this.invertDrawingMode && !this.readOnly);
+  }
+  
   setDrawingTool = shape => {
     if (this.tools) {
       this.tools.current?.stop();
@@ -645,7 +655,7 @@ export default class OSDAnnotationLayer extends AnnotationLayer {
   onDrawingComplete = shape => {
     this.selectShape(shape);
     this.emit('createSelection', shape.annotation);
-    this.mouseTracker.setTracking(false);
+    this.mouseTracker.setTracking(this.invertDrawingMode && !this.selectedShape);
   }
 
 }

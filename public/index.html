@@ -105,10 +105,10 @@
         modeBtn.addEventListener('click', function() {
           if (modeBtn.innerHTML == 'MODE: VIEW') {
             modeBtn.innerHTML = 'MODE: ANNOTATE';
-            anno.setDrawingEnabled(true);
+            anno.setInvertDrawingMode(true);
           } else {
             modeBtn.innerHTML = 'MODE: VIEW';
-            anno.setDrawingEnabled(false);
+            anno.setInvertDrawingMode(false);
           }
         });
 
