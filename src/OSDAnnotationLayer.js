@@ -38,6 +38,7 @@ export class AnnotationLayer extends EventEmitter {
     // Unfortunately, drag ALSO creates a click 
     // event - ignore in this case.
     let lastMouseDown = null;
+    let tempSelectionBlock = null;
 
     if (isTouch) {
       this.svg.setAttribute('class', 'a9s-annotationlayer a9s-osd-annotationlayer touch');
@@ -141,8 +142,8 @@ export class AnnotationLayer extends EventEmitter {
 
       pressHandler: evt => {
         if (!this.tools.current.isDrawing) {
-          this.tools.current.start(evt.originalEvent, this.drawOnSingleClick && !this.hoveredShape);
           this.lastMouseDown = new Date().getTime();
+          this.tools.current.start(evt.originalEvent, this.drawOnSingleClick && !this.hoveredShape);
           if (!gigapixelMode)
             this.scaleTool(this.tools.current);
         }
@@ -164,6 +165,10 @@ export class AnnotationLayer extends EventEmitter {
         if (this.tools.current.isDrawing) {
           const { x , y } = this.tools.current.getSVGPoint(evt.originalEvent);
           this.tools.current.onMouseUp(x, y, evt.originalEvent);
+          if(started) {
+            // Block next click from selecting ghost annotation
+            this.tempSelectionBlock = true;
+          }
         }
 
         started = false;
@@ -248,25 +253,32 @@ export class AnnotationLayer extends EventEmitter {
     });
 
     const onClick = evt => {
-      // Click & no drawing in progress
-      if (!(this.tools.current?.isDrawing || this.disableSelect)) {
-        // Ignore "false click" after drag!
-        const timeSinceMouseDown = new Date().getTime() - this.lastMouseDown;
 
-        // Real click (no drag)
-        if (timeSinceMouseDown < 250) {   
-          // Click happened on the current selection?
-          const isSelection = evt.target.closest('.a9s-annotation.editable.selected');
-          const hoveredShape = isSelection ? this.selectedShape : this._getShapeAt(evt);
-
-          // Ignore clicks on selection
-          if (hoveredShape) {
-            this.selectShape(hoveredShape);
-          } else if (!hoveredShape) {
-            this.deselect();
-            this.emit('select', {});
+      // Ignore click after releasing drawing tool
+      if(!this.tempSelectionBlock) {
+        // Click & no drawing in progress
+        if (!(this.tools.current?.isDrawing || this.disableSelect)) {
+          // Ignore "false click" after drag!
+          const timeSinceMouseDown = new Date().getTime() - this.lastMouseDown;
+  
+          // Real click (no drag)
+          if (timeSinceMouseDown < 250) {   
+            // Click happened on the current selection?
+            const isSelection = evt.target.closest('.a9s-annotation.editable.selected');
+            const hoveredShape = isSelection ? this.selectedShape : this._getShapeAt(evt);
+  
+            // Ignore clicks on selection
+            if (hoveredShape) {
+              this.selectShape(hoveredShape);
+            } else if (!hoveredShape) {
+              this.deselect();
+              this.emit('select', {});
+            }
           }
-        } 
+        }
+      } else {
+        // Consume selection block
+        this.tempSelectionBlock = false;
       }
 
       if (this.disableSelect)
