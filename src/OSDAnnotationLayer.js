@@ -183,14 +183,14 @@ export class AnnotationLayer extends EventEmitter {
       document.removeEventListener('keydown', this.onKeyDown);
 
     this.onKeyDown = evt => {
-      if (evt.which === 16 && !this.selectedShape) { // Shift
+      if (evt.which === 16 && !this.tools.current.isDrawing && !this.selectedShape) { // Shift
         this.mouseTracker.setTracking(!this.readOnly && !this.invertDrawingMode);
       }
     };
 
     this.onKeyUp = evt => {
-      if (evt.which === 16 && !this.tools.current.isDrawing) {
-        this.mouseTracker.setTracking(this.invertDrawingMode);
+      if (evt.which === 16 && !this.tools.current.isDrawing && !this.selectedShape) {
+        this.mouseTracker.setTracking(!this.readOnly && this.invertDrawingMode);
       }
     };
     
