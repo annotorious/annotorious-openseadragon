@@ -113,7 +113,11 @@
         });
 
         anno.on('startSelection', function(a) {
-          // console.log('start selection', a);
+          //console.log('start selection', a);
+        });
+
+        anno.on('endSelection', function(a) {
+          //console.log('end selection', a);
         });
 
         anno.on('createAnnotation', function(a, overrideId) {

@@ -157,6 +157,7 @@ export class AnnotationLayer extends EventEmitter {
       releaseHandler: evt => {
         if (this.tools.current.isDrawing) {
           const { x , y } = this.tools.current.getSVGPoint(evt.originalEvent);
+          if (started) this.emit('endSelection', { x , y });
           this.tools.current.onMouseUp(x, y, evt.originalEvent);
         }
 
