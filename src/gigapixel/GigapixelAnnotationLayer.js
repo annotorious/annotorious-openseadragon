@@ -55,7 +55,7 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
 
     g.appendChild(shape);
 
-    format(shape, annotation, this.formatter);
+    format(shape, annotation, this.formatters);
 
     return shape;
   }

@@ -271,6 +271,14 @@ export default class OpenSeadragonAnnotator extends Component {
   
   fitBounds = (annotationOrId, immediately) =>
     this.annotationLayer.fitBounds(annotationOrId, immediately);
+
+  get formatters() {
+    return this.annotationLayer.formatters;
+  }
+
+  set formatters(formatters) {
+    this.annotationLayer.formatters = formatters;
+  }
   
   getAnnotationById = annotationId =>
     this.annotationLayer.findShape(annotationId)?.annotation;

@@ -27,7 +27,13 @@ export class AnnotationLayer extends EventEmitter {
 
     this.readOnly = props.config.readOnly;
     this.headless = props.config.headless;
-    this.formatter = props.config.formatter;
+
+    // Deprecate the old 'formatter' option 
+    if (props.config.formatter)
+      this.formatters = [ props.config.formatter ];
+    else if (props.config.formatters)
+      this.formatters = Array.isArray(props.config.formatters) ? 
+        props.config.formatters : [ props.config.formatters ];
 
     this.disableSelect = props.disableSelect;
     this.drawOnSingleClick = props.config.drawOnSingleClick;
@@ -301,7 +307,7 @@ export class AnnotationLayer extends EventEmitter {
 
     g.appendChild(shape);
     
-    format(shape, annotation, this.formatter);
+    format(shape, annotation, this.formatters);
     this.scaleFormatterElements(shape);
     
     return shape;
@@ -570,7 +576,7 @@ export class AnnotationLayer extends EventEmitter {
             this.emit('select', { annotation, element: this.selectedShape.element });
         }, 1);
 
-        this.selectedShape = toolForAnnotation.createEditableShape(annotation);
+        this.selectedShape = toolForAnnotation.createEditableShape(annotation, this.formatters);
         this.scaleTool(this.selectedShape);
 
         this.scaleFormatterElements(this.selectedShape.element);
