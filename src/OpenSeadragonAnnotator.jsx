@@ -286,6 +286,9 @@ export default class OpenSeadragonAnnotator extends Component {
   getAnnotations = () =>
     this.annotationLayer.getAnnotations().map(a => a.clone());
 
+  getImageSnippetById = annotationId =>
+    this.annotationLayer.getImageSnippetById(annotationId);
+
   getSelected = () => {
     if (this.state.selectedAnnotation) {
       return this.state.editorDisabled ? 

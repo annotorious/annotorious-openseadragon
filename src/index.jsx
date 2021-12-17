@@ -164,6 +164,9 @@ class OSDAnnotorious {
     return annotations.map(a => a.underlying);
   }
 
+  getImageSnippetById = annotationId =>
+    this._app.current.getImageSnippetById(annotationId);
+
   getSelected = () => {
     const selected = this._app.current.getSelected();
     return selected?.underlying;

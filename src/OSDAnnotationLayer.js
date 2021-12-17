@@ -384,6 +384,12 @@ export class AnnotationLayer extends EventEmitter {
     return shapes.map(s => s.annotation);
   }
 
+  getImageSnippetById = annotationId => {
+    const shape = this.findShape(annotationId);
+    if (shape)
+      return getSnippet(this.viewer, shape);
+  }
+
   getSelectedImageSnippet = () => {
     if (this.selectedShape) {
       const shape = this.selectedShape.element ?? this.selectedShape;
