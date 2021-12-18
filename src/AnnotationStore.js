@@ -8,8 +8,8 @@ import { drawShape, shapeArea } from '@recogito/annotorious/src/selectors';
  * creates a temporary SVG element and attaches it to the DOM,
  * uses .getBBox() and then removes the temporary SVG element.  
  */
- export const getBounds = annotation => {
-  const shape = drawShape(annotation);
+ const getBounds = (annotation, image) => {
+  const shape = drawShape(annotation, image);
   
   // A temporary SVG buffer, so we can use .getBBox()
   const svg = document.createElementNS(SVG_NAMESPACE, 'svg');
@@ -67,7 +67,7 @@ export default class AnnotationStore {
     const annotations = Array.isArray(arg) ? arg : [ arg ];
     annotations.forEach(annotation => {
       this.spatial_index.insert({
-        ...getBounds(annotation), annotation
+        ...getBounds(annotation, this.env.image), annotation
       })
     });
   }
@@ -77,7 +77,7 @@ export default class AnnotationStore {
     // therefore we need to re-compute. See:
     // https://github.com/mourner/rbush/issues/95
     const item = {
-      ...getBounds(annotation),
+      ...getBounds(annotation, this.env.image),
       annotation
     };
 

@@ -281,6 +281,25 @@ export class AnnotationLayer extends EventEmitter {
     this.svg.addEventListener('touchstart', onClick);
   }
 
+  /**
+   * Helper - executes immediately if the tilesource is loaded,
+   * or defers to after load if not
+   */
+  _lazy = fn => {
+    if (this.viewer.world.getItemAt(0)) {
+      fn();
+    } else {
+      const onLoad = () => {
+        fn();
+        this.viewer.removeHandler('open', onLoad);
+        this.viewer.world.removeHandler('add-item', onLoad);
+      };
+
+      this.viewer.addHandler('open', onLoad);
+      this.viewer.world.addHandler('add-item', onLoad);
+    }
+  }
+
   _refreshNonScalingAnnotations = () => {
     const scale = this.currentScale();
     Array.from(this.svg.querySelectorAll('.a9s-non-scaling')).forEach(shape =>
@@ -404,21 +423,23 @@ export class AnnotationLayer extends EventEmitter {
     const shapes = Array.from(this.g.querySelectorAll('.a9s-annotation'));
     shapes.forEach(s => this.g.removeChild(s));
 
-    // Draw annotations
-    console.time('Took');
-    console.log('Drawing...');
+    this._lazy(() => {
+      // Draw annotations
+      console.time('Took');
+      console.log('Drawing...');
 
-    if (!this.loaded)
-      this.g.style.display = 'none';
+      if (!this.loaded)
+        this.g.style.display = 'none';
 
-    annotations.forEach(annotation => this.addAnnotation(annotation));
+      annotations.forEach(annotation => this.addAnnotation(annotation));
 
-    // Insert into store (and spatial index)
-    console.log('Indexing...')
-    this.store.insert(annotations);
-    console.timeEnd('Took');
+      // Insert into store (and spatial index)
+      console.log('Indexing...')
+      this.store.insert(annotations);
+      console.timeEnd('Took');
 
-    this.resize(); 
+      this.resize(); 
+    });
   }
 
   listDrawingTools = () =>
