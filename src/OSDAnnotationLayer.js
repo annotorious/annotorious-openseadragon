@@ -63,9 +63,11 @@ export class AnnotationLayer extends EventEmitter {
     const onLoad = () => {
       const { x, y } = this.viewer.world.getItemAt(0).source.dimensions;
 
+      const src = this.viewer.world.getItemAt(0).source['@id'] || 
+        new URL(this.viewer.world.getItemAt(0).source.url, document.baseURI).href;
+
       this.env.image = {
-        src: this.viewer.world.getItemAt(0).source['@id'] || 
-          new URL(this.viewer.world.getItemAt(0).source.url, document.baseURI).href,
+        src, 
         naturalWidth: x,
         naturalHeight: y
       };
@@ -75,16 +77,18 @@ export class AnnotationLayer extends EventEmitter {
         addClass(this.svg, 'has-crosshair');
       }
 
+      if (!this.loaded)
+        this.emit('load', src);
+
       this.loaded = true;
 
       this.g.style.display = 'inline';
 
       this.resize();     
-      
-      this.emit('load', this.env.image.src);
     }
 
     // Store image properties on open (incl. after page change) and on addTiledImage
+    this.viewer.addHandler('open', onLoad);
     this.viewer.world.addHandler('add-item', onLoad);
 
     // Or: if Annotorious gets initialized on a loaded image

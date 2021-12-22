@@ -44,6 +44,8 @@ export default class OpenSeadragonAnnotator extends Component {
       new GigapixelAnnotationLayer(this.props) :
       new OSDAnnotationLayer(this.props);
 
+    this.annotationLayer.on('load', this.props.onLoad);
+
     this.annotationLayer.on('startSelection', this.handleStartSelect);
     this.annotationLayer.on('select', this.handleSelect);
 
@@ -52,7 +54,6 @@ export default class OpenSeadragonAnnotator extends Component {
     this.annotationLayer.on('viewportChange', this.handleViewportChange);
 
     this.forwardEvent('clickAnnotation','onClickAnnotation');
-    this.forwardEvent('load','onLoad');
     this.forwardEvent('mouseEnterAnnotation', 'onMouseEnterAnnotation');
     this.forwardEvent('mouseLeaveAnnotation', 'onMouseLeaveAnnotation');
     
