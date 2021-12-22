@@ -79,11 +79,12 @@ export class AnnotationLayer extends EventEmitter {
 
       this.g.style.display = 'inline';
 
-      this.resize();      
+      this.resize();     
+      
+      this.emit('load', this.env.image.src);
     }
 
     // Store image properties on open (incl. after page change) and on addTiledImage
-    this.viewer.addHandler('open', onLoad);
     this.viewer.world.addHandler('add-item', onLoad);
 
     // Or: if Annotorious gets initialized on a loaded image

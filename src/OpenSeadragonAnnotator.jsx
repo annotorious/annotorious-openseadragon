@@ -51,9 +51,10 @@ export default class OpenSeadragonAnnotator extends Component {
 
     this.annotationLayer.on('viewportChange', this.handleViewportChange);
 
+    this.forwardEvent('clickAnnotation','onClickAnnotation');
+    this.forwardEvent('load','onLoad');
     this.forwardEvent('mouseEnterAnnotation', 'onMouseEnterAnnotation');
     this.forwardEvent('mouseLeaveAnnotation', 'onMouseLeaveAnnotation');
-    this.forwardEvent('clickAnnotation','onClickAnnotation');
     
     // Escape cancels editing
     document.addEventListener('keyup', this.escapeKeyCancel);
