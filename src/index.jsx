@@ -146,7 +146,7 @@ class OSDAnnotorious {
     this._app.current.fitBounds(this._wrap(annotationOrId), immediately);
 
   get formatters() {
-    return this._app.current.formatters;
+    return this._app.current.formatters || [];
   }
 
   set formatters(arg) {
