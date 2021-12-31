@@ -43,7 +43,7 @@
     "webpack-dev-server": "^4.3.1"
   },
   "peerDependencies": {
-    "openseadragon": "^2.4.2"
+    "openseadragon": "^3.0.0"
   },
   "dependencies": {
     "@recogito/annotorious": "2.6.0",

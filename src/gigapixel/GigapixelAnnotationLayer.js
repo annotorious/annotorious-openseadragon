@@ -102,11 +102,10 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
     const reprojected = shape.annotation.clone({ target: viewportTargetToImage(this.viewer, shape.annotation.target) });
     shape.annotation = reprojected;
 
-    console.log('reprojected', reprojected);  
-
     this.selectShape(shape);
     this.emit('createSelection', shape.annotation);
-    this.mouseTracker.setTracking(false);
+
+    this.mouseTracker.enabled = false;
   }
 
   resize() {
@@ -192,15 +191,25 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
 
       // Disable normal OSD nav
       const editableShapeMouseTracker = new OpenSeadragon.MouseTracker({
-        element: this.svg
-      }).setTracking(true);
+        element: this.svg,
+
+        preProcessEventHandler: info => {
+          info.stopPropagation = true;
+          info.preventDefault = false;
+          info.preventGesture = true;
+        }
+      });
 
       // En-/disable OSD nav based on hover status
-      this.selectedShape.element.addEventListener('mouseenter', evt =>
-        editableShapeMouseTracker.setTracking(true));
+      this.selectedShape.element.addEventListener('mouseenter', () => {
+        this.hoveredShape = this.selectedShape;
+        editableShapeMouseTracker.setTracking(true);
+      });
 
-      this.selectedShape.element.addEventListener('mouseleave', evt =>
-        editableShapeMouseTracker.setTracking(false));
+      this.selectedShape.element.addEventListener('mouseleave', () => {
+        this.hoveredShape = null;
+        editableShapeMouseTracker.setTracking(false);
+      });
 
       this.selectedShape.mouseTracker = editableShapeMouseTracker;
 

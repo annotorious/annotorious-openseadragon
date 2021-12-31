@@ -145,6 +145,18 @@ export class AnnotationLayer extends EventEmitter {
     this.mouseTracker = new OpenSeadragon.MouseTracker({
       element: this.svg,
 
+      preProcessEventHandler: info => {
+        if (!this.mouseTracker.enabled) {
+          info.preventDefault = false;
+          info.preventGesture = true;
+        }
+
+        if (this.selectedShape && info.eventType === 'wheel') {
+          info.preventDefault = false;
+          this.viewer.canvas.dispatchEvent(new info.originalEvent.constructor(info.eventType, info.originalEvent));
+        }
+      },
+
       pressHandler: evt => {
         if (!this.tools.current.isDrawing) {
           this.tools.current.start(evt.originalEvent, this.drawOnSingleClick && !this.hoveredShape);
@@ -155,6 +167,8 @@ export class AnnotationLayer extends EventEmitter {
 
       moveHandler: evt => {
         if (this.tools.current.isDrawing) {
+          evt.originalEvent.stopPropagation();
+
           const { x , y } = this.tools.current.getSVGPoint(evt.originalEvent);
           this.tools.current.onMouseMove(x, y, evt.originalEvent);
 
@@ -173,7 +187,9 @@ export class AnnotationLayer extends EventEmitter {
 
         started = false;
       }
-    }).setTracking(false);
+    });
+
+    this.mouseTracker.enabled = false;
 
     // Keep tracker disabled until Shift is held
     if (this.onKeyDown)
@@ -184,16 +200,16 @@ export class AnnotationLayer extends EventEmitter {
 
     this.onKeyDown = evt => {
       if (evt.which === 16 && !this.selectedShape) { // Shift
-        this.mouseTracker.setTracking(!this.readOnly);
+        this.mouseTracker.enabled = !this.readOnly;
       }
     };
 
     this.onKeyUp = evt => {
       if (evt.which === 16 && !this.tools.current.isDrawing) {
-        this.mouseTracker.setTracking(false);
+        this.mouseTracker.enabled = false;
       }
     };
-    
+        
     document.addEventListener('keydown', this.onKeyDown);
     document.addEventListener('keyup', this.onKeyUp);
   }
@@ -244,19 +260,12 @@ export class AnnotationLayer extends EventEmitter {
     // event - ignore in this case.
     let lastMouseDown = null;
 
-    new OpenSeadragon.MouseTracker({
-      element: this.viewer.canvas,
+    this.viewer.addHandler('canvas-press', () =>
+      lastMouseDown = new Date().getTime());
 
-      pressHandler: () => {
-        lastMouseDown = new Date().getTime();
-      }
-    });
+    this.viewer.addHandler('canvas-click', evt => {
+      const { originalEvent } = evt;
 
-    this.svg.addEventListener('mousedown', () => {
-      lastMouseDown = new Date().getTime();
-    });
-
-    const onClick = evt => {
       // Click & no drawing in progress
       if (!(this.tools.current?.isDrawing || this.disableSelect)) {
         // Ignore "false click" after drag!
@@ -265,8 +274,8 @@ export class AnnotationLayer extends EventEmitter {
         // Real click (no drag)
         if (timeSinceMouseDown < 250) {   
           // Click happened on the current selection?
-          const isSelection = evt.target.closest('.a9s-annotation.editable.selected');
-          const hoveredShape = isSelection ? this.selectedShape : this._getShapeAt(evt);
+          const isSelection = originalEvent.target.closest('.a9s-annotation.editable.selected');
+          const hoveredShape = isSelection ? this.selectedShape : this._getShapeAt(originalEvent);
 
           // Ignore clicks on selection
           if (hoveredShape) {
@@ -280,10 +289,8 @@ export class AnnotationLayer extends EventEmitter {
 
       if (this.disableSelect)
         this.emit('clickAnnotation', this.hoveredShape.annotation, this.hoveredShape);
-    };
+    });
 
-    this.svg.addEventListener('click', onClick);
-    this.svg.addEventListener('touchstart', onClick);
   }
 
   /**
@@ -613,22 +620,28 @@ export class AnnotationLayer extends EventEmitter {
 
         this.scaleFormatterElements(this.selectedShape.element);
 
-        this.selectedShape.element.annotation = annotation;     
+        this.selectedShape.element.annotation = annotation;  
 
         // Disable normal OSD nav
         const editableShapeMouseTracker = new OpenSeadragon.MouseTracker({
-          element: this.svg
-        }).setTracking(true);
+          element: this.svg,
+
+          preProcessEventHandler: info => {
+            info.stopPropagation = true;
+            info.preventDefault = false;
+            info.preventGesture = true;
+          }
+        });
 
         // En-/disable OSD nav based on hover status
         this.selectedShape.element.addEventListener('mouseenter', () => {
           this.hoveredShape = this.selectedShape;
-          editableShapeMouseTracker.setTracking(true)
+          editableShapeMouseTracker.setTracking(true);
         });
 
         this.selectedShape.element.addEventListener('mouseleave', () => {
           this.hoveredShape = null;
-          editableShapeMouseTracker.setTracking(false)
+          editableShapeMouseTracker.setTracking(false);
         });
 
         this.selectedShape.mouseTracker = editableShapeMouseTracker;
@@ -649,8 +662,13 @@ export class AnnotationLayer extends EventEmitter {
     }
   }
 
-  setDrawingEnabled = enable =>
-    this.mouseTracker?.setTracking(enable && !this.readOnly);
+  setDrawingEnabled = enable => {
+    if (this.mouseTracker) {
+      const enabled = enable && !this.readOnly;
+      this.mouseTracker.enabled = enabled;
+      this.mouseTracker.setTracking(enabled);
+    }
+  }
 
   setDrawingTool = shape => {
     if (this.tools) {
@@ -681,9 +699,9 @@ export default class OSDAnnotationLayer extends AnnotationLayer {
   }
 
   onDrawingComplete = shape => {
+    this.mouseTracker.enabled = false;
     this.selectShape(shape);
     this.emit('createSelection', shape.annotation);
-    this.mouseTracker.setTracking(false);
   }
 
 }
