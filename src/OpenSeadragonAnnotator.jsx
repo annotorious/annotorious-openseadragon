@@ -187,7 +187,7 @@ export default class OpenSeadragonAnnotator extends Component {
   onCreateOrUpdateAnnotation = (method, opt_callback) => (annotation, previous) => {
     // Merge updated target if necessary
     let a = annotation.isSelection ? annotation.toAnnotation() : annotation;
-
+    
     a = (this.state.modifiedTarget) ?
       a.clone({ target: this.state.modifiedTarget }) : a.clone();
 
@@ -199,7 +199,7 @@ export default class OpenSeadragonAnnotator extends Component {
       if (previous)
         this.props[method](a, previous.clone());
       else
-        this.props[method](a, this.overrideAnnotationId(annotation));  
+        this.props[method](a, this.overrideAnnotationId(a));  
 
       opt_callback && opt_callback();
     });
@@ -330,7 +330,7 @@ export default class OpenSeadragonAnnotator extends Component {
       if (a) {
         if (a.isSelection) {
           if (a.bodies.length > 0 || this.props.config.allowEmpty) {
-            this.onCreateOrUpdateAnnotation('onAnnotationCreated', resolve)(a, a);
+            this.onCreateOrUpdateAnnotation('onAnnotationCreated', resolve)(a);
           } else {
             this.annotationLayer.deselect();
             resolve();
