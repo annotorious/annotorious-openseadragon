@@ -44,6 +44,8 @@ export default class OpenSeadragonAnnotator extends Component {
       new GigapixelAnnotationLayer(this.props) :
       new OSDAnnotationLayer(this.props);
 
+    this.annotationLayer.on('load', this.props.onLoad);
+
     this.annotationLayer.on('startSelection', this.handleStartSelect);
     this.annotationLayer.on('select', this.handleSelect);
 
@@ -51,9 +53,9 @@ export default class OpenSeadragonAnnotator extends Component {
 
     this.annotationLayer.on('viewportChange', this.handleViewportChange);
 
+    this.forwardEvent('clickAnnotation','onClickAnnotation');
     this.forwardEvent('mouseEnterAnnotation', 'onMouseEnterAnnotation');
     this.forwardEvent('mouseLeaveAnnotation', 'onMouseLeaveAnnotation');
-    this.forwardEvent('clickAnnotation','onClickAnnotation');
     
     // Escape cancels editing
     document.addEventListener('keyup', this.escapeKeyCancel);
@@ -185,7 +187,7 @@ export default class OpenSeadragonAnnotator extends Component {
   onCreateOrUpdateAnnotation = (method, opt_callback) => (annotation, previous) => {
     // Merge updated target if necessary
     let a = annotation.isSelection ? annotation.toAnnotation() : annotation;
-
+    
     a = (this.state.modifiedTarget) ?
       a.clone({ target: this.state.modifiedTarget }) : a.clone();
 
@@ -197,7 +199,7 @@ export default class OpenSeadragonAnnotator extends Component {
       if (previous)
         this.props[method](a, previous.clone());
       else
-        this.props[method](a, this.overrideAnnotationId(annotation));  
+        this.props[method](a, this.overrideAnnotationId(a));  
 
       opt_callback && opt_callback();
     });
@@ -271,12 +273,23 @@ export default class OpenSeadragonAnnotator extends Component {
   
   fitBounds = (annotationOrId, immediately) =>
     this.annotationLayer.fitBounds(annotationOrId, immediately);
+
+  get formatters() {
+    return this.annotationLayer.formatters;
+  }
+
+  set formatters(formatters) {
+    this.annotationLayer.formatters = formatters;
+  }
   
   getAnnotationById = annotationId =>
     this.annotationLayer.findShape(annotationId)?.annotation;
 
   getAnnotations = () =>
     this.annotationLayer.getAnnotations().map(a => a.clone());
+
+  getImageSnippetById = annotationId =>
+    this.annotationLayer.getImageSnippetById(annotationId);
 
   getSelected = () => {
     if (this.state.selectedAnnotation) {
@@ -317,7 +330,7 @@ export default class OpenSeadragonAnnotator extends Component {
       if (a) {
         if (a.isSelection) {
           if (a.bodies.length > 0 || this.props.config.allowEmpty) {
-            this.onCreateOrUpdateAnnotation('onAnnotationCreated', resolve)(a, a);
+            this.onCreateOrUpdateAnnotation('onAnnotationCreated', resolve)(a);
           } else {
             this.annotationLayer.deselect();
             resolve();

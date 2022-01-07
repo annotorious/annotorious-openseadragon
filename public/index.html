@@ -82,7 +82,9 @@
         
         var anno = OpenSeadragon.Annotorious(viewer, {
           locale: 'auto',
-          drawOnSingleClick: true
+          drawOnSingleClick: true,
+          allowEmpty: true,
+          hotkey: 'Alt' // Shift (default), Alt, Control
         });
 
         anno.setAuthInfo({
@@ -110,10 +112,6 @@
             modeBtn.innerHTML = 'MODE: VIEW';
             anno.setInvertDrawingMode(false);
           }
-        });
-
-        anno.on('startSelection', function(a) {
-          // console.log('start selection', a);
         });
 
         anno.on('createAnnotation', function(a, overrideId) {
@@ -157,7 +155,7 @@
       </p>
       <div id="openseadragon" style="width: 640px; height: 480px;"></div>
     </div>      
-    <script src="openseadragon/openseadragon.2.4.2.min.js"></script>
+    <script src="openseadragon/openseadragon.3.0.0.min.js"></script>
     <script src="openseadragon-annotorious.min.js"></script>
   </body>
 </html>
