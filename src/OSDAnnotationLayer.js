@@ -198,14 +198,17 @@ export class AnnotationLayer extends EventEmitter {
     if (this.onKeyUp)
       document.removeEventListener('keydown', this.onKeyDown);
 
+    const hotkey = this.config.hotkey?.toLowerCase() || 'shift';
+
     this.onKeyDown = evt => {
-      if (evt.which === 16 && !this.selectedShape) { // Shift
+      if (evt.key.toLowerCase() === hotkey && !this.selectedShape) { // Shift
+        // evt.preventDefault();
         this.mouseTracker.enabled = !this.readOnly;
       }
     };
 
     this.onKeyUp = evt => {
-      if (evt.which === 16 && !this.tools.current.isDrawing) {
+      if (evt.key.toLowerCase() === hotkey && !this.tools.current.isDrawing) {
         this.mouseTracker.enabled = false;
       }
     };
