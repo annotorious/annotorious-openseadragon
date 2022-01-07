@@ -189,7 +189,15 @@ export class AnnotationLayer extends EventEmitter {
       }
     });
 
-    this.mouseTracker.enabled = false;
+    // Draw mode hotkey
+    const hotkey = this.config.hotkey ?
+      (this.config.hotkey.key ? this.config.hotkey.key.toLowerCase() : this.config.hotkey.toLowerCase()) :
+      'shift';
+
+    // Inverted mode
+    const inverted = this.config.hotkey?.inverted;
+  
+    this.mouseTracker.enabled = inverted;
 
     // Keep tracker disabled until Shift is held
     if (this.onKeyDown)
@@ -198,18 +206,16 @@ export class AnnotationLayer extends EventEmitter {
     if (this.onKeyUp)
       document.removeEventListener('keydown', this.onKeyDown);
 
-    const hotkey = this.config.hotkey?.toLowerCase() || 'shift';
-
     this.onKeyDown = evt => {
       if (evt.key.toLowerCase() === hotkey && !this.selectedShape) { // Shift
         // evt.preventDefault();
-        this.mouseTracker.enabled = !this.readOnly;
+        this.mouseTracker.enabled = !this.readOnly && !inverted;
       }
     };
 
     this.onKeyUp = evt => {
       if (evt.key.toLowerCase() === hotkey && !this.tools.current.isDrawing) {
-        this.mouseTracker.enabled = false;
+        this.mouseTracker.enabled = inverted;
       }
     };
         
@@ -702,7 +708,7 @@ export default class OSDAnnotationLayer extends AnnotationLayer {
   }
 
   onDrawingComplete = shape => {
-    this.mouseTracker.enabled = false;
+    this.mouseTracker.enabled = this.config.hotkey?.inverted;
     this.selectShape(shape);
     this.emit('createSelection', shape.annotation);
   }
