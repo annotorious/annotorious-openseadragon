@@ -328,7 +328,10 @@ export default class OpenSeadragonAnnotator extends Component {
       const a = this.state.selectedAnnotation;
 
       if (a) {
-        if (a.isSelection) {
+        if (this._editor.current) {
+          this._editor.current.onOk();
+          resolve();
+        } else if (a.isSelection) {
           if (a.bodies.length > 0 || this.props.config.allowEmpty) {
             this.onCreateOrUpdateAnnotation('onAnnotationCreated', resolve)(a);
           } else {
