@@ -5,7 +5,8 @@ import { WebAnnotation } from '@recogito/recogito-client-core';
 import { 
   pointInCircle,
   pointInEllipse,
-  pointInPolygon
+  pointInPolygon,
+  svgPathToPolygons
 } from '@recogito/annotorious/src/util/Geom2D';
 
 /** 
@@ -77,8 +78,9 @@ const pointInSVGShape = (x, y, annotation) => {
     const ry = svg.getAttribute('ry');
 
     return pointInEllipse(pt, cx, cy, rx, ry);
-  // } else if (nodeName === 'path') {
-    //
+  } else if (nodeName === 'path') {
+    const polygons = svgPathToPolygons(svg);
+    return polygons.find(polygon => pointInPolygon(pt, polygon));
   } else {
     throw `Unsupported SVG shape type: ${nodeName}`;
   }
