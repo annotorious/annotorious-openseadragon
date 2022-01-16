@@ -47,7 +47,7 @@
   },
   "dependencies": {
     "@recogito/annotorious": "2.6.1",
-    "@recogito/recogito-client-core": "^1.6.0",
+    "@recogito/recogito-client-core": "^1.7.0",
     "preact": "^10.5.13",
     "rbush": "^3.0.1",
     "tiny-emitter": "^2.1.0"
