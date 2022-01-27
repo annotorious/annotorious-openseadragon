@@ -290,6 +290,14 @@ export const refreshViewportPosition = (viewer, shape) => {
     refreshSvg(shape, extent, scale);
   else
     throw `Unsupported selector type type: ${selectorType}`;
+
+  // Update formatter element position, if any
+  const formatterEl = shape.querySelector('.a9s-formatter-el');
+  if (formatterEl) {
+    const { x, y } = shape.querySelector('.a9s-inner').getBBox();
+    formatterEl.setAttribute('x', x);
+    formatterEl.setAttribute('y', y);
+  }
 }
 
 const refreshRectFragment = (shape, extent, scale) => {
