@@ -394,6 +394,9 @@ export class AnnotationLayer extends EventEmitter {
           if (hasClass(shape, 'a9s-non-scaling'))
             shape.setAttribute('transform', `scale(${1 / this.currentScale()})`);
         }
+      } else {
+        // Non-editable shape or read-only
+        removeClass(this.selectedShape, 'selected');
       }
       
       this.selectedShape = null;
@@ -665,6 +668,7 @@ export class AnnotationLayer extends EventEmitter {
       }
     } else {
       this.selectedShape = shape;
+      addClass(shape, 'selected');
 
       if (!skipEvent)
         this.emit('select', { annotation, element: shape, skipEvent });   
