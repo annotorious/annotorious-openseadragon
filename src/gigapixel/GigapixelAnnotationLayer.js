@@ -1,7 +1,7 @@
 import OpenSeadragon from 'openseadragon';
 import { drawShape } from '@recogito/annotorious/src/selectors';
 import { format } from '@recogito/annotorious/src/util/Formatting';
-import { addClass } from '@recogito/annotorious/src/util/SVG';
+import { addClass, removeClass } from '@recogito/annotorious/src/util/SVG';
 import { isTouchDevice } from '@recogito/annotorious/src/util/Touch';
 import { viewportTargetToImage, imageAnnotationToViewport, refreshViewportPosition } from '.';
 import { AnnotationLayer } from '../OSDAnnotationLayer';
@@ -91,6 +91,9 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
 
         if (!annotation.isSelection)
           this.addAnnotation(annotation);
+      } else {
+        // Non-editable shape or read-only
+        removeClass(this.selectedShape, 'selected');
       }
       
       this.selectedShape = null;
@@ -225,6 +228,7 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
       });
     } else {
       this.selectedShape = shape;
+      addClass(shape, 'selected');
 
       if (!skipEvent)
         this.emit('select', { annotation, element: shape, skipEvent });   
