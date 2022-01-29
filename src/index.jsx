@@ -145,6 +145,9 @@ class OSDAnnotorious {
   fitBounds = (annotationOrId, immediately) =>
     this._app.current.fitBounds(this._wrap(annotationOrId), immediately);
 
+  fitBoundsWithConstraints = (annotationOrId, immediately) =>
+    this._app.current.fitBoundsWithConstraints(this._wrap(annotationOrId), immediately);
+
   get formatters() {
     return this._app.current.formatters || [];
   }

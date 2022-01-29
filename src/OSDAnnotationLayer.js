@@ -413,14 +413,22 @@ export class AnnotationLayer extends EventEmitter {
     return this.g.querySelector(`.a9s-annotation[data-id="${id}"]`);
   }
 
-  fitBounds = (annotationOrId, immediately) => {
+  // Common code for fitBounds and fitBoundsWithConstraints
+  _fit = (annotationOrId, immediately, fn) => {
     const shape = this.findShape(annotationOrId);
     if (shape) {
       const { x, y, width, height } = shape.getBBox(); // SVG element bounds, image coordinates
       const rect = this.viewer.viewport.imageToViewportRectangle(x, y, width, height);
-      this.viewer.viewport.fitBounds(rect, immediately);
+      this.viewer.viewport[fn](rect, immediately);
     }    
   }
+
+  fitBounds = (annotationOrId, immediately) =>
+    this._fit(annotationOrId, immediately, 'fitBounds');
+
+  fitBoundsWithConstraints = (annotationOrId, immediately) =>
+    this._fit(annotationOrId, immediately, 'fitBoundsWithConstraints');
+
 
   getAnnotations = () => {
     const shapes = Array.from(this.g.querySelectorAll('.a9s-annotation'));
