@@ -224,9 +224,6 @@ export class AnnotationLayer extends EventEmitter {
   }
 
   _initMouseEvents = () => {
-    // User-configured OSD zoom gesture setting
-    let zoomGesture = this.viewer.gestureSettingsByDeviceType('mouse').clickToZoom;
-
     // We use mouse-move to track which annotation is currently hovered on.
     // Keep in mind that annotations are NOT automatically stacked from large
     // to small. Therefore, smaller ones might be obscured underneath larger
@@ -244,8 +241,6 @@ export class AnnotationLayer extends EventEmitter {
           // Hovered annotation changed
           if (shape?.annotation !== this.hoveredShape?.annotation) {
             if (this.hoveredShape) {
-              this.viewer.gestureSettingsByDeviceType('mouse').clickToZoom = zoomGesture;
-              
               const element = this.hoveredShape.element || this.hoveredShape;
               removeClass(element, 'hover');
               
@@ -253,8 +248,6 @@ export class AnnotationLayer extends EventEmitter {
             }
 
             if (shape) {
-              zoomGesture = this.viewer.gestureSettingsByDeviceType('mouse').clickToZoom;
-              this.viewer.gestureSettingsByDeviceType('mouse').clickToZoom = false;
               addClass(shape, 'hover');
               this.emit('mouseEnterAnnotation', shape.annotation, shape);
             }
@@ -288,6 +281,7 @@ export class AnnotationLayer extends EventEmitter {
 
           // Ignore clicks on selection
           if (hoveredShape) {
+            evt.preventDefaultAction = true; // No zoom on click
             this.selectShape(hoveredShape);
           } else if (!hoveredShape) {
             this.deselect();
