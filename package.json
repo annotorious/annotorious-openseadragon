@@ -46,7 +46,7 @@
     "openseadragon": "^3.0.0"
   },
   "dependencies": {
-    "@recogito/annotorious": "2.7.2",
+    "@recogito/annotorious": "2.7.3",
     "@recogito/recogito-client-core": "^1.7.3",
     "preact": "^10.5.13",
     "rbush": "^3.0.1",
