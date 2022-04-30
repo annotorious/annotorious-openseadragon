@@ -7,7 +7,7 @@ export const getSnippet = (viewer, element) => {
   const shape = hasClass(element, '.a9s-annotation') ? 
     element : element.closest('.a9s-annotation');
 
-  const outer = shape.querySelector('.a9s-inner');
+  const outer = shape.querySelector('.a9s-outer');
   const outerBounds = outer.getBoundingClientRect();
 
   // Scale factor for OSD canvas element (physical vs. logical resolution)
