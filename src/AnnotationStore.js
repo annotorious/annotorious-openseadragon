@@ -94,6 +94,9 @@ export default class AnnotationStore {
     this.spatial_index = new RBush();
   }
 
+  clear = () =>
+    this.spatial_index.clear();
+
   getAnnotationAt = (x, y, scale) => {
     // 5 pixel buffer, so we reliably catch point 
     // annotations (optionally with scale applied)

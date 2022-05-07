@@ -449,6 +449,8 @@ export class AnnotationLayer extends EventEmitter {
     const shapes = Array.from(this.g.querySelectorAll('.a9s-annotation'));
     shapes.forEach(s => this.g.removeChild(s));
 
+    this.store.clear();
+
     this._lazy(() => {
       // Draw annotations
       console.time('Took');
