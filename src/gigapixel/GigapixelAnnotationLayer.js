@@ -113,7 +113,14 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
 
   resize() {
     const viewportBounds = this.viewer.viewport.getBounds(true);
-    const { x, y, width, height } = this.viewer.viewport.viewportToImageRectangle(viewportBounds);
+
+    const bufferedBounds = new OpenSeadragon.Rect(
+      viewportBounds.x - viewportBounds.width / 10,
+      viewportBounds.y - viewportBounds.height / 10,
+      viewportBounds.width * 1.2,
+      viewportBounds.height * 1.2);
+
+    const { x, y, width, height } = this.viewer.viewport.viewportToImageRectangle(bufferedBounds);
 
     const imageBounds = {
       minX: x, 
@@ -124,9 +131,9 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
 
     // Only update shapes inside viewport
     const visible = new Set(this.store.getAnnotationsIntersecting(imageBounds).map(a => a.id));
-    
+
     if (visible.size > 0) {
-      // Update positions for all anntations except selected (will be handled separately)
+      // Update positions for all annotations except selected (will be handled separately)
       const shapes = Array.from(this.g.querySelectorAll('.a9s-annotation:not(.selected)'));
       shapes.forEach(s => {
         if (visible.has(s.annotation.id)) {

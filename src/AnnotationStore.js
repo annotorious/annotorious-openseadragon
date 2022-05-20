@@ -1,6 +1,6 @@
 import RBush from 'rbush';
 import { SVG_NAMESPACE } from '@recogito/annotorious/src/util/SVG';
-import { drawShape, shapeArea, svgFragmentToShape } from '@recogito/annotorious/src/selectors';
+import { drawShape, shapeArea, svgFragmentToShape, parseRectFragment } from '@recogito/annotorious/src/selectors';
 import { WebAnnotation } from '@recogito/recogito-client-core';
 import { 
   pointInCircle,
@@ -15,29 +15,42 @@ import {
  * creates a temporary SVG element and attaches it to the DOM,
  * uses .getBBox() and then removes the temporary SVG element.  
  */
- const getBounds = (annotation, image) => {
-  const shape = drawShape(annotation, image);
+ const getBounds = (annotation, image) => {  
+  const isBox = annotation.targets[0].selector.type === 'FragmentSelector';
+
+  if (isBox) {
+    const {x,y,w,h} = parseRectFragment(annotation);
+
+    return {
+      minX: x, 
+      minY: y,
+      maxX: x + w,
+      maxY: y + h
+    }; 
+  } else {
+    const shape = drawShape(annotation, image);
   
-  // A temporary SVG buffer, so we can use .getBBox()
-  const svg = document.createElementNS(SVG_NAMESPACE, 'svg');
-  svg.style.position = 'absolute';
-  svg.style.opacity = 0;
-  svg.style.top = 0;
-  svg.style.left = 0;
-
-  svg.appendChild(shape);
-  document.body.appendChild(svg);
+    // A temporary SVG buffer, so we can use .getBBox()
+    const svg = document.createElementNS(SVG_NAMESPACE, 'svg');
+    svg.style.position = 'absolute';
+    svg.style.opacity = 0;
+    svg.style.top = 0;
+    svg.style.left = 0;
   
-  const { x, y, width, height } = shape.getBBox();  
-
-  document.body.removeChild(svg);
-
-  return {
-    minX: x, 
-    minY: y,
-    maxX: x + width,
-    maxY: y + height
-  };
+    svg.appendChild(shape);
+    document.body.appendChild(svg);
+    
+    const { x, y, width, height } = shape.getBBox();  
+  
+    document.body.removeChild(svg);
+  
+    return {
+      minX: x, 
+      minY: y,
+      maxX: x + width,
+      maxY: y + height
+    };  
+  }
 }
 
 const getSelectorType = annotation => {
