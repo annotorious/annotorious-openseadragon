@@ -94,6 +94,8 @@ const pointInSVGShape = (x, y, annotation) => {
   } else if (nodeName === 'path') {
     const polygons = svgPathToPolygons(svg);
     return polygons.find(polygon => pointInPolygon(pt, polygon));
+  } else if (nodeName === 'line') {
+    return true;
   } else {
     throw `Unsupported SVG shape type: ${nodeName}`;
   }
