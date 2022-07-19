@@ -112,6 +112,9 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
   }
 
   resize() {
+    if (!this.store)
+      return;
+
     const viewportBounds = this.viewer.viewport.getBounds(true);
 
     const bufferedBounds = new OpenSeadragon.Rect(
