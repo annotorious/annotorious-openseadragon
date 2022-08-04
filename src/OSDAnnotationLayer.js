@@ -706,6 +706,11 @@ export class AnnotationLayer extends EventEmitter {
   stopDrawing = () =>
     this.tools?.current?.stop();
 
+  getAnnotationsIntersecting = (annotation) => {
+    const bounds = this.store.getBounds(annotation);
+    return this.store.getAnnotationsIntersecting(bounds);
+  }
+
 }
 
 export default class OSDAnnotationLayer extends AnnotationLayer {
