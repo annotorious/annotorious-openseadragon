@@ -35,7 +35,7 @@ export class AnnotationLayer extends EventEmitter {
       this.formatters = Array.isArray(props.config.formatters) ? 
         props.config.formatters : [ props.config.formatters ];
 
-    this.disableSelect = props.disableSelect;
+    this.disableSelect = props.config.disableSelect;
     this.drawOnSingleClick = props.config.drawOnSingleClick;
 
     this.svg = document.createElementNS(SVG_NAMESPACE, 'svg');
@@ -290,7 +290,7 @@ export class AnnotationLayer extends EventEmitter {
         } 
       }
 
-      if (this.disableSelect)
+      if (this.disableSelect && this.hoveredShape)
         this.emit('clickAnnotation', this.hoveredShape.annotation, this.hoveredShape);
     });
 

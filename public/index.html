@@ -83,7 +83,8 @@
         var anno = OpenSeadragon.Annotorious(viewer, {
           locale: 'auto',
           drawOnSingleClick: true,
-          allowEmpty: true
+          allowEmpty: true,
+          disableSelect: true
         });
 
         anno.setAuthInfo({
@@ -139,6 +140,10 @@
 
         anno.on('mouseLeaveAnnotation', function(annotation, shape) {
           console.log('mouseLeave');
+        });
+
+        anno.on('clickAnnotation', function(annotation) {
+          console.log('click');
         });
 
         anno.loadAnnotations('annotations.w3c.json');
