@@ -144,8 +144,15 @@ export default class AnnotationStore {
     }
   }
 
-  getAnnotationsIntersecting = bounds =>
-    this.spatial_index.search(bounds).map(item => item.annotation);
+  getAnnotationsIntersecting = annotationOrBounds => {
+    const isBounds = annotationOrBounds.minX; // Bit of a naive test...
+
+    const bounds = isBounds ? annotationOrBounds : getBounds(annotationOrBounds, this.env.image);
+    const intersecting = this.spatial_index.search(bounds).map(item => item.annotation);
+
+    return isBounds ? intersecting :
+      intersecting.filter(a => !a.isEqual(annotationOrBounds));
+  }
 
   insert = arg => {
     const annotations = Array.isArray(arg) ? arg : [ arg ];

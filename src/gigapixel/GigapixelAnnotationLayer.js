@@ -115,39 +115,39 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
     if (!this.store)
       return;
 
-    const viewportBounds = this.viewer.viewport.getBounds(true);
+    // const viewportBounds = this.viewer.viewport.getBounds(true);
 
-    const bufferedBounds = new OpenSeadragon.Rect(
-      viewportBounds.x - viewportBounds.width / 10,
-      viewportBounds.y - viewportBounds.height / 10,
-      viewportBounds.width * 1.2,
-      viewportBounds.height * 1.2);
+    // const bufferedBounds = new OpenSeadragon.Rect(
+    //   viewportBounds.x - viewportBounds.width / 10,
+    //   viewportBounds.y - viewportBounds.height / 10,
+    //   viewportBounds.width * 1.2,
+    //   viewportBounds.height * 1.2);
 
-    const { x, y, width, height } = this.viewer.viewport.viewportToImageRectangle(bufferedBounds);
+    // const { x, y, width, height } = this.viewer.viewport.viewportToImageRectangle(bufferedBounds);
 
-    const imageBounds = {
-      minX: x, 
-      minY: y, 
-      maxX: x + width,
-      maxY: y + height
-    };
+    // const imageBounds = {
+    //   minX: x, 
+    //   minY: y, 
+    //   maxX: x + width,
+    //   maxY: y + height
+    // };
 
     // Only update shapes inside viewport
-    const visible = new Set(this.store.getAnnotationsIntersecting(imageBounds).map(a => a.id));
+    // const visible = new Set(this.store.getAnnotationsIntersecting(imageBounds).map(a => a.id));
 
-    if (visible.size > 0) {
+    // if (visible.size > 0) {
       // Update positions for all annotations except selected (will be handled separately)
       const shapes = Array.from(this.g.querySelectorAll('.a9s-annotation:not(.selected)'));
       shapes.forEach(s => {
-        if (visible.has(s.annotation.id)) {
-          s.removeAttribute('visibility');
+        // if (visible.has(s.annotation.id)) {
+        //   s.removeAttribute('visibility');
           refreshViewportPosition(this.viewer, s);
-        } else {
-          if (!s.hasAttribute('visibility'))
-            s.setAttribute('visibility', 'hidden');
-        }
+        //} else {
+        //  if (!s.hasAttribute('visibility'))
+        //    s.setAttribute('visibility', 'hidden');
+        //}
       });
-    }
+    // }
 
     if (this.selectedShape) {
       if (this.selectedShape.element) {

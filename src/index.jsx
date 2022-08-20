@@ -171,9 +171,8 @@ class OSDAnnotorious {
     return annotations.map(a => a.underlying);
   }
 
-  getAnnotationsIntersecting = (annotationOrId) => {
-    return this._app.current.getAnnotationsIntersecting(this._wrap(annotationOrId));
-  }
+  getAnnotationsIntersecting = annotationOrId =>
+    this._app.current.getAnnotationsIntersecting(this._wrap(annotationOrId));
 
   getImageSnippetById = annotationId =>
     this._app.current.getImageSnippetById(annotationId);
