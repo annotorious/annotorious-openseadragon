@@ -351,7 +351,8 @@ export class AnnotationLayer extends EventEmitter {
     this.tools.registerTool(plugin);
 
   addOrUpdateAnnotation = (annotation, previous) => {
-    if (this.selectedShape?.annotation === annotation || this.selectedShape?.annotation == previous)
+    const selected = this.selectedShape?.annotation;
+    if (selected === annotation || selected?.isSelection || selected == previous)
       this.deselect();
   
     if (previous)
@@ -372,7 +373,7 @@ export class AnnotationLayer extends EventEmitter {
     return zoom * containerWidth / this.viewer.world.getContentFactor();
   }
 
-  deselect = () => {
+  deselect = () => {    
     this.tools?.current.stop();
     
     if (this.selectedShape) {

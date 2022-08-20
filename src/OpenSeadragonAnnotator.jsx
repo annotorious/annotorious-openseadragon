@@ -201,7 +201,7 @@ export default class OpenSeadragonAnnotator extends Component {
       a.clone({ target: this.state.modifiedTarget }) : a.clone();
 
     this.clearState(() => {
-      this.annotationLayer.deselect();
+      // this.annotationLayer.deselect();
       this.annotationLayer.addOrUpdateAnnotation(a, previous);
 
       // Call CREATE or UPDATE handler
