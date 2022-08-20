@@ -294,6 +294,10 @@ export default class OpenSeadragonAnnotator extends Component {
   getAnnotations = () =>
     this.annotationLayer.getAnnotations().map(a => a.clone());
 
+  getAnnotationsIntersecting = (annotation) => {
+    return this.annotationLayer.getAnnotationsIntersecting(annotation);
+  }
+
   getImageSnippetById = annotationId =>
     this.annotationLayer.getImageSnippetById(annotationId);
 

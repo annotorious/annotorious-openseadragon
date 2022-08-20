@@ -156,6 +156,10 @@ export default class AnnotationStore {
     });
   }
 
+  getBounds = annotation => {
+    return this.getBounds(annotation, this.env.image);
+  }
+
   remove = annotation => {
     // Unfortunately, .remove currently requires bounds,
     // therefore we need to re-compute. See:
