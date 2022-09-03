@@ -652,7 +652,7 @@ export class AnnotationLayer extends EventEmitter {
             info.preventDefault = false;
             info.preventGesture = true;
           }
-        }).setTracking(true);
+        }).setTracking(false);
 
         // En-/disable OSD nav based on hover status
         this.selectedShape.element.addEventListener('mouseenter', () => {
