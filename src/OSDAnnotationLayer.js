@@ -258,6 +258,14 @@ export class AnnotationLayer extends EventEmitter {
       }
     });
 
+    this.svg.addEventListener('mouseleave', () => {
+      if (this.hoveredShape) {
+        removeClass(this.hoveredShape, 'hover');
+        this.emit('mouseLeaveAnnotation', this.hoveredShape.annotation, this.hoveredShape);
+        this.hoveredShape = null;
+      }
+    });
+
     // Unfortunately, drag ALSO creates a click 
     // event - ignore in this case.
     let lastMouseDown = null;
