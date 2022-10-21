@@ -6,7 +6,8 @@ import {
   pointInCircle,
   pointInEllipse,
   pointInPolygon,
-  svgPathToPolygons
+  svgPathToPolygons,
+  pointInLine
 } from '@recogito/annotorious/src/util/Geom2D';
 
 /** 
@@ -68,7 +69,7 @@ const getSelectorType = annotation => {
  * @param {number} y point y coordinate 
  * @param {WebAnnotation} annotation annotation (with an SVG Selector!) 
  */
-const pointInSVGShape = (x, y, annotation) => {
+const pointInSVGShape = (x, y, annotation, buffer) => {
   const svg = svgFragmentToShape(annotation);
   const nodeName = svg.nodeName.toLowerCase();
 
@@ -95,7 +96,11 @@ const pointInSVGShape = (x, y, annotation) => {
     const polygons = svgPathToPolygons(svg);
     return polygons.find(polygon => pointInPolygon(pt, polygon));
   } else if (nodeName === 'line') {
-    return true;
+    const x1 = parseInt(svg.getAttribute('x1'));
+    const y1 = parseInt(svg.getAttribute('y1'));
+    const x2 = parseInt(svg.getAttribute('x2'));
+    const y2 = parseInt(svg.getAttribute('y2'));
+    return pointInLine(pt, x1, y1, x2, y2, buffer);
   } else {
     throw `Unsupported SVG shape type: ${nodeName}`;
   }
@@ -131,7 +136,7 @@ export default class AnnotationStore {
       if (selectorType === 'FragmentSelector') {
         return true; // For FragmentSelectors, shape is always equal to bounds! 
       } else if (selectorType === 'SvgSelector') {
-        return pointInSVGShape(x, y, annotation);
+        return pointInSVGShape(x, y, annotation, buffer);
       } else {
         throw `Unsupported selector type: ${selectorType}`;
       }
