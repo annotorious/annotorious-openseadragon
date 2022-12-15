@@ -65,7 +65,8 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
    * non-scaling shapes need no scaling!
    */
   addOrUpdateAnnotation = (annotation, previous) => {
-    if (this.selectedShape?.annotation === annotation || this.selectedShape?.annotation == previous)
+    const selected = this.selectedShape?.annotation;
+    if (selected === annotation || selected?.isSelection || selected == previous)
       this.deselect();
   
     if (previous)
