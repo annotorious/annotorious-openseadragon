@@ -15,6 +15,23 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
     this._initDrawingTools(true);
   }
 
+  // Common code for fitBounds and fitBoundsWithConstraints
+  _fit = (annotationOrId, immediately, fn) => {
+    const shape = this.findShape(annotationOrId);
+    if (shape) {
+      const containerBounds = this.viewer.container.getBoundingClientRect();
+      const shapeBounds = shape.getBoundingClientRect();
+
+      const x = shapeBounds.x - containerBounds.x;
+      const y = shapeBounds.y - containerBounds.y;
+      const { width, height } = shapeBounds;
+
+      const rect = this.viewer.viewport.viewerElementToViewportRectangle(new OpenSeadragon.Rect(x, y, width, height)); 
+      
+      this.viewer.viewport[fn](rect, immediately);
+    }    
+  }
+
   _getShapeAt = evt => {
     const getXY = evt => {
       if (isTouch) {
