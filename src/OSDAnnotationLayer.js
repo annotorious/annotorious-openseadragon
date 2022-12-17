@@ -417,11 +417,30 @@ export class AnnotationLayer extends EventEmitter {
   }
 
   // Common code for fitBounds and fitBoundsWithConstraints
-  _fit = (annotationOrId, immediately, fn) => {
+  _fit = (annotationOrId, opts, fn) => {
     const shape = this.findShape(annotationOrId);
     if (shape) {
+      const immediately = opts ? (
+        typeof opts == 'boolean' ? opts : opts.immediately
+      ) : false; 
+
+      const padding = (opts?.padding || 0);
+      
+      const containerBounds = this.viewer.container.getBoundingClientRect();
+
+      const paddingRelative = Math.min(
+        2 * padding / containerBounds.width,
+        2 * padding / containerBounds.height
+      );
+
       const { x, y, width, height } = shape.getBBox(); // SVG element bounds, image coordinates
-      const rect = this.viewer.viewport.imageToViewportRectangle(x, y, width, height);
+
+      const padX = x - paddingRelative * width;
+      const padY = y - paddingRelative * height;
+      const padW = width + 2 * paddingRelative * width;
+      const padH = height + 2 * paddingRelative * height;
+
+      const rect = this.viewer.viewport.imageToViewportRectangle(padX, padY, padW, padH);
       this.viewer.viewport[fn](rect, immediately);
     }    
   }

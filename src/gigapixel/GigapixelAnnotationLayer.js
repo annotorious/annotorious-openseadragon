@@ -16,7 +16,13 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
   }
 
   // Common code for fitBounds and fitBoundsWithConstraints
-  _fit = (annotationOrId, immediately, fn) => {
+  _fit = (annotationOrId, opts, fn) => {
+    const immediately = opts ? (
+      typeof opts == 'boolean' ? opts : opts.immediately
+    ) : false; 
+
+    const padding = opts?.padding || 0;
+
     const shape = this.findShape(annotationOrId);
     if (shape) {
       const containerBounds = this.viewer.container.getBoundingClientRect();
@@ -26,7 +32,12 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
       const y = shapeBounds.y - containerBounds.y;
       const { width, height } = shapeBounds;
 
-      const rect = this.viewer.viewport.viewerElementToViewportRectangle(new OpenSeadragon.Rect(x, y, width, height)); 
+      const padX = x - padding;
+      const padY = y - padding;
+      const padW = width + 2 * padding;
+      const padH = height + 2 * padding;
+
+      const rect = this.viewer.viewport.viewerElementToViewportRectangle(new OpenSeadragon.Rect(padX, padY, padW, padH)); 
       
       this.viewer.viewport[fn](rect, immediately);
     }    
