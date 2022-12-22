@@ -182,10 +182,10 @@ export default class OpenSeadragonAnnotator extends Component {
         selectedDOMElement: null,
         modifiedTarget: null
       }, () => {
-        return this.annotationLayer.overrideId(id, forcedId);
+        this.annotationLayer.overrideId(id, forcedId);
       });
     } else {
-      return this.annotationLayer.overrideId(id, forcedId);
+      this.annotationLayer.overrideId(id, forcedId);
     }
   }
 
