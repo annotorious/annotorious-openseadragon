@@ -5,3 +5,13 @@
 .a9s-annotation:not(.hover):hover .a9s-inner {
   stroke:#fff;
 }
+
+.a9s-osd-crosshair-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+}

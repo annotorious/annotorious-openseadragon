@@ -2,10 +2,10 @@ import EventEmitter from 'tiny-emitter';
 import OpenSeadragon from 'openseadragon';
 import { SVG_NAMESPACE, addClass, hasClass, removeClass } from '@recogito/annotorious/src/util/SVG';
 import DrawingTools from '@recogito/annotorious/src/tools/ToolsRegistry';
-import Crosshair from '@recogito/annotorious/src/Crosshair';
 import { drawShape } from '@recogito/annotorious/src/selectors';
 import { format } from '@recogito/annotorious/src/util/Formatting';
 import { isTouchDevice, enableTouchTranslation } from '@recogito/annotorious/src/util/Touch';
+import Crosshair from './OSDCrosshair';
 import AnnotationStore from './AnnotationStore';
 import { getSnippet } from './util/ImageSnippet';
 
@@ -73,8 +73,10 @@ export class AnnotationLayer extends EventEmitter {
       };
 
       if (props.config.crosshair) {
-        this.crosshair = new Crosshair(this.g, x, y);
-        addClass(this.svg, 'has-crosshair');
+        if (!this.crosshair) {
+          this.crosshair = new Crosshair(this.svg);
+          addClass(this.svg, 'no-cursor');
+        }
       }
 
       if (!this.loaded)
