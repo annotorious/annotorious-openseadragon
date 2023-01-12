@@ -22,8 +22,8 @@ export default class Crosshair {
     const onMove = evt => {
       const { offsetX, offsetY } = evt;
 
-      const width = 1000;
-      const height = 1000;
+      const width = svgEl.parentElement.offsetWidth;
+      const height = svgEl.parentElement.offsetHeight;
 
       h.setAttribute('x1', 0);
       h.setAttribute('y1', offsetY);
