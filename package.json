@@ -6,7 +6,6 @@
   "scripts": {
     "start": "webpack serve --open --mode=development",
     "build": "webpack --mode=production",
-    "prepare": "./build.sh",
     "build-polyfills": "webpack --mode=production --config webpack.polyfills.js",
     "vite-build": "vite build && mv ./dist/annotorious-openseadragon.umd.js ./dist/openseadragon-annotorious.min.js && mv ./dist/style.css ./dist/annotorious.min.css"
   },
@@ -26,9 +25,9 @@
   },
   "homepage": "https://recogito.github.io/annotorious",
   "funding": {
-    "type" : "patreon",
-    "url" : "https://www.patreon.com/rainersimon"
-  },  
+    "type": "patreon",
+    "url": "https://www.patreon.com/rainersimon"
+  },
   "devDependencies": {
     "@babel/plugin-proposal-class-properties": "^7.14.5",
     "@babel/preset-env": "^7.14.7",
