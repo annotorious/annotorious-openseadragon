@@ -260,7 +260,7 @@ export class AnnotationLayer extends EventEmitter {
       }
     });
 
-    this.svg.addEventListener('mouseleave', () => {
+    this.svg.parentElement.addEventListener('mouseleave', () => {
       if (this.hoveredShape) {
         removeClass(this.hoveredShape, 'hover');
         this.emit('mouseLeaveAnnotation', this.hoveredShape.annotation, this.hoveredShape);
