@@ -110,6 +110,10 @@ export default class AnnotationStore {
 
   constructor(env) {
     this.env = env;
+
+    // Hacky... the store exposes itself to the environment, so that tools 
+    // have access to it
+    env.store = this;
     
     this.spatial_index = new RBush();
   }
