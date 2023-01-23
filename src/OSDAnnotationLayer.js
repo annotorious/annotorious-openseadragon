@@ -139,11 +139,17 @@ export class AnnotationLayer extends EventEmitter {
 
   /** Initializes the OSD MouseTracker used for drawing **/
   _initDrawingTools = gigapixelMode => {
-    this.tools = new DrawingTools(this.g, this.config, this.env);
-    this.tools.on('complete', this.onDrawingComplete);
-
     let started = false;
     
+    let firstDragDone = false;
+
+    this.tools = new DrawingTools(this.g, this.config, this.env);
+
+    this.tools.on('complete', shape => {
+      firstDragDone = false;
+      this.onDrawingComplete(shape);
+    });
+
     this.mouseTracker = new OpenSeadragon.MouseTracker({
       element: this.svg,
 
@@ -169,20 +175,24 @@ export class AnnotationLayer extends EventEmitter {
 
       moveHandler: evt => {
         if (this.tools.current.isDrawing) {
-          evt.originalEvent.stopPropagation();
+          if (!evt.buttons || !firstDragDone) {
+            evt.originalEvent.stopPropagation();
 
-          const { x , y } = this.tools.current.getSVGPoint(evt.originalEvent);
-          this.tools.current.onMouseMove(x, y, evt.originalEvent);
+            const { x , y } = this.tools.current.getSVGPoint(evt.originalEvent);
+            this.tools.current.onMouseMove(x, y, evt.originalEvent);
 
-          if (!started) {
-            this.emit('startSelection', { x , y });
-            started = true;
+            if (!started) {
+              this.emit('startSelection', { x , y });
+              started = true;
+            }
           }
         }
       },
 
       releaseHandler: evt => {
         if (this.tools.current.isDrawing) {
+          firstDragDone = true;
+
           const { x , y } = this.tools.current.getSVGPoint(evt.originalEvent);
           this.tools.current.onMouseUp(x, y, evt.originalEvent);
         }
