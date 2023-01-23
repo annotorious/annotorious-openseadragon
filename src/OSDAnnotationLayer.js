@@ -588,7 +588,7 @@ export class AnnotationLayer extends EventEmitter {
       }       
     }
 
-    if (this.tools?.current.isDrawing)
+    if (this.tools?.current)
       this.scaleTool(this.tools.current);
   }
   
