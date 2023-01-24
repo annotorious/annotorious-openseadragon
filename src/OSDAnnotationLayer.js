@@ -722,8 +722,10 @@ export class AnnotationLayer extends EventEmitter {
 
         this.selectedShape.mouseTracker = editableShapeMouseTracker;
 
-        this.selectedShape.on('update', fragment =>
-          this.emit('updateTarget', this.selectedShape.element, fragment));
+        this.selectedShape.on('update', fragment => {
+          toolForAnnotation.destroy();
+          this.emit('updateTarget', this.selectedShape.element, fragment)
+        });
       } else {
         this.selectedShape = shape;
 
