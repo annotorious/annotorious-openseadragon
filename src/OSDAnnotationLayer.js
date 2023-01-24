@@ -143,6 +143,8 @@ export class AnnotationLayer extends EventEmitter {
     
     let firstDragDone = false;
 
+    let dragging = false;
+
     this.tools = new DrawingTools(this.g, this.config, this.env);
 
     this.tools.on('complete', shape => {
@@ -175,16 +177,22 @@ export class AnnotationLayer extends EventEmitter {
 
       moveHandler: evt => {
         if (this.tools.current.isDrawing) {
+          const { x , y } = this.tools.current.getSVGPoint(evt.originalEvent);
+ 
           if (!evt.buttons || !firstDragDone) {
             evt.originalEvent.stopPropagation();
 
-            const { x , y } = this.tools.current.getSVGPoint(evt.originalEvent);
             this.tools.current.onMouseMove(x, y, evt.originalEvent);
 
             if (!started) {
               this.emit('startSelection', { x , y });
               started = true;
             }
+          } else {
+            if (!dragging && this.tools.current.onDragStart)
+              this.tools.current.onDragStart(x, y, evt.originalEvent);
+
+            dragging = true;
           }
         }
       },
@@ -195,9 +203,14 @@ export class AnnotationLayer extends EventEmitter {
 
           const { x , y } = this.tools.current.getSVGPoint(evt.originalEvent);
           this.tools.current.onMouseUp(x, y, evt.originalEvent);
+
+          if (dragging && this.tools.current.onDragEnd)
+            this.tools.current.onDragEnd();
         }
 
         started = false;
+
+        dragging = false;
       }
     });
 
