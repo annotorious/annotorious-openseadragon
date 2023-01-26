@@ -234,12 +234,8 @@ export class AnnotationLayer extends EventEmitter {
     this.onKeyDown = evt => {
       if (evt.key.toLowerCase() === hotkey && !this.selectedShape) {
         const enabled = !this.readOnly && !inverted;
-
-
-        this.setDrawingEnabled(true);
-
-        // this.mouseTracker.enabled = enabled;
-        // this.tools.current.enabled = enabled;
+        this.mouseTracker.enabled = enabled;
+        this.tools.current.enabled = enabled;
       }
     };
 
@@ -769,8 +765,8 @@ export class AnnotationLayer extends EventEmitter {
   }
 
   stopDrawing = () => {
-    if (this.tools?.current.isDrawing)
-      this.tools?.current?.stop();
+    if (this.tools?.current?.isDrawing)
+      this.tools.current.stop();
   
     this.mouseTracker.enabled = false;
     this.tools.current.enabled = false; 
