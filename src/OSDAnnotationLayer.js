@@ -765,11 +765,13 @@ export class AnnotationLayer extends EventEmitter {
   }
 
   stopDrawing = () => {
-    if (this.tools?.current?.isDrawing)
-      this.tools?.current?.stop();
+    if (this.tools?.current) {
+      if (this.tools.current.isDrawing)
+        this.tools.current.stop();
   
-    this.mouseTracker.enabled = false;
-    this.tools.current.enabled = false; 
+      this.mouseTracker.enabled = false;
+      this.tools.current.enabled = false; 
+    }
   }
 
 }
