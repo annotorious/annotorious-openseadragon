@@ -83,12 +83,16 @@ export default class OpenSeadragonAnnotator extends Component {
         this.props.onCancelSelected(selectedAnnotation);
       }
     } else if (evt.which === 46) { // Delete
-      const { selectedAnnotation } = this.state;
-      if (selectedAnnotation) {
-        if (selectedAnnotation.isSelection) {
-          this.onCancelAnnotation(selectedAnnotation);
-        } else {
-          this.onDeleteAnnotation(selectedAnnotation);
+      const { disableDeleteKey } = this.props.config;
+
+      if (!disableDeleteKey) {
+        const { selectedAnnotation } = this.state;
+        if (selectedAnnotation) {
+          if (selectedAnnotation.isSelection) {
+            this.onCancelAnnotation(selectedAnnotation);
+          } else {
+            this.onDeleteAnnotation(selectedAnnotation);
+          }
         }
       }
     }
