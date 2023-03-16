@@ -140,15 +140,12 @@ export class AnnotationLayer extends EventEmitter {
   /** Initializes the OSD MouseTracker used for drawing **/
   _initDrawingTools = gigapixelMode => {
     let started = false;
-    
-    let firstDragDone = false;
 
     let dragging = false;
 
     this.tools = new DrawingTools(this.g, this.config, this.env);
 
     this.tools.on('complete', shape => {
-      firstDragDone = false;
       this.onDrawingComplete(shape);
     });
 
@@ -179,7 +176,7 @@ export class AnnotationLayer extends EventEmitter {
         if (this.tools.current.isDrawing) {
           const { x , y } = this.tools.current.getSVGPoint(evt.originalEvent);
  
-          if (!evt.buttons || !firstDragDone) {
+          if (!evt.buttons) {
             evt.originalEvent.stopPropagation();
 
             this.tools.current.onMouseMove(x, y, evt.originalEvent);
@@ -199,8 +196,6 @@ export class AnnotationLayer extends EventEmitter {
 
       releaseHandler: evt => {
         if (this.tools.current.isDrawing) {
-          firstDragDone = true;
-
           const { x , y } = this.tools.current.getSVGPoint(evt.originalEvent);
           this.tools.current.onMouseUp(x, y, evt.originalEvent);
 
