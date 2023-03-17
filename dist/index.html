@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Annotorious OpenSeadragon Example</title>
+    <link href="https://fonts.googleapis.com/css?family=Lato&display=swap" rel="stylesheet">
+    <link href="annotorious.min.css" rel="stylesheet">
+    <style>
+      html, body {
+        margin:0;
+        padding:0;
+        background-color:#e2e2e2;
+        height:100%;
+        font-family:Lato;
+        line-height:160%;
+      }
+      
+      .column {
+        max-width:700px;
+        padding:20px;
+        margin:0 auto;
+        background-color:#fff;
+        height:100%;
+        box-sizing:border-box;
+      }
+
+      h1 {
+        font-size:21px;
+        font-weight:normal;
+        margin:0;
+        padding:0;
+      }
+
+      p.instructions {
+        padding:10px 0 30px 0;
+      }
+
+      .openseadragon-canvas {
+        outline:none;
+        background-color:#efefef !important;
+      }
+
+      .a9s-selection-mask {
+        display:none;
+      }
+    </style>
+    <script>
+      var updatedAnnotation = {
+        "@context": "http://www.w3.org/ns/anno.jsonld",
+        "id": "#07475897-d2eb-4dce-aa12-ecb50771c734",
+        "type": "Annotation",
+        "body": [
+          {
+            "type": "TextualBody",
+            "value": "UPDATED ANNOTATION #2"
+          }
+        ],
+        "target": {
+          "selector": {
+            "type": "FragmentSelector",
+            "conformsTo": "http://www.w3.org/TR/media-frags/",
+            "value": "xywh=540,240,180,340"
+          }
+        }
+      };
+
+      window.onload = function() {
+        var viewer = OpenSeadragon({
+          id: "openseadragon",
+          prefixUrl: "openseadragon/images/",
+          tileSources: {
+            type: "image",
+            url: "1280px-Hallstatt.jpg"
+          },
+          gestureSettingsTouch: {
+            pinchRotate: true
+          },
+          showRotationControl: true,
+          showFlipControl: true,
+          constrainDuringPan: true,
+        });
+        
+        var anno = OpenSeadragon.Annotorious(viewer, {
+          locale: 'auto',
+          drawOnSingleClick: true,
+          allowEmpty: true,
+          crosshair: true
+          // disableSelect: true
+          // crosshair: true
+          // disableEditor: true,
+          // disableDeleteKey: true
+        });
+
+        anno.setAuthInfo({
+          id: 'http://www.example.com/rainer',
+          displayName: 'rainer'
+        });
+
+        var toolToggle = document.getElementById('current-tool');
+        toolToggle.addEventListener('click', function() {   
+          if (toolToggle.innerHTML == 'TOOL: RECTANGLE') {
+            toolToggle.innerHTML = 'TOOL: POLYGON';
+            anno.setDrawingTool('polygon');
+          } else {
+            toolToggle.innerHTML = 'TOOL: RECTANGLE';
+            anno.setDrawingTool('rect');
+          }
+        });
+
+        var modeBtn = document.getElementById('mode');
+        modeBtn.addEventListener('click', function() {
+          if (modeBtn.innerHTML == 'MODE: VIEW') {
+            modeBtn.innerHTML = 'MODE: ANNOTATE';
+            anno.setDrawingEnabled(true);
+          } else {
+            modeBtn.innerHTML = 'MODE: VIEW';
+            anno.setDrawingEnabled(false);
+          }
+        });
+
+        anno.on('createAnnotation', function(a, overrideId) {
+          console.log('created', a);
+        });
+
+        anno.on('updateAnnotation', function(annotation, previous) {
+          console.log('updated', annotation);
+        });
+
+        anno.on('selectAnnotation', function(annotation, shape) {
+          console.log('selected');
+        });
+
+        anno.on('deleteAnnotation', function(annotation) {
+          console.log('deleted');
+        });
+
+        anno.on('cancelSelected', function(a) {
+          console.log('cancelSelected');
+        });
+
+        anno.on('mouseEnterAnnotation', function(annotation, shape) {
+          console.log('mouseEnter');
+        });
+
+        anno.on('mouseLeaveAnnotation', function(annotation, shape) {
+          console.log('mouseLeave');
+        });
+
+        anno.on('clickAnnotation', function(annotation) {
+          console.log('click');
+        });
+
+        anno.loadAnnotations('annotations.w3c.json');
+      }
+    </script>
+  </head>
+  <body>
+    <div class="column">
+      <h1>Annotorious | OpenSeadragon Example</h1>
+      <p class="instructions">
+        Click the annotation to edit. Hold <strong>SHIFT</strong> while clicking and 
+        dragging the mouse to create a new annotation. 
+      </p>
+      <p>
+        <button id="current-tool">TOOL: RECTANGLE</button>
+        <button id="mode">MODE: VIEW</button>
+      </p>
+      <div id="openseadragon" style="width: 640px; height: 480px;"></div>
+    </div>      
+    <script src="https://cdn.jsdelivr.net/npm/openseadragon@4.0/build/openseadragon/openseadragon.min.js"></script>
+    <script src="openseadragon-annotorious.min.js"></script>
+  </body>
+</html>

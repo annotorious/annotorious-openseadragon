@@ -1,0 +1,91 @@
+[
+  {
+    "type": "Annotation",
+    "body": [
+      {
+        "type": "TextualBody",
+        "value": "Annotation #1",
+        "purpose": "commenting",
+        "creator": {
+          "id": "http://www.example.com/rainer",
+          "name": "rainer"
+        },
+        "created": "2021-08-04T05:29:06.251Z",
+        "modified": "2021-08-04T05:29:09.797Z"
+      }
+    ],
+    "target": {
+      "selector": {
+        "type": "FragmentSelector",
+        "conformsTo": "http://www.w3.org/TR/media-frags/",
+        "value": "xywh=pixel:865,170,268,260"
+      }
+    },
+    "@context": "http://www.w3.org/ns/anno.jsonld",
+    "id": "#440a73fb-1e95-4889-bd64-a11696791eea"
+  },
+  {
+    "@context": "http://www.w3.org/ns/anno.jsonld",
+    "id": "#07475897-d2eb-4dce-aa12-ecb50771c734",
+    "type": "Annotation",
+    "body": [
+      {
+        "type": "TextualBody",
+        "value": "Annotation #2"
+      }
+    ],
+    "target": {
+      "selector": {
+        "type": "FragmentSelector",
+        "conformsTo": "http://www.w3.org/TR/media-frags/",
+        "value": "xywh=540,240,180,340"
+      }
+    }
+  },
+  {
+    "type": "Annotation",
+    "body": [
+      {
+        "type": "TextualBody",
+        "value": "A comment...",
+        "purpose": "commenting",
+        "creator": {
+          "id": "http://www.example.com/rainer",
+          "name": "rainer"
+        },
+        "created": "2021-08-14T08:13:12.514Z",
+        "modified": "2021-08-14T08:13:12.557Z"
+      }
+    ],
+    "target": {
+      "selector": {
+        "type": "SvgSelector",
+        "value": "<svg><polygon points=\"447,213 560,140 563,259\"></polygon></svg>"
+      }
+    },
+    "@context": "http://www.w3.org/ns/anno.jsonld",
+    "id": "#9df313be-4ded-4d0f-b7f6-f6b1a19e733b"
+  },
+  {
+    "type": "Annotation",
+    "body": [
+      {
+        "type": "TextualBody",
+        "value": "A point!",
+        "purpose": "commenting"
+      }
+    ],
+    "target": {
+      "selector": {
+        "type": "FragmentSelector",
+        "conformsTo": "http://www.w3.org/TR/media-frags/",
+        "value": "xywh=pixel:632,296,0,0"
+      },
+      "renderedVia": {
+        "name": "point"
+      }
+    },
+    "@context": "http://www.w3.org/ns/anno.jsonld",
+    "id": "#9a4c10df-3c07-40c3-9108-672d1194bbf8"
+  }
+]

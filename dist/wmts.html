@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Annotorious OpenSeadragon Example</title>
+    <link href="https://fonts.googleapis.com/css?family=Lato&display=swap" rel="stylesheet">
+    <link href="annotorious.min.css" rel="stylesheet">
+    <style>
+      html, body {
+        margin:0;
+        padding:0;
+        background-color:#e2e2e2;
+        height:100%;
+        font-family:Lato;
+        line-height:160%;
+      }
+
+      h1 {
+        font-size:21px;
+        font-weight:normal;
+        margin:0;
+        padding:0;
+      }
+
+      #openseadragon {
+        width:100%;
+        height:400px;
+      }
+
+      p.instructions {
+        padding:10px 0 30px 0;
+      }
+
+      .openseadragon-canvas {
+        outline:none;
+        background-color:#efefef !important;
+      }
+
+      .a9s-selection-mask {
+        display:none;
+      }
+
+      .a9s-annotationlayer .a9s-annotation .a9s-inner {
+        stroke:red !important;
+        fill:rgba(255,0,0,0.4) !important;
+      }
+    </style>
+    <script>
+      function randomAnnotation() {
+        var minX = 33227208,
+            minY = 21505962,
+            maxX = 33299824,
+            maxY = 21591370,
+
+            minSize = 500,
+            maxSize = 2000; 
+
+        var x = Math.floor(Math.random() * (maxX - minX + 1)) + minX,
+            y = Math.floor(Math.random() * (maxY - minY + 1)) + minY,
+            w = Math.floor(Math.random() * (maxSize - minSize + 1)) + minSize,
+            h = Math.floor(Math.random() * (maxSize - minSize + 1)) + minSize;
+
+        return {
+          "type": "Annotation",
+          "body": [{
+            "type": "TextualBody",
+            "value": "Annotation #2"
+          }],
+          "target": {
+            "source": "http://localhost:3000/",
+            "selector": {
+              "type": "FragmentSelector",
+              "conformsTo": "http://www.w3.org/TR/media-frags/",
+              "value": `xywh=pixel:${x},${y},${w},${h}`
+            }
+          },
+          "@context": "http://www.w3.org/ns/anno.jsonld",
+          "id": `#id-${Math.random()}`
+        }
+      }
+
+      window.onload = async function() {
+        var viewer = OpenSeadragon({
+          id: "openseadragon",
+          prefixUrl: "openseadragon/images/"
+        });
+
+        var anno = OpenSeadragon.Annotorious(viewer, {
+          locale: 'auto',
+          gigapixelMode: true,
+          allowEmpty: true
+        });
+        
+        Annotorious.Toolbar(anno, document.getElementById('toolbar'));
+
+        var map = await OpenSeadragon.WMTS(viewer, {
+          url: 'https://geo.nls.uk/mapdata3/os/25_inch/edinburgh_003_12/wmts.xml' // 'https://wmts.maptiler.com/aHR0cDovL3dtdHMubWFwdGlsZXIuY29tL2FIUjBjSE02THk5dFlYQnpaWEpwWlhNdGRHbHNaWE5sZEhNdWN6TXVZVzFoZW05dVlYZHpMbU52YlM4eU5WOXBibU5vTDNsdmNtdHphR2x5WlM5dFpYUmhaR0YwWVM1cWMyOXUvanNvbg/wmts'
+        });
+        
+        anno.on('createAnnotation', function(annotation) {
+          console.log(annotation);
+        });
+
+        anno.on('mouseEnterAnnotation', function(annotation, shape) {
+          // console.log('mouseEnter');
+        });
+
+        anno.on('mouseLeaveAnnotation', function(annotation, shape) {
+          // console.log('mouseLeave');
+        });
+
+        // The map object provides functions to convert OSD coordinates to WGS84
+        var mouseTracker = new OpenSeadragon.MouseTracker({
+          element: viewer.container,
+
+          moveHandler: function(event) {
+            var imagePoint = viewer.viewport.viewportToImageCoordinates(viewer.viewport.pointFromPixel(event.position));
+            // console.log('image', imagePoint);
+          }
+        });
+
+        const annotations = [];
+
+        /*
+        for(var i=0; i<3500; i++) {
+          annotations.push(randomAnnotation());
+        }
+        */
+
+        anno.setAnnotations(annotations);
+      }
+    </script>
+  </head>
+  <body>
+    <h1>Annotorious | OpenSeadragon Example</h1>
+    <p class="instructions">
+      Click the annotation to edit. Hold <strong>SHIFT</strong> while clicking and 
+      dragging the mouse to create a new annotation. 
+    </p>
+    <div id="openseadragon"></div>    
+    <div id="toolbar"></div>
+
+    <script src="openseadragon/openseadragon.3.0.0.min.js"></script>
+    <script src="openseadragon-annotorious.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/openseadragon-wmts@latest/dist/openseadragon-wmts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@recogito/annotorious-toolbar@latest/dist/annotorious-toolbar.min.js"></script>
+  </body>
+</html>
