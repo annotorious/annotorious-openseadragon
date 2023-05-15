@@ -200,7 +200,8 @@ export class AnnotationLayer extends EventEmitter {
       releaseHandler: evt => {
         if (this.tools.current.isDrawing) {
           firstDragDone = true;
-
+          // continue in dragging mode if moveHandler has not been fired
+          if (!started) return;
           const { x , y } = this.tools.current.getSVGPoint(evt.originalEvent);
           this.tools.current.onMouseUp(x, y, evt.originalEvent);
 
