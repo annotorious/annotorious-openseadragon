@@ -47,6 +47,7 @@ class OSDAnnotorious {
         config={config} 
         env={this._env}
         onSelectionStarted={this.handleSelectionStarted}
+        onSelectionEnded={this.handleSelectionEnded}
         onSelectionCreated={this.handleSelectionCreated}
         onSelectionTargetChanged={this.handleSelectionTargetChanged}
         onAnnotationCreated={this.handleAnnotationCreated} 
@@ -90,6 +91,9 @@ class OSDAnnotorious {
 
   handleSelectionStarted = pt =>
     this._emitter.emit('startSelection', pt);
+
+  handleSelectionEnded = pt =>
+    this._emitter.emit('endSelection', pt);
 
   handleSelectionTargetChanged = target =>
     this._emitter.emit('changeSelectionTarget', target);
