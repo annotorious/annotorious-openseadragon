@@ -56,6 +56,7 @@ class OSDAnnotorious {
         onAnnotationDeleted={this.handleAnnotationDeleted}
         onCancelSelected={this.handleCancelSelected}
         onClickAnnotation={this.handleClickAnnotation}
+        onLoad={this.handleLoad}
         onMouseEnterAnnotation={this.handleMouseEnterAnnotation}
         onMouseLeaveAnnotation={this.handleMouseLeaveAnnotation} />, this.appContainerEl);
   }
@@ -81,6 +82,9 @@ class OSDAnnotorious {
 
   handleClickAnnotation = (annotation, elem) =>
     this._emitter.emit('clickAnnotation', annotation.underlying, elem);
+
+  handleLoad = src =>
+    this._emitter.emit('load', src);
   
   handleSelectionCreated = selection =>
     this._emitter.emit('createSelection', selection.underlying);
@@ -145,6 +149,22 @@ class OSDAnnotorious {
   fitBounds = (annotationOrId, immediately) =>
     this._app.current.fitBounds(this._wrap(annotationOrId), immediately);
 
+  fitBoundsWithConstraints = (annotationOrId, immediately) =>
+    this._app.current.fitBoundsWithConstraints(this._wrap(annotationOrId), immediately);
+
+  get formatters() {
+    return this._app.current.formatters || [];
+  }
+
+  set formatters(arg) {
+    if (arg) {
+      const formatters = Array.isArray(arg) ? arg : [ arg ];
+      this._app.current.formatters = formatters; 
+    } else {
+      this._app.current.formatters = null;
+    }
+  }
+
   getAnnotationById = annotationId => {
     const a = this._app.current.getAnnotationById(annotationId);
     return a?.underlying;
@@ -154,6 +174,12 @@ class OSDAnnotorious {
     const annotations = this._app.current.getAnnotations();
     return annotations.map(a => a.underlying);
   }
+
+  getAnnotationsIntersecting = annotationOrId =>
+    this._app.current.getAnnotationsIntersecting(this._wrap(annotationOrId));
+
+  getImageSnippetById = annotationId =>
+    this._app.current.getImageSnippetById(annotationId);
 
   getSelected = () => {
     const selected = this._app.current.getSelected();

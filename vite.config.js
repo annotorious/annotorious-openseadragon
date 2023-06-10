@@ -13,7 +13,9 @@ export default defineConfig({
       formats: [ 'umd' ]
     },
     rollupOptions: {
-      external: 'openseadragon'
+      external: {
+        'openseadragon': 'OpenSeadragon'
+      }
     }
   }
 })

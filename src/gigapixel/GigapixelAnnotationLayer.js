@@ -1,7 +1,7 @@
 import OpenSeadragon from 'openseadragon';
 import { drawShape } from '@recogito/annotorious/src/selectors';
 import { format } from '@recogito/annotorious/src/util/Formatting';
-import { addClass } from '@recogito/annotorious/src/util/SVG';
+import { addClass, removeClass } from '@recogito/annotorious/src/util/SVG';
 import { isTouchDevice } from '@recogito/annotorious/src/util/Touch';
 import { viewportTargetToImage, imageAnnotationToViewport, refreshViewportPosition } from '.';
 import { AnnotationLayer } from '../OSDAnnotationLayer';
@@ -13,6 +13,34 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
   constructor(props) {
     super(props);
     this._initDrawingTools(true);
+  }
+
+  // Common code for fitBounds and fitBoundsWithConstraints
+  _fit = (annotationOrId, opts, fn) => {
+    const immediately = opts ? (
+      typeof opts == 'boolean' ? opts : opts.immediately
+    ) : false; 
+
+    const padding = opts?.padding || 0;
+
+    const shape = this.findShape(annotationOrId);
+    if (shape) {
+      const containerBounds = this.viewer.container.getBoundingClientRect();
+      const shapeBounds = shape.getBoundingClientRect();
+
+      const x = shapeBounds.x - containerBounds.x;
+      const y = shapeBounds.y - containerBounds.y;
+      const { width, height } = shapeBounds;
+
+      const padX = x - padding;
+      const padY = y - padding;
+      const padW = width + 2 * padding;
+      const padH = height + 2 * padding;
+
+      const rect = this.viewer.viewport.viewerElementToViewportRectangle(new OpenSeadragon.Rect(padX, padY, padW, padH)); 
+      
+      this.viewer.viewport[fn](rect, immediately);
+    }    
   }
 
   _getShapeAt = evt => {
@@ -55,7 +83,7 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
 
     g.appendChild(shape);
 
-    format(shape, annotation, this.formatter);
+    format(shape, annotation, this.formatters);
 
     return shape;
   }
@@ -65,7 +93,8 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
    * non-scaling shapes need no scaling!
    */
   addOrUpdateAnnotation = (annotation, previous) => {
-    if (this.selectedShape?.annotation === annotation || this.selectedShape?.annotation == previous)
+    const selected = this.selectedShape?.annotation;
+    if (selected === annotation || selected?.isSelection || selected == previous)
       this.deselect();
   
     if (previous)
@@ -91,6 +120,9 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
 
         if (!annotation.isSelection)
           this.addAnnotation(annotation);
+      } else {
+        // Non-editable shape or read-only
+        removeClass(this.selectedShape, 'selected');
       }
       
       this.selectedShape = null;
@@ -102,41 +134,21 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
     const reprojected = shape.annotation.clone({ target: viewportTargetToImage(this.viewer, shape.annotation.target) });
     shape.annotation = reprojected;
 
-    console.log('reprojected', reprojected);  
-
     this.selectShape(shape);
     this.emit('createSelection', shape.annotation);
-    this.mouseTracker.setTracking(false);
+
+    this.mouseTracker.enabled = false;
   }
 
   resize() {
-    const viewportBounds = this.viewer.viewport.getBounds(true);
-    const { x, y, width, height } = this.viewer.viewport.viewportToImageRectangle(viewportBounds);
+    if (!this.store)
+      return;
 
-    const imageBounds = {
-      minX: x, 
-      minY: y, 
-      maxX: x + width,
-      maxY: y + height
-    };
-
-    // Only update shapes inside viewport
-    const visible = new Set(this.store.getAnnotationsIntersecting(imageBounds).map(a => a.id));
+    // Update positions for all annotations except selected (will be handled separately)
+    const shapes = Array.from(this.g.querySelectorAll('.a9s-annotation:not(.selected)'));
+    shapes.forEach(s =>
+      refreshViewportPosition(this.viewer, s));
     
-    if (visible.size > 0) {
-      // Update positions for all anntations except selected (will be handled separately)
-      const shapes = Array.from(this.g.querySelectorAll('.a9s-annotation:not(.selected)'));
-      shapes.forEach(s => {
-        if (visible.has(s.annotation.id)) {
-          s.removeAttribute('visibility');
-          refreshViewportPosition(this.viewer, s);
-        } else {
-          if (!s.hasAttribute('visibility'))
-            s.setAttribute('visibility', 'hidden');
-        }
-      });
-    }
-
     if (this.selectedShape) {
       if (this.selectedShape.element) {
         // Update the viewport position of the editable shape by transforming
@@ -192,15 +204,25 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
 
       // Disable normal OSD nav
       const editableShapeMouseTracker = new OpenSeadragon.MouseTracker({
-        element: this.svg
-      }).setTracking(true);
+        element: this.svg,
+
+        preProcessEventHandler: info => {
+          info.stopPropagation = true;
+          info.preventDefault = false;
+          info.preventGesture = true;
+        }
+      }).setTracking(false);
 
       // En-/disable OSD nav based on hover status
-      this.selectedShape.element.addEventListener('mouseenter', evt =>
-        editableShapeMouseTracker.setTracking(true));
+      this.selectedShape.element.addEventListener('mouseenter', () => {
+        this.hoveredShape = this.selectedShape;
+        editableShapeMouseTracker.setTracking(true);
+      });
 
-      this.selectedShape.element.addEventListener('mouseleave', evt =>
-        editableShapeMouseTracker.setTracking(false));
+      this.selectedShape.element.addEventListener('mouseleave', () => {
+        this.hoveredShape = null;
+        editableShapeMouseTracker.setTracking(false);
+      });
 
       this.selectedShape.mouseTracker = editableShapeMouseTracker;
 
@@ -216,6 +238,7 @@ export default class GigapixelAnnotationLayer extends AnnotationLayer {
       });
     } else {
       this.selectedShape = shape;
+      addClass(shape, 'selected');
 
       if (!skipEvent)
         this.emit('select', { annotation, element: shape, skipEvent });   

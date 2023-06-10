@@ -82,7 +82,13 @@
         
         var anno = OpenSeadragon.Annotorious(viewer, {
           locale: 'auto',
-          drawOnSingleClick: true
+          // drawOnSingleClick: true,
+          allowEmpty: true,
+          crosshair: true
+          // disableSelect: true
+          // crosshair: true
+          // disableEditor: true,
+          // disableDeleteKey: true
         });
 
         anno.setAuthInfo({
@@ -113,11 +119,11 @@
         });
 
         anno.on('startSelection', function(a) {
-          //console.log('start selection', a);
+          console.log('start selection', a);
         });
 
         anno.on('endSelection', function(a) {
-          //console.log('end selection', a);
+          console.log('end selection', a);
         });
 
         anno.on('createAnnotation', function(a, overrideId) {
@@ -132,6 +138,10 @@
           console.log('selected');
         });
 
+        anno.on('deleteAnnotation', function(annotation) {
+          console.log('deleted');
+        });
+
         anno.on('cancelSelected', function(a) {
           console.log('cancelSelected');
         });
@@ -142,6 +152,10 @@
 
         anno.on('mouseLeaveAnnotation', function(annotation, shape) {
           console.log('mouseLeave');
+        });
+
+        anno.on('clickAnnotation', function(annotation) {
+          console.log('click');
         });
 
         anno.loadAnnotations('annotations.w3c.json');
@@ -161,7 +175,7 @@
       </p>
       <div id="openseadragon" style="width: 640px; height: 480px;"></div>
     </div>      
-    <script src="openseadragon/openseadragon.2.4.2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/openseadragon@4.0/build/openseadragon/openseadragon.min.js"></script>
     <script src="openseadragon-annotorious.min.js"></script>
   </body>
 </html>
