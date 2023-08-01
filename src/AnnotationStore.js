@@ -20,7 +20,7 @@ import {
   const isBox = annotation.targets[0].selector.type === 'FragmentSelector';
 
   if (isBox) {
-    const {x,y,w,h} = parseRectFragment(annotation);
+    const {x,y,w,h} = parseRectFragment(annotation, image);
 
     return {
       minX: x, 
