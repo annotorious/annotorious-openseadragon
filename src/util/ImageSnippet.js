@@ -1,4 +1,5 @@
 import { hasClass } from '@recogito/annotorious/src/util/SVG';
+import OpenSeadragon from 'openseadragon';
 
 export const getSnippet = (viewer, element) => {
   // Annotation shape could be the element itself or a 
