@@ -626,11 +626,11 @@ export class AnnotationLayer extends EventEmitter {
     const scale = 1 / this.currentScale();
 
     if (opt_shape) {
-      const el = opt_shape.querySelector('.a9s-formatter-el');
+      const el = opt_shape.querySelector('.a9s-annotation:not(.a9s-non-scaling) .a9s-formatter-el');
       if (el)
         el.firstChild.setAttribute('transform', `scale(${scale})`);
     } else {
-      const elements = Array.from(this.g.querySelectorAll('.a9s-formatter-el'));
+      const elements = Array.from(this.g.querySelectorAll('.a9s-annotation:not(.a9s-non-scaling) .a9s-formatter-el'));
       elements.forEach(el =>
         el.firstChild.setAttribute('transform', `scale(${scale})`));
     }
