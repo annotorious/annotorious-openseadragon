@@ -179,18 +179,18 @@ export class AnnotationLayer extends EventEmitter {
         if (this.tools.current.isDrawing) {
           const { x , y } = this.tools.current.getSVGPoint(evt.originalEvent);
  
-          if (!evt.buttons || !firstDragDone) {
+          if (!firstDragDone) {
             evt.originalEvent.stopPropagation();
+          }
 
-            this.tools.current.onMouseMove(x, y, evt.originalEvent);
+          this.tools.current.onMouseMove(x, y, evt.originalEvent);
 
-            if (!started) {
-              this.emit('startSelection', { x , y });
-              started = true;
-            }
-          } else {
-            if (!dragging && this.tools.current.onDragStart)
-              this.tools.current.onDragStart(x, y, evt.originalEvent);
+          if (!started) {
+            this.emit('startSelection', { x , y });
+            started = true;
+          }
+          if (!dragging && this.tools.current.onDragStart) {
+            this.tools.current.onDragStart(x, y, evt.originalEvent);
 
             dragging = true;
           }
@@ -199,12 +199,13 @@ export class AnnotationLayer extends EventEmitter {
 
       releaseHandler: evt => {
         if (this.tools.current.isDrawing) {
-          firstDragDone = true;
-
           // continue in dragging mode if moveHandler has not been fired
           // if (!started) return;
           const { x , y } = this.tools.current.getSVGPoint(evt.originalEvent);
-          if (started) this.emit('endSelection', { x , y });
+          if (started) { 
+            this.emit('endSelection', { x , y });
+            firstDragDone = true;
+          }
           this.tools.current.onMouseUp(x, y, evt.originalEvent);
 
           if (dragging && this.tools.current.onDragEnd)
@@ -246,7 +247,6 @@ export class AnnotationLayer extends EventEmitter {
       if (evt.key.toLowerCase() === hotkey && !this.tools.current.isDrawing) {
         this.mouseTracker.enabled = inverted;
         this.tools.current.enabled = inverted;
-
         firstDragDone = false;
       }
     };
