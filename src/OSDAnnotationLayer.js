@@ -141,11 +141,14 @@ export class AnnotationLayer extends EventEmitter {
   _initDrawingTools = gigapixelMode => {
     let started = false;
     
+    let firstDragDone = false;
+
     let dragging = false;
 
     this.tools = new DrawingTools(this.g, this.config, this.env);
 
     this.tools.on('complete', shape => {
+      firstDragDone = false;
       this.onDrawingComplete(shape);
     });
 
@@ -176,7 +179,9 @@ export class AnnotationLayer extends EventEmitter {
         if (this.tools.current.isDrawing) {
           const { x , y } = this.tools.current.getSVGPoint(evt.originalEvent);
  
-          evt.originalEvent.stopPropagation();
+          if (!firstDragDone) {
+            evt.originalEvent.stopPropagation();
+          }
 
           this.tools.current.onMouseMove(x, y, evt.originalEvent);
 
@@ -197,7 +202,10 @@ export class AnnotationLayer extends EventEmitter {
           // continue in dragging mode if moveHandler has not been fired
           // if (!started) return;
           const { x , y } = this.tools.current.getSVGPoint(evt.originalEvent);
-          if (started) this.emit('endSelection', { x , y });
+          if (started) { 
+            this.emit('endSelection', { x , y });
+            firstDragDone = true;
+          }
           this.tools.current.onMouseUp(x, y, evt.originalEvent);
 
           if (dragging && this.tools.current.onDragEnd)
@@ -239,6 +247,7 @@ export class AnnotationLayer extends EventEmitter {
       if (evt.key.toLowerCase() === hotkey && !this.tools.current.isDrawing) {
         this.mouseTracker.enabled = inverted;
         this.tools.current.enabled = inverted;
+        firstDragDone = false;
       }
     };
         
